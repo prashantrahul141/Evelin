@@ -1,0 +1,5 @@
+/target
+*.o
+*.ssa
+qbe
+qbe-1.2
