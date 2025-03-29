@@ -132,18 +132,7 @@ impl<'a> Lexer<'a> {
                     self.scan_number();
                 } else if is_alpha(current_char) {
                     // 2. parses identifier.
-                    while is_alphanumeric(self.look_ahead()) {
-                        self.advance();
-                    }
-                    let lexeme = self.in_src[self.start..self.current].to_string();
-                    match get_type_from_reserved(&lexeme) {
-                        Some(ttype) => self.add_token(ttype, lexeme, TokenLiteral::Null),
-                        None => self.add_token(
-                            TokenType::Identifier,
-                            lexeme.clone(),
-                            TokenLiteral::String(lexeme),
-                        ),
-                    }
+                    self.scan_identifier();
                 } else {
                     // 3. everything else is illegal.
                     die!(
@@ -156,14 +145,33 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    /// Scans identifiers, reserved or user defined
+    fn scan_identifier(&mut self) {
+        trace!("scanning identifier");
+        while is_alphanumeric(self.look_ahead()) {
+            self.advance();
+        }
+        let lexeme = self.in_src[self.start..self.current].to_string();
+        match get_type_from_reserved(&lexeme) {
+            Some(ttype) => self.add_token(ttype, lexeme, TokenLiteral::Null),
+            None => self.add_token(
+                TokenType::Identifier,
+                lexeme.clone(),
+                TokenLiteral::String(lexeme),
+            ),
+        }
+    }
+
     /// Scans a number.
     fn scan_number(&mut self) {
+        trace!("scanning number");
         let mut is_float = false;
         while is_numeric(self.look_ahead()) {
             self.advance();
         }
 
         if self.look_ahead() == '.' && is_numeric(self.look_ahead_twice()) {
+            trace!("number is a float.");
             is_float = true;
 
             // consume the '.'
@@ -189,6 +197,7 @@ impl<'a> Lexer<'a> {
 
     /// Scans a string.
     fn scan_string(&mut self) {
+        trace!("scanning string");
         // consume until a single-double quote or the stream ends.
         while !self.is_at_end() && self.look_ahead() != '"' {
             if self.look_ahead() == '\n' {
