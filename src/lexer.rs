@@ -2,6 +2,7 @@ use log::{debug, error, trace};
 
 use crate::die;
 use crate::token::{Token, TokenLiteral, TokenType};
+use crate::utils::{is_alpha, is_numeric};
 
 pub struct Lexer<'a> {
     // Input source as String.
@@ -73,8 +74,9 @@ impl<'a> Lexer<'a> {
             ' ' | '\t' | '\r' => {}
 
             '/' => {
+                // a line starting with '//'
                 if self.match_char('/') {
-                    // a line starting with '//'
+                    // consuming everything until end.
                     while !self.is_at_end() && self.look_ahead() != '\n' {
                         self.advance();
                     }
@@ -118,7 +120,57 @@ impl<'a> Lexer<'a> {
             '"' => {
                 self.scan_string();
             }
-            _ => {}
+
+            // All other we need to either parse
+            // 1. numbers
+            // 2. identifier (this includes both reserved keywords and user defined identifier)
+            // everything else is then illegal and will raise an error if found.
+            _ => {
+                if is_numeric(current_char) {
+                    // 1. parses numbers.
+                    self.scan_number();
+                } else if is_alpha(current_char) {
+                    // 2. parses identifier.
+                } else {
+                    // 3. everything else is illegal.
+                    die!(
+                        "Illegal character found at line {} : {}",
+                        self.line,
+                        current_char
+                    );
+                }
+            }
+        }
+    }
+
+    /// Scans a number.
+    fn scan_number(&mut self) {
+        let mut is_float = false;
+        while is_numeric(self.look_ahead()) {
+            self.advance();
+        }
+
+        if self.look_ahead() == '.' && is_numeric(self.look_ahead_twice()) {
+            is_float = true;
+
+            // consume the '.'
+            self.advance();
+
+            // consume rest of the characters.
+            while is_numeric(self.look_ahead()) {
+                self.advance();
+            }
+        }
+
+        // getting the literal.
+        let lexeme = self.in_src[self.start..self.current].to_string();
+
+        if is_float {
+            let literal = TokenLiteral::NumberFloat(lexeme.parse::<f64>().unwrap());
+            self.add_token(TokenType::NumberFloat, lexeme, literal);
+        } else {
+            let literal = TokenLiteral::NumberInt(lexeme.parse::<i64>().unwrap());
+            self.add_token(TokenType::NumberFloat, lexeme, literal);
         }
     }
 
@@ -205,5 +257,14 @@ impl<'a> Lexer<'a> {
         }
 
         self.in_chars[self.current]
+    }
+
+    // like look_ahead but looks two positions forward.
+    fn look_ahead_twice(&self) -> char {
+        if self.current + 1 >= self.in_length {
+            return '\0';
+        }
+
+        self.in_chars[self.current + 1]
     }
 }
