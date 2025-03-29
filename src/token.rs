@@ -1,7 +1,3 @@
-use std::cell::OnceCell;
-use std::collections::HashMap;
-use std::ops::Index;
-
 /// All types of token.
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
@@ -46,8 +42,6 @@ pub enum TokenType {
     Return, // return
     If,     // if
     Else,   // else
-    While,  // while
-    For,    // for
     Print,  // print
 
     Eof, // end of file.

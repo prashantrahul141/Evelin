@@ -49,6 +49,7 @@ impl<'a> Lexer<'a> {
             self.start = self.current;
             self.scan_token();
         }
+        self.add_basic_token(TokenType::Eof);
     }
 
     /// Scans indiviual tokens.

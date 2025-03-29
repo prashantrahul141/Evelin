@@ -58,7 +58,7 @@ impl BackendQbe {
     }
 
     pub fn run(&self) -> String {
-        match Command::new("/tmp/qbe")
+        match Command::new(QBE_EXECUTABLE_PATH)
             .args(&[
                 "-o",
                 self.out_file.to_str().unwrap(),
