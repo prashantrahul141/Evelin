@@ -1,8 +1,8 @@
 use log::{debug, error, trace};
 
 use crate::die;
-use crate::token::{Token, TokenLiteral, TokenType};
-use crate::utils::{is_alpha, is_numeric};
+use crate::token::{Token, TokenLiteral, TokenType, get_type_from_reserved, is_reserved};
+use crate::utils::{is_alpha, is_alphanumeric, is_numeric};
 
 pub struct Lexer<'a> {
     // Input source as String.
@@ -131,6 +131,18 @@ impl<'a> Lexer<'a> {
                     self.scan_number();
                 } else if is_alpha(current_char) {
                     // 2. parses identifier.
+                    while is_alphanumeric(self.look_ahead()) {
+                        self.advance();
+                    }
+                    let lexeme = self.in_src[self.start..self.current].to_string();
+                    match get_type_from_reserved(&lexeme) {
+                        Some(ttype) => self.add_token(ttype, lexeme, TokenLiteral::Null),
+                        None => self.add_token(
+                            TokenType::Identifier,
+                            lexeme.clone(),
+                            TokenLiteral::String(lexeme),
+                        ),
+                    }
                 } else {
                     // 3. everything else is illegal.
                     die!(

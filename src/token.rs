@@ -1,3 +1,7 @@
+use std::cell::OnceCell;
+use std::collections::HashMap;
+use std::ops::Index;
+
 /// All types of token.
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
@@ -26,9 +30,10 @@ pub enum TokenType {
     LessEqual,    // <=
 
     // literals.
-    Identifier, // variables, function names, class names.
-    String,     // Strings.
-    Number,     // numbers : integers, floats.
+    Identifier,  // variables, function names, class names.
+    String,      // Strings.
+    NumberInt,   // numbers : integers.
+    NumberFloat, // numbers : floats.
 
     // keywords
     True,   // true
@@ -57,7 +62,8 @@ impl std::fmt::Display for TokenType {
 // Some tokens contains values with them.
 #[derive(Debug)]
 pub enum TokenLiteral {
-    Number(f64),
+    NumberFloat(f64),
+    NumberInt(i64),
     String(String),
     Boolean(bool),
     Null,
@@ -77,4 +83,41 @@ pub struct Token {
 
     // at which line number in the source.
     pub line: usize,
+}
+
+static RESERVED_KEYWORDS_KEYS: [&'static str; 11] = [
+    "true", "false", "null", "and", "or", "let", "fn", "return", "if", "else", "print",
+];
+
+static RESERVED_KEYWORDS_TYPES: [TokenType; 11] = [
+    TokenType::True,
+    TokenType::False,
+    TokenType::And,
+    TokenType::Null,
+    TokenType::Or,
+    TokenType::Let,
+    TokenType::Fn,
+    TokenType::Return,
+    TokenType::If,
+    TokenType::Else,
+    TokenType::Print,
+];
+
+pub fn is_reserved(target: &str) -> bool {
+    RESERVED_KEYWORDS_KEYS.contains(&target)
+}
+
+/// Get TokenType for reserved keyword.
+pub fn get_type_from_reserved(target: &str) -> Option<TokenType> {
+    return if is_reserved(target) {
+        Some(
+            RESERVED_KEYWORDS_TYPES[RESERVED_KEYWORDS_KEYS
+                .iter()
+                .position(|&x| x == target)
+                .unwrap()]
+            .clone(),
+        )
+    } else {
+        None
+    };
 }
