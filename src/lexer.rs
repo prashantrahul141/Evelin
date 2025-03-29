@@ -62,10 +62,59 @@ impl<'a> Lexer<'a> {
             '-' => self.add_basic_token(TokenType::Minus),
             '+' => self.add_basic_token(TokenType::Plus),
             ';' => self.add_basic_token(TokenType::Semicolon),
-            '/' => self.add_basic_token(TokenType::Slash),
             '*' => self.add_basic_token(TokenType::Star),
             '%' => self.add_basic_token(TokenType::Mod),
 
+            '\n' => {
+                self.line += 1;
+            }
+
+            ' ' | '\t' | '\r' => {}
+
+            '/' => {
+                if self.match_char('/') {
+                    // a line starting with '//'
+                    while !self.is_at_end() && self.look_ahead() != '\n' {
+                        self.advance();
+                    }
+                } else {
+                    self.add_basic_token(TokenType::Slash);
+                }
+            }
+
+            '!' => {
+                if self.match_char('=') {
+                    self.add_basic_token(TokenType::BangEqual);
+                } else {
+                    self.add_basic_token(TokenType::Bang);
+                }
+            }
+
+            '=' => {
+                if self.match_char('=') {
+                    self.add_basic_token(TokenType::EqualEqual);
+                } else {
+                    self.add_basic_token(TokenType::Equal);
+                }
+            }
+
+            '>' => {
+                if self.match_char('=') {
+                    self.add_basic_token(TokenType::GreaterEqual);
+                } else {
+                    self.add_basic_token(TokenType::Greater);
+                }
+            }
+
+            '<' => {
+                if self.match_char('=') {
+                    self.add_basic_token(TokenType::LessEqual);
+                } else {
+                    self.add_basic_token(TokenType::Less);
+                }
+            }
+
+            '"' => {}
             _ => {}
         }
     }
@@ -94,5 +143,29 @@ impl<'a> Lexer<'a> {
     /// Checks whether stream of tokens ended.
     fn is_at_end(&self) -> bool {
         self.current >= self.in_length
+    }
+
+    /// matches current char with expected, consumes if same.
+    /// also returns whether it matches or not.
+    fn match_char(&mut self, expected: char) -> bool {
+        if self.is_at_end() {
+            return false;
+        }
+
+        if self.in_chars[self.current] != expected {
+            return false;
+        }
+
+        self.current += 1;
+        true
+    }
+
+    // like advance but doesn't consume the token.
+    fn look_ahead(&self) -> char {
+        if self.is_at_end() {
+            return '\0';
+        }
+
+        self.in_chars[self.current]
     }
 }
