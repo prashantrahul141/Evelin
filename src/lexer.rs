@@ -183,7 +183,7 @@ impl<'a> Lexer<'a> {
             self.add_token(TokenType::NumberFloat, lexeme, literal);
         } else {
             let literal = TokenLiteral::NumberInt(lexeme.parse::<i64>().unwrap());
-            self.add_token(TokenType::NumberFloat, lexeme, literal);
+            self.add_token(TokenType::NumberInt, lexeme, literal);
         }
     }
 
