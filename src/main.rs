@@ -4,7 +4,6 @@ mod lexer;
 mod token;
 mod utils;
 
-use std::io::{self, Write};
 use std::{fs, path::Path};
 
 use clap::Parser;
@@ -12,6 +11,8 @@ use cli::ZSCliOptions;
 use env_logger::Env;
 use lexer::Lexer;
 use log::{error, trace};
+use rustyline::DefaultEditor;
+use rustyline::error::ReadlineError;
 
 fn init() -> ZSCliOptions {
     let cli = ZSCliOptions::parse();
@@ -49,15 +50,26 @@ fn main() {
             dbg!(lexer.tokens);
         }
         // repl mode.
-        cli::InFile::Stdin => loop {
-            let mut in_line = String::new();
-            print!(">>> ");
-            io::stdout().flush().unwrap();
-            io::stdin().read_line(&mut in_line).unwrap();
-
-            let mut lexer = Lexer::new(&in_line);
-            lexer.start();
-            dbg!(lexer.tokens);
-        },
+        cli::InFile::Stdin => {
+            let mut rl = DefaultEditor::new().unwrap();
+            loop {
+                let readline = rl.readline(">>> ");
+                match readline {
+                    Ok(line) => {
+                        let _ = rl.add_history_entry(line.as_str());
+                        let mut lexer = Lexer::new(&line);
+                        lexer.start();
+                        dbg!(lexer.tokens);
+                    }
+                    Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {
+                        println!("Interrupted");
+                        break;
+                    }
+                    Err(err) => {
+                        die!("Failed to readline : {:?}", err);
+                    }
+                }
+            }
+        }
     };
 }
