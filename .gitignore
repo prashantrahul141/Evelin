@@ -2,4 +2,6 @@
 *.o
 *.ssa
 qbe
+qbe-1.2/*
+*.tar.xz
 qbe-1.2
