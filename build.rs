@@ -1,42 +1,43 @@
-use std::{path::Path, process::Command};
+use std::process::Command;
 
-const QBE_RELEASE_URL: &str = "https://c9x.me/compile/release/qbe-1.2.tar.xz";
-const EXTERNAL_DIR: &str = "./src/external/";
-const QBE_TAR_FILE: &str = "qbe.tar";
+const QBE_ROOT_DIR: &str = "./src/external/qbe-1.2/";
+const EXTERNAL_ROOT_DIR: &str = "./src/external/";
+const QBE_URI: &str = "https://c9x.me/compile/release/qbe-1.2.tar.xz";
+
+macro_rules! p {
+    ($($tokens: tt)*) => {
+        println!("cargo::warning={}", format!($($tokens)*))
+    }
+}
 
 fn main() {
     println!("cargo::rerun-if-changed=src/external/qbe-1.2/main.c");
+    p!("Rerun build.");
 
-    // download qbe source.
     let status = Command::new("wget")
-        .args(["-O", QBE_TAR_FILE, QBE_RELEASE_URL])
-        .current_dir(EXTERNAL_DIR)
-        .status()
-        .expect("Failed to download qbe source. please make sure wget is installed.");
+        .args(&["-nc", QBE_URI])
+        .current_dir(EXTERNAL_ROOT_DIR)
+        .output();
 
-    if !status.success() {
-        panic!("Failed to download qbe source.");
+    if !status.is_ok() {
+        panic!("Failed to download qbe tar file.");
     }
 
-    // untar it.
     let status = Command::new("tar")
-        .args(["-xf", QBE_TAR_FILE])
-        .current_dir(EXTERNAL_DIR)
-        .status()
-        .expect("Failed to untar qbe tar file.");
+        .args(&["vxf", "qbe-1.2.tar.xz"])
+        .current_dir(EXTERNAL_ROOT_DIR)
+        .output();
 
-    if !status.success() {
-        panic!("Failed to untar qbe source. please make sure gnu tar is installed.");
+    if !status.is_ok() {
+        panic!("Failed to extract qbe tar file.");
     }
 
-    // compile it.
     let status = Command::new("make")
-        .args(["-j", "8"])
-        .current_dir(Path::join(Path::new(EXTERNAL_DIR), "qbe-1.2"))
-        .status()
-        .expect("Failed to compile qbe.");
+        .args(&["-j", "16"])
+        .current_dir(QBE_ROOT_DIR)
+        .output();
 
-    if !status.success() {
-        panic!("Failed to build qbe from make.");
+    if !status.is_ok() {
+        panic!("Failed to build qbe using make.");
     }
 }
