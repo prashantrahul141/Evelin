@@ -1,6 +1,7 @@
-use log::{debug, trace};
+use log::{debug, error, trace};
 
-use crate::token::{Token, TokenType};
+use crate::die;
+use crate::token::{Token, TokenLiteral, TokenType};
 
 pub struct Lexer<'a> {
     // Input source as String.
@@ -114,9 +115,38 @@ impl<'a> Lexer<'a> {
                 }
             }
 
-            '"' => {}
+            '"' => {
+                self.scan_string();
+            }
             _ => {}
         }
+    }
+
+    /// Scans a string.
+    fn scan_string(&mut self) {
+        // consume until a single-double quote or the stream ends.
+        while !self.is_at_end() && self.look_ahead() != '"' {
+            if self.look_ahead() == '\n' {
+                self.line += 1;
+            }
+
+            self.advance();
+        }
+
+        if self.is_at_end() {
+            die!("Non terminated string.");
+        }
+
+        // consume "
+        self.advance();
+
+        // add token.
+        let literal = self.in_src[self.start + 1..self.current - 1].to_string();
+        self.add_token(
+            TokenType::String,
+            literal.clone(),
+            TokenLiteral::String(literal),
+        )
     }
 
     /// Consumes and returns next character in the input stream.
@@ -129,13 +159,21 @@ impl<'a> Lexer<'a> {
 
     /// Adds a basic token from its type.
     fn add_basic_token(&mut self, ttype: TokenType) {
+        self.add_token(
+            ttype,
+            self.in_src[self.start..self.current].to_string(),
+            crate::token::TokenLiteral::Null,
+        );
+    }
+
+    /// Adds a new token from arguments.
+    fn add_token(&mut self, ttype: TokenType, lexeme: String, literal: TokenLiteral) {
         let token = Token {
             ttype,
-            lexeme: self.in_src[self.start..self.current].to_string(),
+            lexeme,
             line: self.line,
-            literal: crate::token::TokenLiteral::Null,
+            literal,
         };
-
         trace!("Added token = {:?}", token);
         self.tokens.push(token);
     }
