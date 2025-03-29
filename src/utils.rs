@@ -1,5 +1,3 @@
-use log::error;
-
 #[macro_export]
 macro_rules! die {
     ($($arg:tt)+) =>  {
