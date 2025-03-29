@@ -1,7 +1,7 @@
 use log::{debug, error, trace};
 
 use crate::die;
-use crate::token::{Token, TokenLiteral, TokenType, get_type_from_reserved, is_reserved};
+use crate::token::{Token, TokenLiteral, TokenType, get_type_from_reserved};
 use crate::utils::{is_alpha, is_alphanumeric, is_numeric};
 
 pub struct Lexer<'a> {
