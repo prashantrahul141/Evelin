@@ -55,7 +55,7 @@ impl std::fmt::Display for TokenType {
 
 // Some tokens contains values with them.
 #[derive(Debug)]
-pub enum TokenLiteral {
+pub enum LiteralValue {
     NumberFloat(f64),
     NumberInt(i64),
     String(String),
@@ -73,7 +73,7 @@ pub struct Token {
     pub lexeme: String,
 
     // parsed literal
-    pub literal: TokenLiteral,
+    pub literal: LiteralValue,
 
     // at which line number in the source.
     pub line: usize,

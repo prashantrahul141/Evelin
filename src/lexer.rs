@@ -1,7 +1,7 @@
 use log::{debug, error, trace};
 
 use crate::die;
-use crate::token::{Token, TokenLiteral, TokenType, get_type_from_reserved};
+use crate::token::{LiteralValue, Token, TokenType, get_type_from_reserved};
 use crate::utils::{is_alpha, is_alphanumeric, is_numeric};
 
 pub struct Lexer<'a> {
@@ -153,11 +153,11 @@ impl<'a> Lexer<'a> {
         }
         let lexeme = self.in_src[self.start..self.current].to_string();
         match get_type_from_reserved(&lexeme) {
-            Some(ttype) => self.add_token(ttype, lexeme, TokenLiteral::Null),
+            Some(ttype) => self.add_token(ttype, lexeme, LiteralValue::Null),
             None => self.add_token(
                 TokenType::Identifier,
                 lexeme.clone(),
-                TokenLiteral::String(lexeme),
+                LiteralValue::String(lexeme),
             ),
         }
     }
@@ -187,10 +187,10 @@ impl<'a> Lexer<'a> {
         let lexeme = self.in_src[self.start..self.current].to_string();
 
         if is_float {
-            let literal = TokenLiteral::NumberFloat(lexeme.parse::<f64>().unwrap());
+            let literal = LiteralValue::NumberFloat(lexeme.parse::<f64>().unwrap());
             self.add_token(TokenType::NumberFloat, lexeme, literal);
         } else {
-            let literal = TokenLiteral::NumberInt(lexeme.parse::<i64>().unwrap());
+            let literal = LiteralValue::NumberInt(lexeme.parse::<i64>().unwrap());
             self.add_token(TokenType::NumberInt, lexeme, literal);
         }
     }
@@ -219,7 +219,7 @@ impl<'a> Lexer<'a> {
         self.add_token(
             TokenType::String,
             literal.clone(),
-            TokenLiteral::String(literal),
+            LiteralValue::String(literal),
         )
     }
 
@@ -236,12 +236,12 @@ impl<'a> Lexer<'a> {
         self.add_token(
             ttype,
             self.in_src[self.start..self.current].to_string(),
-            crate::token::TokenLiteral::Null,
+            crate::token::LiteralValue::Null,
         );
     }
 
     /// Adds a new token from arguments.
-    fn add_token(&mut self, ttype: TokenType, lexeme: String, literal: TokenLiteral) {
+    fn add_token(&mut self, ttype: TokenType, lexeme: String, literal: LiteralValue) {
         let token = Token {
             ttype,
             lexeme,
