@@ -29,7 +29,7 @@ impl FromStr for InFile {
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 pub struct ZSCliOptions {
-    /// File path
+    /// File path, use '-' to start repl mode.
     pub file: InFile,
 
     /// Turn debugging information on

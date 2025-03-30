@@ -1,3 +1,4 @@
+/// Wrapper around error! and panic!, so that i dont have to call them individually.
 #[macro_export]
 macro_rules! die {
     ($($arg:tt)+) =>  {
