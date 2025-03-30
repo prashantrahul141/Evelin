@@ -1,7 +1,7 @@
 {
   description = "dev environment";
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   };
 
   outputs =
@@ -14,6 +14,8 @@
         packages = with pkgs; [
           cargo
           rustc
+          rustfmt
+          rustPackages.clippy
           gnumake
           wget
           gnutar
