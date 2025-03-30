@@ -1,6 +1,8 @@
+mod ast;
 mod backend;
 mod cli;
 mod lexer;
+mod parser;
 mod token;
 mod utils;
 
@@ -45,9 +47,9 @@ fn main() {
         // file mode.
         cli::InFile::File(f) => {
             let in_src = fs::read_to_string(f).unwrap();
-            let mut lexer = Lexer::new(&in_src);
+            let mut lexer = lexer::Lexer::new(&in_src);
             lexer.start();
-            dbg!(lexer.tokens);
+            let parser = parser::Parser::new(lexer.tokens());
         }
         // repl mode.
         cli::InFile::Stdin => {
@@ -59,7 +61,7 @@ fn main() {
                         let _ = rl.add_history_entry(line.as_str());
                         let mut lexer = Lexer::new(&line);
                         lexer.start();
-                        dbg!(lexer.tokens);
+                        let parser = parser::Parser::new(lexer.tokens());
                     }
                     Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {
                         println!("Interrupted");
