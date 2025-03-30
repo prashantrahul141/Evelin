@@ -28,12 +28,9 @@ impl BackendQbe {
             }
         };
 
-        match exe_file.write_all(QBE_BINARY_DATA) {
-            Ok(_) => {}
-            Err(e) => {
-                die!("Failed to write to /tmp/qbe file: {}", e);
-            }
-        }
+        exe_file.write_all(QBE_BINARY_DATA).unwrap_or_else(|e| {
+            die!("Failed to write to /tmp/qbe file: {}", e);
+        });
 
         let metadata = match exe_file.metadata() {
             Ok(m) => m,
