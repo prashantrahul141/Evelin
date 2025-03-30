@@ -14,30 +14,27 @@ fn main() {
     println!("cargo::rerun-if-changed=src/external/qbe-1.2/main.c");
     p!("Rerun build.");
 
-    let status = Command::new("wget")
+    if let Err(e) = Command::new("wget")
         .args(&["-nc", QBE_URI])
         .current_dir(EXTERNAL_ROOT_DIR)
-        .output();
-
-    if !status.is_ok() {
-        panic!("Failed to download qbe tar file.");
+        .output()
+    {
+        panic!("Failed to download qbe tar file : {}", e);
     }
 
-    let status = Command::new("tar")
-        .args(&["vxf", "qbe-1.2.tar.xz"])
+    if let Err(e) = Command::new("tar")
+        .args(["vxf", "qbe-1.2.tar.xz"])
         .current_dir(EXTERNAL_ROOT_DIR)
-        .output();
-
-    if !status.is_ok() {
-        panic!("Failed to extract qbe tar file.");
+        .output()
+    {
+        panic!("Failed to untar qbe file: {}", e);
     }
 
-    let status = Command::new("make")
+    if let Err(e) = Command::new("make")
         .args(&["-j", "16"])
         .current_dir(QBE_ROOT_DIR)
-        .output();
-
-    if !status.is_ok() {
-        panic!("Failed to build qbe using make.");
+        .output()
+    {
+        panic!("Failed while building qbe : {}", e);
     }
 }
