@@ -24,7 +24,7 @@ pub struct Lexer<'a> {
     line: usize,
 
     // scanned tokens
-    pub tokens: Vec<Token>,
+    tokens: Vec<Token>,
 }
 
 impl<'a> Lexer<'a> {
@@ -288,5 +288,11 @@ impl<'a> Lexer<'a> {
         }
 
         self.in_chars[self.current + 1]
+    }
+
+    // "getter" method for tokens
+    // returns a non mutable references to tokens vec.
+    pub fn tokens(&self) -> &Vec<Token> {
+        &self.tokens
     }
 }
