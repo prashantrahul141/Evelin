@@ -14,13 +14,13 @@ use crate::die;
 const QBE_BINARY_DATA: &[u8] = include_bytes!("./external/qbe-1.2/qbe");
 const QBE_EXECUTABLE_PATH: &str = "/tmp/qbe";
 
-pub struct BackendQbe {
+pub struct QbeBackend {
     pub out_file: PathBuf,
     in_file: PathBuf,
 }
 
-impl BackendQbe {
-    pub fn new<T: Into<PathBuf> + Clone + Copy>(in_file: T) -> Self {
+impl<T: Into<PathBuf> + Clone + Copy> From<T> for QbeBackend {
+    fn from(in_file: T) -> Self {
         let mut exe_file = match File::create(QBE_EXECUTABLE_PATH) {
             Ok(f) => f,
             Err(e) => {
@@ -53,7 +53,9 @@ impl BackendQbe {
             out_file,
         }
     }
+}
 
+impl QbeBackend {
     pub fn run(&self) -> String {
         match Command::new(QBE_EXECUTABLE_PATH)
             .args(&[
