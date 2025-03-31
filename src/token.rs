@@ -54,13 +54,25 @@ impl std::fmt::Display for TokenType {
 }
 
 // Some tokens contains values with them.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum LiteralValue {
     NumberFloat(f64),
     NumberInt(i64),
     String(String),
     Boolean(bool),
     Null,
+}
+
+impl std::fmt::Display for LiteralValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LiteralValue::NumberFloat(v) => write!(f, "{}", v),
+            LiteralValue::NumberInt(v) => write!(f, "{}", v),
+            LiteralValue::String(v) => write!(f, "{}", v),
+            LiteralValue::Boolean(v) => write!(f, "{}", v),
+            LiteralValue::Null => write!(f, "null"),
+        }
+    }
 }
 
 // The token type.
@@ -77,6 +89,12 @@ pub struct Token {
 
     // at which line number in the source.
     pub line: usize,
+}
+
+impl std::fmt::Display for Token {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 static RESERVED_KEYWORDS_KEYS: [&'static str; 11] = [
