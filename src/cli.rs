@@ -6,6 +6,7 @@ use clap::Parser;
 pub enum DebugTypes {
     Error,
     Debug,
+    Trace,
 }
 
 #[derive(Clone, Debug)]

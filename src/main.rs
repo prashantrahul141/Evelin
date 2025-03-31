@@ -6,11 +6,12 @@ mod parser;
 mod token;
 mod utils;
 
+use std::io::Write;
 use std::{fs, path::Path};
 
 use clap::Parser;
 use cli::ZSCliOptions;
-use env_logger::Env;
+use env_logger::{Builder, Env};
 use lexer::Lexer;
 use log::{error, trace};
 use rustyline::DefaultEditor;
@@ -21,10 +22,24 @@ fn init() -> ZSCliOptions {
     let level = match cli.debug {
         cli::DebugTypes::Error => "error",
         cli::DebugTypes::Debug => "debug",
+        cli::DebugTypes::Trace => "trace",
     };
 
     let env = Env::default().filter_or("ZS_LOG_LEVEL", level);
-    env_logger::init_from_env(env);
+
+    Builder::from_env(env)
+        .format(|buf, record| {
+            let warn_style = buf.default_level_style(record.level());
+            writeln!(
+                buf,
+                "{warn_style}{}:{}:{}L:{warn_style:#} {}",
+                record.level(),
+                record.file().unwrap(),
+                record.line().unwrap(),
+                record.args()
+            )
+        })
+        .init();
 
     match &cli.file {
         cli::InFile::File(f) => {
@@ -49,7 +64,9 @@ fn main() {
             let in_src = fs::read_to_string(f).unwrap();
             let mut lexer = lexer::Lexer::new(&in_src);
             lexer.start();
-            let parser = parser::Parser::new(lexer.tokens());
+            let mut parser = parser::Parser::new(lexer.tokens());
+            parser.parse();
+            dbg!(parser.stmts);
         }
         // repl mode.
         cli::InFile::Stdin => {
@@ -61,7 +78,9 @@ fn main() {
                         let _ = rl.add_history_entry(line.as_str());
                         let mut lexer = Lexer::new(&line);
                         lexer.start();
-                        let parser = parser::Parser::new(lexer.tokens());
+                        let mut parser = parser::Parser::new(lexer.tokens());
+                        parser.parse();
+                        dbg!(parser.stmts);
                     }
                     Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {
                         println!("Interrupted");
