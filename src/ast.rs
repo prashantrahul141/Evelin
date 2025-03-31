@@ -1,6 +1,11 @@
-use crate::token::LiteralValue;
+use log::error;
 
-#[derive(Debug)]
+use crate::{
+    die,
+    token::{LiteralValue, TokenType},
+};
+
+#[derive(Debug, Clone, Copy)]
 pub enum BinOp {
     OpAdd, // +
     OpSub, // -
@@ -9,35 +14,63 @@ pub enum BinOp {
     OpMod, // %
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
+pub struct BinExpr {
+    pub left: Expr,
+    pub op: BinOp,
+    pub right: Expr,
+}
+
+impl From<&TokenType> for BinOp {
+    fn from(value: &TokenType) -> Self {
+        match value {
+            TokenType::Plus => BinOp::OpAdd,
+            TokenType::Minus => BinOp::OpSub,
+            TokenType::Slash => BinOp::OpDiv,
+            TokenType::Star => BinOp::OpMul,
+            TokenType::Mod => BinOp::OpMod,
+            _ => {
+                die!("BinOp::from failed recieved: {}", value);
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub enum UnOp {
     OpSub, // -
+    OpNeg, // !
 }
 
-#[derive(Debug)]
-pub struct BinExpr {
-    left: Expr,
-    op: BinOp,
-    right: Expr,
+impl From<&TokenType> for UnOp {
+    fn from(value: &TokenType) -> Self {
+        match value {
+            TokenType::Minus => UnOp::OpSub,
+            TokenType::Bang => UnOp::OpNeg,
+            _ => {
+                die!("UnOp::from failed recieved: {}", value);
+            }
+        }
+    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UnaryExpr {
-    op: UnOp,
-    operand: Expr,
+    pub op: UnOp,
+    pub operand: Expr,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LiteralExpr {
-    value: LiteralValue,
+    pub value: LiteralValue,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GroupExpr {
-    value: Expr,
+    pub value: Expr,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expr {
     Binary(Box<BinExpr>),
     Unary(Box<UnaryExpr>),
