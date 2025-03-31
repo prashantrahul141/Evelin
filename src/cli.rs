@@ -1,6 +1,12 @@
+use std::io::Write;
+use std::path::Path;
 use std::{path::PathBuf, str::FromStr};
 
 use clap::Parser;
+use env_logger::{Builder, Env};
+use log::{error, trace};
+
+use crate::die;
 
 #[derive(clap::ValueEnum, Clone, Debug)]
 pub enum DebugTypes {
@@ -37,4 +43,43 @@ pub struct ZSCliOptions {
     #[clap(value_enum, default_value_t = DebugTypes::Error)]
     #[arg(short, long)]
     pub debug: DebugTypes,
+}
+
+pub fn init() -> ZSCliOptions {
+    let cli = ZSCliOptions::parse();
+    let level = match cli.debug {
+        DebugTypes::Error => "error",
+        DebugTypes::Debug => "debug",
+        DebugTypes::Trace => "trace",
+    };
+
+    let env = Env::default().filter_or("ZS_LOG_LEVEL", level);
+
+    Builder::from_env(env)
+        .format(|buf, record| {
+            let warn_style = buf.default_level_style(record.level());
+            writeln!(
+                buf,
+                "{warn_style}{}:{}:{}L:{warn_style:#} {}",
+                record.level(),
+                record.file().unwrap(),
+                record.line().unwrap(),
+                record.args()
+            )
+        })
+        .init();
+
+    match &cli.file {
+        InFile::File(f) => {
+            let file_path = Path::new(f);
+            if !file_path.is_file() && !file_path.exists() {
+                die!("File not found {}", f.to_str().unwrap());
+            }
+        }
+        InFile::Stdin => {
+            trace!("repl mode.");
+        }
+    };
+
+    cli
 }
