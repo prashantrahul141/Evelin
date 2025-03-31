@@ -50,51 +50,38 @@ impl<'a> Parser<'a> {
 
     /// Parses term expressions.
     fn term(&mut self) -> Result<Expr, anyhow::Error> {
-        if let Ok(left) = self.factor() {
-            while self.match_token(&[TokenType::Minus, TokenType::Plus]) {
-                let op = BinOp::from(&self.previous().ttype);
-                if let Ok(right) = self.factor() {
-                    let bin = BinExpr {
-                        left: left.clone(),
-                        op,
-                        right,
-                    };
+        let mut left = self.factor()?;
 
-                    return Ok(Expr::Binary(Box::new(bin)));
-                }
-            }
-            return Ok(left);
+        while self.match_token(&[TokenType::Minus, TokenType::Plus]) {
+            let op = BinOp::from(&self.previous().ttype);
+            let right = self.factor()?;
+            let bin = BinExpr {
+                left: left.clone(),
+                op,
+                right,
+            };
+            left = Expr::Binary(Box::new(bin));
         }
 
-        let error =
-            self.report_parser_error(format!("Expected '+' or '-' got {}", self.previous()));
-
-        Err(anyhow!(error))
+        Ok(left)
     }
 
     /// Parses factor expressions.
     fn factor(&mut self) -> Result<Expr, anyhow::Error> {
-        if let Ok(left) = self.unary() {
-            while self.match_token(&[TokenType::Slash, TokenType::Star, TokenType::Mod]) {
-                let op = BinOp::from(&self.previous().ttype);
-                if let Ok(right) = self.unary() {
-                    let bin = BinExpr {
-                        left: left.clone(),
-                        op,
-                        right,
-                    };
+        let mut left = self.unary()?;
 
-                    return Ok(Expr::Binary(Box::new(bin)));
-                }
-            }
-
-            return Ok(left);
+        while self.match_token(&[TokenType::Slash, TokenType::Star, TokenType::Mod]) {
+            let op = BinOp::from(&self.previous().ttype);
+            let right = self.unary()?;
+            let bin = BinExpr {
+                left: left.clone(),
+                op,
+                right,
+            };
+            left = Expr::Binary(Box::new(bin));
         }
 
-        let error =
-            self.report_parser_error(format!("Expected '/', '*' or '%' got {}", self.previous()));
-
-        Err(anyhow!(error))
+        Ok(left)
     }
 
     /// Parses unary expressions.
@@ -148,7 +135,10 @@ impl<'a> Parser<'a> {
         if self.match_token(&[TokenType::LeftParen]) {
             trace!("Grouping found.");
             if let Ok(expr) = self.expr() {
-                self.consume(TokenType::RightParen, "Expected ')'");
+                self.consume(
+                    TokenType::RightParen,
+                    format!("Expected ')' got {} instead", self.current().ttype).as_str(),
+                );
                 let literal = Expr::Grouping(Box::new(GroupExpr { value: expr }));
                 return Ok(literal);
             }
@@ -165,9 +155,9 @@ impl<'a> Parser<'a> {
     /// Consumes current token if it matches the given token type.
     /// * `expected_type` - type of token to match with.
     /// * `message` - error message for when token doesn't match the expected type
-    fn consume(&mut self, expected_type: TokenType, message: &str) {
+    fn consume(&mut self, expected_type: TokenType, message: &str) -> Option<&Token> {
         if self.match_current(&expected_type) {
-            self.advance();
+            return Some(self.advance());
         }
 
         self.report_parser_error(message);
@@ -194,7 +184,6 @@ impl<'a> Parser<'a> {
         if self.is_at_end() {
             return false;
         }
-
         expected_type == &self.current().ttype
     }
 
