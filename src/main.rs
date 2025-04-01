@@ -11,6 +11,7 @@ use std::fs;
 
 use lexer::Lexer;
 use log::error;
+use qbe_generator::QBEEmitter;
 use rustyline::DefaultEditor;
 use rustyline::error::ReadlineError;
 
@@ -20,11 +21,13 @@ fn main() {
         // file mode.
         cli::InFile::File(f) => {
             let in_src = fs::read_to_string(f).unwrap();
-            let mut lexer = lexer::Lexer::new(&in_src);
+            let mut lexer = lexer::Lexer::from(&in_src);
             lexer.start();
-            let mut parser = parser::Parser::new(lexer.tokens());
+            let mut parser = parser::Parser::from(lexer.tokens());
             parser.parse();
-            dbg!(parser.stmts);
+            let mut qbe_generator = QBEEmitter::from(&parser.stmts);
+            qbe_generator.emit();
+            println!("{}", qbe_generator.module);
         }
         // repl mode.
         cli::InFile::Stdin => {
@@ -34,11 +37,13 @@ fn main() {
                 match readline {
                     Ok(line) => {
                         let _ = rl.add_history_entry(line.as_str());
-                        let mut lexer = Lexer::new(&line);
+                        let mut lexer = Lexer::from(&line);
                         lexer.start();
-                        let mut parser = parser::Parser::new(lexer.tokens());
+                        let mut parser = parser::Parser::from(lexer.tokens());
                         parser.parse();
-                        dbg!(parser.stmts);
+                        let mut qbe_generator = QBEEmitter::from(&parser.stmts);
+                        qbe_generator.emit();
+                        println!("{}", qbe_generator.module);
                     }
                     Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {
                         println!("Interrupted");
