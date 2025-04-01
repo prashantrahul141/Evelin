@@ -27,10 +27,8 @@ pub struct Lexer<'a> {
     tokens: Vec<Token>,
 }
 
-impl<'a> Lexer<'a> {
-    /// Init a lexer.
-    ///* `in_src` - input source string.
-    pub fn new(in_src: &'a String) -> Self {
+impl<'a> From<&'a String> for Lexer<'a> {
+    fn from(in_src: &'a String) -> Self {
         Self {
             in_src,
             in_chars: in_src.clone().chars().collect(),
@@ -41,7 +39,9 @@ impl<'a> Lexer<'a> {
             tokens: vec![],
         }
     }
+}
 
+impl<'a> Lexer<'a> {
     /// Starts lexer
     pub fn start(&mut self) {
         debug!("start scanning tokens.");

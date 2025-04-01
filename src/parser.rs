@@ -21,8 +21,8 @@ pub struct Parser<'a> {
     pub stmts: Vec<Expr>,
 }
 
-impl<'a> Parser<'a> {
-    pub fn new(tokens: &'a Vec<Token>) -> Self {
+impl<'a> From<&'a Vec<Token>> for Parser<'a> {
+    fn from(tokens: &'a Vec<Token>) -> Self {
         debug!("Start parsing--------------------------------");
         Self {
             tokens,
@@ -31,7 +31,9 @@ impl<'a> Parser<'a> {
             stmts: vec![],
         }
     }
+}
 
+impl<'a> Parser<'a> {
     /// Public api to start parsing.
     pub fn parse(&mut self) {
         while !self.is_at_end() {
