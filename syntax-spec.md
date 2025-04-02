@@ -20,23 +20,26 @@ for_stmt      ->     "for" "(" ( let_decl | expr_stmt | ";" ) expression? ";" ex
 
 if_stmt       ->     "if" "(" expression ")" statement ( "else" statement )? ;
 
-print_stmt    ->     "print" expression ;
+print_stmt    ->     "print" expression  ";" ;
 
 while_stmt    ->     "while" "(" expression ")" statement ;
 
 return_stmt   ->     "return" expression? ";" ;
 
+expr_stmt     ->     expression ";" ;
+
 expression    ->     assignment ;
 
-assignment    ->     ( call )? IDENTIFIER "=" assignment | logic_or ;
+
+assignment    ->     IDENTIFIER "=" assignment | logic_or ;
 
 call          ->     IDENTIFIER ( "(" arguments? ")" )* ;
 
 arguments     ->     expression ( "," expression )* ;
 
-logic_or      ->     logic_or ( "or" logic_and )* ;
+logic_or      ->     logic_and ( "or" logic_and )* ;
 
-logic_and     ->     logic_and ( "and" equality )* ;
+logic_and     ->     equality ( "and" equality )* ;
 
 equality      ->     comparison ( ( "!=" | "==" ) comparison )* ;
 
@@ -53,6 +56,7 @@ primary       ->     NUMBER_INT
                   |  STRING
                   |  "true"
                   |  "false"
+                  |  call
                   |  "(" expression ")"
                   |  IDENTIFIER ;
 ```
