@@ -1,19 +1,29 @@
 use crate::ast::{BinExpr, Expr, GroupExpr, LiteralExpr, UnaryExpr};
 use crate::ast::{BinOp, UnOp};
+use crate::emitter::EmitterResult;
 use crate::token::LiteralValue;
 use qbe;
 
-pub type EmitterResult<T> = Result<T, String>;
+use super::Emitter;
 
 pub struct QBEEmitter<'a> {
     tmp_counter: usize,
     stmts: &'a Vec<Expr>,
-    pub module: qbe::Module<'a>,
+    module: qbe::Module<'a>,
 }
 
 impl<'a> From<&'a Vec<Expr>> for QBEEmitter<'a> {
     fn from(stmts: &'a Vec<Expr>) -> Self {
-        let module = qbe::Module::new();
+        let mut module = qbe::Module::new();
+        let items = vec![
+            (
+                qbe::Type::Byte,
+                qbe::DataItem::Str("One and one make %d!\\n".into()),
+            ),
+            (qbe::Type::Byte, qbe::DataItem::Const(0)),
+        ];
+        let data = qbe::DataDef::new(qbe::Linkage::private(), "fmt", None, items);
+        module.add_data(data);
         Self {
             tmp_counter: 0,
             stmts,
@@ -22,8 +32,16 @@ impl<'a> From<&'a Vec<Expr>> for QBEEmitter<'a> {
     }
 }
 
+impl<'a> Emitter for QBEEmitter<'a> {
+    fn emit_ir(&mut self) -> EmitterResult<String> {
+        self.emit();
+
+        Ok(format!("{}", self.module))
+    }
+}
+
 impl<'a> QBEEmitter<'a> {
-    pub fn emit(&mut self) {
+    fn emit(&mut self) {
         let mut main_func = qbe::Function::new(
             qbe::Linkage::public(),
             "main",
@@ -34,6 +52,16 @@ impl<'a> QBEEmitter<'a> {
         for stmt in self.stmts.iter() {
             self.emit_expr(&mut main_func, stmt).unwrap();
         }
+        let last_temp = format!("tmp.{}", self.tmp_counter);
+        main_func.add_instr(qbe::Instr::Call(
+            "printf".into(),
+            vec![
+                (qbe::Type::Long, qbe::Value::Global("fmt".into())),
+                (qbe::Type::Word, qbe::Value::Temporary(last_temp)),
+            ],
+            Some(1),
+        ));
+        main_func.add_instr(qbe::Instr::Ret(Some(qbe::Value::Const(0 as u64))));
         self.module.add_function(main_func);
     }
 
