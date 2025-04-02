@@ -1,6 +1,6 @@
 use core::panic;
 use std::{
-    fs::{self, File},
+    fs::File,
     io::Write,
     os::unix::fs::PermissionsExt,
     process::{Command, Stdio},

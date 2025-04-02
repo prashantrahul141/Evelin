@@ -1,33 +1,37 @@
 mod ast;
+mod backend;
 mod cli;
+mod emitter;
 mod lexer;
 mod parser;
-mod qbe_backend;
-mod qbe_generator;
 mod token;
 mod utils;
 
-use std::fs;
-
+use backend::Backend;
+use backend::qbe_backend::QbeBackend;
+use emitter::Emitter;
+use emitter::qbe_emitter::QBEEmitter;
 use lexer::Lexer;
 use log::error;
-use qbe_generator::QBEEmitter;
+use parser::parser::Parser;
 use rustyline::DefaultEditor;
 use rustyline::error::ReadlineError;
+use std::fs;
 
 fn main() {
     let options = cli::init();
+    let backend = QbeBackend::default();
     match options.file {
         // file mode.
         cli::InFile::File(f) => {
             let in_src = fs::read_to_string(f).unwrap();
             let mut lexer = lexer::Lexer::from(&in_src);
             lexer.start();
-            let mut parser = parser::Parser::from(lexer.tokens());
+            let mut parser = Parser::from(lexer.tokens());
             parser.parse();
             let mut qbe_generator = QBEEmitter::from(&parser.stmts);
-            qbe_generator.emit();
-            println!("{}", qbe_generator.module);
+            let ir = qbe_generator.emit_ir().unwrap();
+            println!("{}", ir);
         }
         // repl mode.
         cli::InFile::Stdin => {
@@ -39,11 +43,11 @@ fn main() {
                         let _ = rl.add_history_entry(line.as_str());
                         let mut lexer = Lexer::from(&line);
                         lexer.start();
-                        let mut parser = parser::Parser::from(lexer.tokens());
+                        let mut parser = Parser::from(lexer.tokens());
                         parser.parse();
                         let mut qbe_generator = QBEEmitter::from(&parser.stmts);
-                        qbe_generator.emit();
-                        println!("{}", qbe_generator.module);
+                        let ir = qbe_generator.emit_ir().unwrap();
+                        println!("{}", backend.generate(ir).unwrap());
                     }
                     Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {
                         println!("Interrupted");

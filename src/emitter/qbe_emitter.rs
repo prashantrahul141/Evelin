@@ -6,41 +6,46 @@ use qbe;
 
 use super::Emitter;
 
+/// Public struct for the QBE IR Emitter.
 pub struct QBEEmitter<'a> {
+    /// Counts total number of temporaries created.
     tmp_counter: usize,
+
+    /// Stmts to compile.
     stmts: &'a Vec<Expr>,
+
+    /// Current module.
+    /// This is usually 1 module per file basis.
     module: qbe::Module<'a>,
+    // Contains all functions created in current module.
+    // functions: Vec<qbe::Function<'static>>,
+
+    // Contains all data definations created in current module.
+    // data_defs: Vec<qbe::DataDef<'static>>,
 }
 
+/// Impl From for QBEEmitter.
 impl<'a> From<&'a Vec<Expr>> for QBEEmitter<'a> {
     fn from(stmts: &'a Vec<Expr>) -> Self {
-        let mut module = qbe::Module::new();
-        let items = vec![
-            (
-                qbe::Type::Byte,
-                qbe::DataItem::Str("One and one make %d!\\n".into()),
-            ),
-            (qbe::Type::Byte, qbe::DataItem::Const(0)),
-        ];
-        let data = qbe::DataDef::new(qbe::Linkage::private(), "fmt", None, items);
-        module.add_data(data);
         Self {
             tmp_counter: 0,
             stmts,
-            module,
+            module: qbe::Module::new(),
         }
     }
 }
 
+/// Impl Emitter trait for QBEEmitter.
 impl<'a> Emitter for QBEEmitter<'a> {
     fn emit_ir(&mut self) -> EmitterResult<String> {
         self.emit();
-
         Ok(format!("{}", self.module))
     }
 }
 
+/// More impl for QBEEmitter.
 impl<'a> QBEEmitter<'a> {
+    /// Top level emit function to start emitting.
     fn emit(&mut self) {
         let mut main_func = qbe::Function::new(
             qbe::Linkage::public(),
@@ -65,6 +70,7 @@ impl<'a> QBEEmitter<'a> {
         self.module.add_function(main_func);
     }
 
+    /// Emit generic expression ast.
     fn emit_expr(
         &mut self,
         func: &mut qbe::Function<'static>,
@@ -78,6 +84,7 @@ impl<'a> QBEEmitter<'a> {
         }
     }
 
+    /// Emit binary operation ast.
     fn emit_binary(
         &mut self,
         func: &mut qbe::Function<'static>,
@@ -105,6 +112,7 @@ impl<'a> QBEEmitter<'a> {
         Ok((ty, temp))
     }
 
+    /// Emit unary operation ast.
     fn emit_unary(
         &mut self,
         func: &mut qbe::Function<'static>,
@@ -127,6 +135,7 @@ impl<'a> QBEEmitter<'a> {
         Ok((ty, temp))
     }
 
+    /// Emits grouping ast.
     fn emit_grouping(
         &mut self,
         func: &mut qbe::Function<'static>,
@@ -140,6 +149,7 @@ impl<'a> QBEEmitter<'a> {
         Ok((ty, temp))
     }
 
+    /// Emits literal values in form of temporaries.
     fn emit_literal(
         &mut self,
         func: &mut qbe::Function<'static>,
