@@ -7,11 +7,19 @@ use crate::{
 
 #[derive(Debug, Clone, Copy)]
 pub enum BinOp {
-    OpAdd, // +
-    OpSub, // -
-    OpMul, // *
-    OpDiv, // /
-    OpMod, // %
+    OpAdd,          // +
+    OpSub,          // -
+    OpMul,          // *
+    OpDiv,          // /
+    OpMod,          // %
+    OpLess,         // <
+    OpLessEqual,    // <=
+    OpGreater,      // >
+    OpGreaterEqual, // >=
+    OpEqualEqual,   // ==
+    OpBangEqual,    // !=
+    OpAnd,          // and
+    OpOr,           // or
 }
 
 #[derive(Debug, Clone)]
@@ -29,6 +37,14 @@ impl From<&TokenType> for BinOp {
             TokenType::Slash => BinOp::OpDiv,
             TokenType::Star => BinOp::OpMul,
             TokenType::Mod => BinOp::OpMod,
+            TokenType::Less => BinOp::OpLess,
+            TokenType::LessEqual => BinOp::OpLessEqual,
+            TokenType::Greater => BinOp::OpGreater,
+            TokenType::GreaterEqual => BinOp::OpGreaterEqual,
+            TokenType::EqualEqual => BinOp::OpEqualEqual,
+            TokenType::BangEqual => BinOp::OpBangEqual,
+            TokenType::And => BinOp::OpAnd,
+            TokenType::Or => BinOp::OpOr,
             _ => {
                 die!("BinOp::from failed recieved: {}", value);
             }
