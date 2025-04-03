@@ -1,7 +1,7 @@
 use log::{debug, error, trace};
 
 use crate::die;
-use crate::token::{LiteralValue, Token, TokenType, get_type_from_reserved};
+use crate::token::{LiteralValue, Token, TokenType};
 use crate::utils::{is_alpha, is_alphanumeric, is_numeric};
 
 pub struct Lexer<'a> {
@@ -152,9 +152,10 @@ impl<'a> Lexer<'a> {
             self.advance();
         }
         let lexeme = self.in_src[self.start..self.current].to_string();
-        match get_type_from_reserved(&lexeme) {
-            Some(ttype) => self.add_token(ttype, lexeme, LiteralValue::Null),
-            None => self.add_token(
+
+        match TokenType::try_from(lexeme.as_str()) {
+            Ok(ttype) => self.add_token(ttype, lexeme, LiteralValue::Null),
+            Err(_) => self.add_token(
                 TokenType::Identifier,
                 lexeme.clone(),
                 LiteralValue::String(lexeme),

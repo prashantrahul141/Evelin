@@ -104,8 +104,8 @@ static RESERVED_KEYWORDS_KEYS: [&'static str; 11] = [
 static RESERVED_KEYWORDS_TYPES: [TokenType; 11] = [
     TokenType::True,
     TokenType::False,
-    TokenType::And,
     TokenType::Null,
+    TokenType::And,
     TokenType::Or,
     TokenType::Let,
     TokenType::Fn,
@@ -119,17 +119,21 @@ pub fn is_reserved(target: &str) -> bool {
     RESERVED_KEYWORDS_KEYS.contains(&target)
 }
 
-/// Get TokenType for reserved keyword.
-pub fn get_type_from_reserved(target: &str) -> Option<TokenType> {
-    return if is_reserved(target) {
-        Some(
-            RESERVED_KEYWORDS_TYPES[RESERVED_KEYWORDS_KEYS
+impl<'a> TryFrom<&'a str> for TokenType {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &'a str) -> Result<Self, Self::Error> {
+        return if is_reserved(value) {
+            Ok(RESERVED_KEYWORDS_TYPES[RESERVED_KEYWORDS_KEYS
                 .iter()
-                .position(|&x| x == target)
+                .position(|&x| x == value)
                 .unwrap()]
-            .clone(),
-        )
-    } else {
-        None
-    };
+            .clone())
+        } else {
+            Err(anyhow::Error::msg(format!(
+                "Not a reserved keyword: '{}'.",
+                value
+            )))
+        };
+    }
 }
