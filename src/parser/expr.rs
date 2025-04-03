@@ -1,4 +1,4 @@
-use super::parser::Parser;
+use super::{ParserResult, parser::Parser};
 
 use anyhow::anyhow;
 use log::trace;
@@ -10,12 +10,85 @@ use crate::{
 
 impl<'a> Parser<'a> {
     /// Parses top-level expressions.
-    pub(super) fn expr(&mut self) -> Result<Expr, anyhow::Error> {
-        self.term()
+    pub(super) fn expr(&mut self) -> ParserResult<Expr> {
+        self.or()
+    }
+
+    /// parses logical or expressions
+    fn or(&mut self) -> ParserResult<Expr> {
+        let mut left = self.and()?;
+        while self.match_token(&[TokenType::Or]) {
+            let op = BinOp::from(&self.previous().ttype);
+            let right = self.and()?;
+            let bin = BinExpr {
+                left: left.clone(),
+                op,
+                right,
+            };
+            left = Expr::Binary(Box::new(bin));
+        }
+
+        Ok(left)
+    }
+
+    /// parses logical and expressions
+    fn and(&mut self) -> ParserResult<Expr> {
+        let mut left = self.equality()?;
+        while self.match_token(&[TokenType::And]) {
+            let op = BinOp::from(&self.previous().ttype);
+            let right = self.equality()?;
+            let bin = BinExpr {
+                left: left.clone(),
+                op,
+                right,
+            };
+            left = Expr::Binary(Box::new(bin));
+        }
+
+        Ok(left)
+    }
+
+    /// Parses equality expressions.
+    fn equality(&mut self) -> ParserResult<Expr> {
+        let mut left = self.comparsion()?;
+        while self.match_token(&[TokenType::EqualEqual, TokenType::BangEqual]) {
+            let op = BinOp::from(&self.previous().ttype);
+            let right = self.comparsion()?;
+            let bin = BinExpr {
+                left: left.clone(),
+                op,
+                right,
+            };
+            left = Expr::Binary(Box::new(bin));
+        }
+
+        Ok(left)
+    }
+
+    /// Parses comparsion expressions.
+    fn comparsion(&mut self) -> ParserResult<Expr> {
+        let mut left = self.term()?;
+        while self.match_token(&[
+            TokenType::Greater,
+            TokenType::GreaterEqual,
+            TokenType::Less,
+            TokenType::LessEqual,
+        ]) {
+            let op = BinOp::from(&self.previous().ttype);
+            let right = self.term()?;
+            let bin = BinExpr {
+                left: left.clone(),
+                op,
+                right,
+            };
+            left = Expr::Binary(Box::new(bin));
+        }
+
+        Ok(left)
     }
 
     /// Parses term expressions.
-    fn term(&mut self) -> Result<Expr, anyhow::Error> {
+    fn term(&mut self) -> ParserResult<Expr> {
         let mut left = self.factor()?;
 
         while self.match_token(&[TokenType::Minus, TokenType::Plus]) {
@@ -33,7 +106,7 @@ impl<'a> Parser<'a> {
     }
 
     /// Parses factor expressions.
-    fn factor(&mut self) -> Result<Expr, anyhow::Error> {
+    fn factor(&mut self) -> ParserResult<Expr> {
         let mut left = self.unary()?;
 
         while self.match_token(&[TokenType::Slash, TokenType::Star, TokenType::Mod]) {
@@ -51,7 +124,7 @@ impl<'a> Parser<'a> {
     }
 
     /// Parses unary expressions.
-    fn unary(&mut self) -> Result<Expr, anyhow::Error> {
+    fn unary(&mut self) -> ParserResult<Expr> {
         if self.match_token(&[TokenType::Bang, TokenType::Minus]) {
             let op = UnOp::from(&self.previous().ttype);
             if let Ok(operand) = self.unary() {
@@ -66,7 +139,7 @@ impl<'a> Parser<'a> {
     }
 
     /// Parses literal expressions.
-    fn primary(&mut self) -> Result<Expr, anyhow::Error> {
+    fn primary(&mut self) -> ParserResult<Expr> {
         if self.match_token(&[TokenType::False]) {
             let literal = Expr::Literal(LiteralExpr {
                 value: LiteralValue::Boolean(false),
