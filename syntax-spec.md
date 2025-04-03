@@ -1,64 +1,64 @@
 ```
-program       ->     fn_decl* EOF ;
+program       ::=     fn_decl* EOF ;
 
-fn_decl       ->     "fn" IDENTIFIER "(" parameters? ")" block ;
+fn_decl       ::=     "fn" IDENTIFIER "(" parameters? ")" block ;
 
-parameters    ->     IDENTIFIER ( "," IDENTIFIER )* ;
+parameters    ::=     IDENTIFIER ( "," IDENTIFIER )* ;
 
-let_decl      ->     "let" IDENTIFIER "=" expression ";" ;
+let_decl      ::=     "let" IDENTIFIER "=" expression ";" ;
 
-block         ->     "{" ( let_decl | statement )* "}" ;
+block         ::=     "{" ( let_decl | statement )* "}" ;
 
-statement     ->     block
-                  |  if_stmt
-                  |  print_stmt
-                  |  return_stmt
-                  |  for_stmt
-                  |  while_stmt ;
+statement     ::=     block
+                    | if_stmt
+                    | print_stmt
+                    | return_stmt
+                    | for_stmt
+                    | while_stmt ;
 
-for_stmt      ->     "for" "(" ( let_decl | expr_stmt | ";" ) expression? ";" expression? ")" statement ;
+for_stmt      ::=     "for" "(" ( let_decl | expr_stmt | ";" ) expression? ";" expression? ")" statement ;
 
-if_stmt       ->     "if" "(" expression ")" statement ( "else" statement )? ;
+if_stmt       ::=     "if" "(" expression ")" statement ( "else" statement )? ;
 
-print_stmt    ->     "print" expression  ";" ;
+print_stmt    ::=     "print" expression  ";" ;
 
-while_stmt    ->     "while" "(" expression ")" statement ;
+while_stmt    ::=     "while" "(" expression ")" statement ;
 
-return_stmt   ->     "return" expression? ";" ;
+return_stmt   ::=     "return" expression? ";" ;
 
-expr_stmt     ->     expression ";" ;
+expr_stmt     ::=     expression ";" ;
 
-expression    ->     assignment ;
+expression    ::=     assignment ;
 
 
-assignment    ->     IDENTIFIER "=" assignment | logic_or ;
+assignment    ::=     IDENTIFIER "=" assignment | logic_or ;
 
-call          ->     IDENTIFIER ( "(" arguments? ")" )* ;
+call          ::=     IDENTIFIER ( "(" arguments? ")" )* ;
 
-arguments     ->     expression ( "," expression )* ;
+arguments     ::=     expression ( "," expression )* ;
 
-logic_or      ->     logic_and ( "or" logic_and )* ;
+logic_or      ::=     logic_and ( "or" logic_and )* ;
 
-logic_and     ->     equality ( "and" equality )* ;
+logic_and     ::=     equality ( "and" equality )* ;
 
-equality      ->     comparison ( ( "!=" | "==" ) comparison )* ;
+equality      ::=     comparison ( ( "!=" | "==" ) comparison )* ;
 
-comparison    ->     term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+comparison    ::=     term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 
-term          ->     factor ( ( "-" | "+" ) factor )* ;
+term          ::=     factor ( ( "-" | "+" ) factor )* ;
 
-factor        ->     unary ( ( "/" | "*" ) unary )* ;
+factor        ::=     unary ( ( "/" | "*" ) unary )* ;
 
-unary         ->     ( "!" | "-" ) unary | primary ;
+unary         ::=     ( "!" | "-" ) unary | primary ;
 
-primary       ->     NUMBER_INT
-                  |  NUMBER_FLOAT
-                  |  STRING
-                  |  "true"
-                  |  "false"
-                  |  call
-                  |  "(" expression ")"
-                  |  IDENTIFIER ;
+primary       ::=     NUMBER_INT
+                    | NUMBER_FLOAT
+                    | STRING
+                    | "true"
+                    | "false"
+                    | call
+                    | "(" expression ")"
+                    | IDENTIFIER ;
 ```
 
 
@@ -67,7 +67,7 @@ primary       ->     NUMBER_INT
 - CAPITAL case words are values of the type described by the word
 - lower case words are **Non-terminal Symbol**
 - quoted strings are **Terminal Symbols**
-- `->` indentifier before it defines the rule name, after it defines the rule's body.
+- `::=` indentifier before it defines the rule name, after it defines the rule's body.
 - `;` marks end of a rule
 - `|` is OR
 - `(` and `)` for grouping
