@@ -3,7 +3,7 @@ program       ::=     fn_decl* EOF ;
 
 fn_decl       ::=     "fn" IDENTIFIER "(" parameters? ")" block ;
 
-parameters    ::=     IDENTIFIER ( "," IDENTIFIER )* ;
+parameters    ::=     IDENTIFIER ;
 
 let_decl      ::=     "let" IDENTIFIER "=" expression ";" ;
 
@@ -30,12 +30,7 @@ expr_stmt     ::=     expression ";" ;
 
 expression    ::=     assignment ;
 
-
 assignment    ::=     IDENTIFIER "=" assignment | logic_or ;
-
-call          ::=     IDENTIFIER ( "(" arguments? ")" )* ;
-
-arguments     ::=     expression ( "," expression )* ;
 
 logic_or      ::=     logic_and ( "or" logic_and )* ;
 
@@ -49,14 +44,15 @@ term          ::=     factor ( ( "-" | "+" ) factor )* ;
 
 factor        ::=     unary ( ( "/" | "*" ) unary )* ;
 
-unary         ::=     ( "!" | "-" ) unary | primary ;
+unary         ::=     ( "!" | "-" ) unary | call ;
+
+call          ::=     primary ( "(" expression? ")" )* ;
 
 primary       ::=     NUMBER_INT
                     | NUMBER_FLOAT
                     | STRING
                     | "true"
                     | "false"
-                    | call
                     | "(" expression ")"
                     | IDENTIFIER ;
 ```
