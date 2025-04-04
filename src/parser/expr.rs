@@ -1,10 +1,10 @@
 use super::{ParserResult, parser::Parser};
 
 use anyhow::anyhow;
-use log::trace;
+use log::{error, trace};
 
 use crate::{
-    ast::{BinExpr, BinOp, Expr, GroupExpr, LiteralExpr, UnOp, UnaryExpr},
+    ast::{BinExpr, BinOp, CallExpr, Expr, GroupExpr, LiteralExpr, UnOp, UnaryExpr, VariableExpr},
     token::{LiteralValue, TokenType},
 };
 
@@ -125,6 +125,7 @@ impl<'a> Parser<'a> {
 
     /// Parses unary expressions.
     fn unary(&mut self) -> ParserResult<Expr> {
+        trace!("Parsing unary");
         if self.match_token(&[TokenType::Bang, TokenType::Minus]) {
             let op = UnOp::from(&self.previous().ttype);
             if let Ok(operand) = self.unary() {
@@ -133,13 +134,61 @@ impl<'a> Parser<'a> {
             }
         }
 
-        let primary = self.primary();
-        trace!("Parser::primary = {:?}", primary);
-        primary
+        self.call()
+    }
+
+    /// Parses function calling expressions.
+    fn call(&mut self) -> ParserResult<Expr> {
+        trace!("Parsing call");
+        let mut callee = self.primary();
+        trace!(
+            "Parser::primary before parsing trailing functions = {:?}",
+            &callee
+        );
+
+        // parses trailing function calls
+        loop {
+            if self.match_token(&[TokenType::LeftParen]) {
+                callee = self.finish_call(callee);
+                trace!("calle: {:?}", &callee);
+            } else {
+                break;
+            }
+        }
+
+        callee
+    }
+
+    /// Parses trailing function calls and function arguments.
+    fn finish_call(&mut self, callee: ParserResult<Expr>) -> ParserResult<Expr> {
+        if let Ok(mut callee) = callee {
+            if !self.match_current(&TokenType::RightParen) {
+                trace!("parsing function argument.");
+                if let Ok(arg) = self.expr() {
+                    callee = Expr::Call(Box::new(CallExpr {
+                        callee,
+                        arg: Some(arg),
+                    }));
+                }
+            } else {
+                callee = Expr::Call(Box::new(CallExpr { callee, arg: None }));
+            }
+
+            self.consume(
+                TokenType::RightParen,
+                "Expected ')' after function argument.",
+            );
+
+            return Ok(callee);
+        }
+
+        let error = self.report_parser_error("Failed to parse function call expression.");
+        Err(anyhow!(error))
     }
 
     /// Parses literal expressions.
     fn primary(&mut self) -> ParserResult<Expr> {
+        trace!("Parser::primary current_token = {}", self.current());
         if self.match_token(&[TokenType::False]) {
             let literal = Expr::Literal(LiteralExpr {
                 value: LiteralValue::Boolean(false),
@@ -172,7 +221,6 @@ impl<'a> Parser<'a> {
 
         // grouping
         if self.match_token(&[TokenType::LeftParen]) {
-            trace!("Grouping found.");
             if let Ok(expr) = self.expr() {
                 self.consume(
                     TokenType::RightParen,
@@ -183,10 +231,23 @@ impl<'a> Parser<'a> {
             }
         }
 
+        // identifier
+        if self.match_token(&[TokenType::Identifier]) {
+            let var = Expr::Variable(Box::new(VariableExpr {
+                name: self.previous().lexeme.clone(),
+            }));
+            return Ok(var);
+        }
+
         let error = self.report_parser_error(format!(
             "Expected literal value recieved {} instead.",
-            self.current().literal
+            self.current().ttype
         ));
+
+        error!(
+            "Expected literal value recieved {} instead.",
+            self.current()
+        );
 
         Err(anyhow!(error))
     }
