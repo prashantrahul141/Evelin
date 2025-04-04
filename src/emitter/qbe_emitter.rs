@@ -81,6 +81,7 @@ impl<'a> QBEEmitter<'a> {
             Expr::Unary(una) => self.emit_unary(func, una),
             Expr::Grouping(gro) => self.emit_grouping(func, gro),
             Expr::Literal(lit) => self.emit_literal(func, lit),
+            _ => todo!("implement"),
         }
     }
 
@@ -106,6 +107,7 @@ impl<'a> QBEEmitter<'a> {
                 BinOp::OpMul => qbe::Instr::Mul(left, right),
                 BinOp::OpDiv => qbe::Instr::Div(left, right),
                 BinOp::OpMod => qbe::Instr::Rem(left, right),
+                _ => todo!("TODO: other binary operations."),
             },
         );
 

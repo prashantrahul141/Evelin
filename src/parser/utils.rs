@@ -79,11 +79,7 @@ impl<'a> Parser<'a> {
     pub fn report_parser_error<T: Into<String>>(&mut self, message: T) -> String {
         self.has_errors = true;
         let value: String = message.into();
-        error!(
-            "Parsing error: at line {}: {:?}",
-            self.previous().line,
-            value
-        );
+        error!("Parsing error: at line {}: {}", self.previous().line, value);
 
         value
     }
