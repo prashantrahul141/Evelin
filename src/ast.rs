@@ -87,9 +87,22 @@ pub struct GroupExpr {
 }
 
 #[derive(Debug, Clone)]
+pub struct CallExpr {
+    pub callee: Expr,
+    pub arg: Option<Expr>,
+}
+
+#[derive(Debug, Clone)]
+pub struct VariableExpr {
+    pub name: String,
+}
+
+#[derive(Debug, Clone)]
 pub enum Expr {
     Binary(Box<BinExpr>),
+    Call(Box<CallExpr>),
     Unary(Box<UnaryExpr>),
     Grouping(Box<GroupExpr>),
+    Variable(Box<VariableExpr>),
     Literal(LiteralExpr),
 }
