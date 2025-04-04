@@ -97,10 +97,13 @@ impl std::fmt::Display for Token {
     }
 }
 
+/// static array of all reserved keywords.
 static RESERVED_KEYWORDS_KEYS: [&'static str; 11] = [
     "true", "false", "null", "and", "or", "let", "fn", "return", "if", "else", "print",
 ];
 
+/// TokenTypes which are reserved keywords,
+/// THIS HAS TO BE IN SAME ORDER AS RESERVED_KEYWORDS_KEYS
 static RESERVED_KEYWORDS_TYPES: [TokenType; 11] = [
     TokenType::True,
     TokenType::False,
@@ -115,10 +118,12 @@ static RESERVED_KEYWORDS_TYPES: [TokenType; 11] = [
     TokenType::Print,
 ];
 
+/// Checks whether given &str is a reserved keyword or not
 pub fn is_reserved(target: &str) -> bool {
     RESERVED_KEYWORDS_KEYS.contains(&target)
 }
 
+/// converts &str to reserved keyword type if it is infact reserved.
 impl<'a> TryFrom<&'a str> for TokenType {
     type Error = anyhow::Error;
 

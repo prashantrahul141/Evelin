@@ -22,6 +22,7 @@ impl<'a> Parser<'a> {
 
     /// Checks whether the current token is
     /// present in the given expected vec of tokens
+    /// and consumes it
     /// * `expected` - expected vec of tokens.
     pub(super) fn match_token(&mut self, expected: &[TokenType]) -> bool {
         for ttype in expected {
@@ -36,7 +37,7 @@ impl<'a> Parser<'a> {
 
     /// Checks whether the current token is of given type
     /// * `expected_type` - the type to match with.
-    fn match_current(&self, expected_type: &TokenType) -> bool {
+    pub(super) fn match_current(&self, expected_type: &TokenType) -> bool {
         if self.is_at_end() {
             return false;
         }
