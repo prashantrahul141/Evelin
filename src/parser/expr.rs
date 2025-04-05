@@ -1,10 +1,13 @@
-use super::{ParserResult, parser::Parser};
+use super::{MAX_NATIVE_FUNCTION_ARITY, ParserResult, parser::Parser};
 
 use anyhow::anyhow;
 use log::{error, trace};
 
 use crate::{
-    ast::{BinExpr, BinOp, CallExpr, Expr, GroupExpr, LiteralExpr, UnOp, UnaryExpr, VariableExpr},
+    ast::{
+        BinExpr, BinOp, CallExpr, Expr, GroupExpr, LiteralExpr, NativeCallExpr, UnOp, UnaryExpr,
+        VariableExpr,
+    },
     token::{LiteralValue, TokenType},
 };
 
@@ -134,7 +137,65 @@ impl<'a> Parser<'a> {
             }
         }
 
+        if self.match_token(&[TokenType::Extern]) {
+            return self.native_call();
+        }
+
         self.call()
+    }
+
+    /// Parses native function calling expression.
+    fn native_call(&mut self) -> ParserResult<Expr> {
+        trace!("Parsing native call");
+        let mut callee = self.primary();
+        trace!(
+            "Parser::primary before parsing trailing functions = {:?}",
+            &callee
+        );
+
+        // parses trailing function calls
+        loop {
+            if self.match_token(&[TokenType::LeftParen]) {
+                callee = self.native_finish_call(callee);
+                trace!("calle: {:?}", &callee);
+            } else {
+                break;
+            }
+        }
+
+        callee
+    }
+
+    /// Parses trailing native function calls and function arguments.
+    fn native_finish_call(&mut self, callee: ParserResult<Expr>) -> ParserResult<Expr> {
+        if let Ok(callee) = callee {
+            let mut args = vec![];
+            if !self.match_current(&TokenType::RightParen) {
+                loop {
+                    if args.len() >= MAX_NATIVE_FUNCTION_ARITY {
+                        error!("parsing function exceded the MAX_NATIVE_FUNCTION_ARITY limit");
+                    }
+
+                    if let Ok(arg) = self.expr() {
+                        args.push(arg);
+                    }
+
+                    if !self.match_token(&[TokenType::Comma]) {
+                        break;
+                    }
+                }
+            }
+
+            if let Some(_) = self.consume(
+                TokenType::RightParen,
+                "Expected ')' after function arguments.",
+            ) {
+                let call = Expr::NativeCall(Box::new(NativeCallExpr { callee, args }));
+                return Ok(call);
+            }
+        }
+
+        Err(anyhow!("Failed to parse native function."))
     }
 
     /// Parses function calling expressions.
@@ -159,7 +220,7 @@ impl<'a> Parser<'a> {
         callee
     }
 
-    /// Parses trailing function calls and function arguments.
+    /// Parses trailing function calls and function argument.
     fn finish_call(&mut self, callee: ParserResult<Expr>) -> ParserResult<Expr> {
         if let Ok(mut callee) = callee {
             if !self.match_current(&TokenType::RightParen) {
@@ -176,7 +237,7 @@ impl<'a> Parser<'a> {
 
             self.consume(
                 TokenType::RightParen,
-                "Expected ')' after function argument.",
+                "Expected ')' after function argument.\n\nNote: Multiple function arguments are not supported, use structs for that.",
             );
 
             return Ok(callee);
