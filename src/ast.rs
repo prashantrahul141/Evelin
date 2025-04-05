@@ -93,6 +93,12 @@ pub struct CallExpr {
 }
 
 #[derive(Debug, Clone)]
+pub struct NativeCallExpr {
+    pub callee: Expr,
+    pub args: Vec<Expr>,
+}
+
+#[derive(Debug, Clone)]
 pub struct VariableExpr {
     pub name: String,
 }
@@ -101,8 +107,19 @@ pub struct VariableExpr {
 pub enum Expr {
     Binary(Box<BinExpr>),
     Call(Box<CallExpr>),
+    NativeCall(Box<NativeCallExpr>),
     Unary(Box<UnaryExpr>),
     Grouping(Box<GroupExpr>),
     Variable(Box<VariableExpr>),
     Literal(LiteralExpr),
+}
+
+#[derive(Debug, Clone)]
+pub struct PrintStmt {
+    expr: Expr,
+}
+
+#[derive(Debug, Clone)]
+pub enum Stmt {
+    Print(Box<Expr>),
 }
