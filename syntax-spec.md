@@ -16,7 +16,7 @@ statement     ::=     block
                     | for_stmt
                     | while_stmt ;
 
-for_stmt      ::=     "for" "(" ( let_decl | expr_stmt | ";" ) expression? ";" expression? ")" statement ;
+for_stmt      ::=     "for" "(" ( let_decl | ";" ) expression? ";" expression? ")" statement ;
 
 if_stmt       ::=     "if" "(" expression ")" statement ( "else" statement )? ;
 
@@ -25,8 +25,6 @@ print_stmt    ::=     "print" expression  ";" ;
 while_stmt    ::=     "while" "(" expression ")" statement ;
 
 return_stmt   ::=     "return" expression? ";" ;
-
-expr_stmt     ::=     expression ";" ;
 
 expression    ::=     assignment ;
 
@@ -44,9 +42,11 @@ term          ::=     factor ( ( "-" | "+" ) factor )* ;
 
 factor        ::=     unary ( ( "/" | "*" ) unary )* ;
 
-unary         ::=     ( "!" | "-" ) unary | call ;
+unary         ::=     ( "!" | "-" ) unary | call | native_call;
 
 call          ::=     primary ( "(" expression? ")" )* ;
+
+native_call   ::=     "extern" primary( "(" expression* ")" )* ;
 
 primary       ::=     NUMBER_INT
                     | NUMBER_FLOAT
