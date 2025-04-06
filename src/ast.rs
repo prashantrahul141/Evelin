@@ -93,6 +93,12 @@ pub struct CallExpr {
 }
 
 #[derive(Debug, Clone)]
+pub struct FieldAccessExpr {
+    pub parent: Expr,
+    pub field: String,
+}
+
+#[derive(Debug, Clone)]
 pub struct NativeCallExpr {
     pub callee: Expr,
     pub args: Vec<Expr>,
@@ -107,6 +113,7 @@ pub struct VariableExpr {
 pub enum Expr {
     Binary(Box<BinExpr>),
     Call(Box<CallExpr>),
+    FieldAccess(Box<FieldAccessExpr>),
     NativeCall(Box<NativeCallExpr>),
     Unary(Box<UnaryExpr>),
     Grouping(Box<GroupExpr>),
@@ -149,6 +156,7 @@ pub enum Stmt {
     If(Box<IfStmt>),
     Print(PrintStmt),
     Return(ReturnStmt),
+    Expression(Expr),
 }
 
 #[derive(Debug, Clone)]
