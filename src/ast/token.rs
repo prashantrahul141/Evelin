@@ -100,7 +100,7 @@ impl std::fmt::Display for Token {
 }
 
 /// static array of all reserved keywords.
-static RESERVED_KEYWORDS_KEYS: [&'static str; 13] = [
+static RESERVED_KEYWORDS_KEYS: [&str; 13] = [
     "true", "false", "null", "and", "or", "let", "fn", "return", "if", "else", "print", "struct",
     "extern",
 ];
@@ -133,7 +133,7 @@ impl<'a> TryFrom<&'a str> for TokenType {
     type Error = anyhow::Error;
 
     fn try_from(value: &'a str) -> Result<Self, Self::Error> {
-        return if is_reserved(value) {
+        if is_reserved(value) {
             Ok(RESERVED_KEYWORDS_TYPES[RESERVED_KEYWORDS_KEYS
                 .iter()
                 .position(|&x| x == value)
@@ -144,6 +144,6 @@ impl<'a> TryFrom<&'a str> for TokenType {
                 "Not a reserved keyword: '{}'.",
                 value
             )))
-        };
+        }
     }
 }

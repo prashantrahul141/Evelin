@@ -6,7 +6,7 @@ use crate::ast::{
 
 use super::{Parser, ParserResult};
 
-impl<'a> Parser<'a> {
+impl Parser<'_> {
     pub(super) fn fn_decl(&mut self) -> ParserResult<FnDecl> {
         let name = match self.consume(TokenType::Identifier, "Expected function name.") {
             Some(v) => v.lexeme.clone(),

@@ -7,7 +7,7 @@ use crate::ast::{
 
 use super::{Parser, ParserResult};
 
-impl<'a> Parser<'a> {
+impl Parser<'_> {
     pub(super) fn stmt(&mut self) -> ParserResult<Stmt> {
         if self.match_token(&[TokenType::LeftBrace]) {
             return self.block();

@@ -41,7 +41,7 @@ impl<'a> From<&'a String> for Lexer<'a> {
     }
 }
 
-impl<'a> Lexer<'a> {
+impl Lexer<'_> {
     /// Starts lexer
     pub fn start(&mut self) {
         debug!("start scanning tokens.");

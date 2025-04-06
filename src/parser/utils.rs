@@ -7,7 +7,7 @@ use crate::{
     die,
 };
 
-impl<'a> Parser<'a> {
+impl Parser<'_> {
     /// Consumes current token if it matches the given token type.
     /// * `expected_type` - type of token to match with.
     /// * `message` - error message for when token doesn't match the expected type

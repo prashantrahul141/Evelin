@@ -11,7 +11,7 @@ use crate::ast::{
     {LiteralValue, TokenType},
 };
 
-impl<'a> Parser<'a> {
+impl Parser<'_> {
     /// Parses top-level expressions.
     pub(super) fn expr(&mut self) -> ParserResult<Expr> {
         self.or()
@@ -186,10 +186,13 @@ impl<'a> Parser<'a> {
                 }
             }
 
-            if let Some(_) = self.consume(
-                TokenType::RightParen,
-                "Expected ')' after function arguments.",
-            ) {
+            if self
+                .consume(
+                    TokenType::RightParen,
+                    "Expected ')' after function arguments.",
+                )
+                .is_some()
+            {
                 let call = Expr::NativeCall(Box::new(NativeCallExpr { callee, args }));
                 return Ok(call);
             }

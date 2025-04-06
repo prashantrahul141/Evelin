@@ -43,7 +43,7 @@ impl<'a> From<&'a Vec<Token>> for Parser<'a> {
     }
 }
 
-impl<'a> Parser<'a> {
+impl Parser<'_> {
     /// Public api to start parsing.
     ///
     pub fn parse(&mut self) {

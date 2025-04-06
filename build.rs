@@ -15,7 +15,7 @@ fn main() {
     p!("Rerun build.");
 
     if let Err(e) = Command::new("wget")
-        .args(&["-nc", QBE_URI])
+        .args(["-nc", QBE_URI])
         .current_dir(EXTERNAL_ROOT_DIR)
         .output()
     {
@@ -31,7 +31,7 @@ fn main() {
     }
 
     if let Err(e) = Command::new("make")
-        .args(&["-j", "16"])
+        .args(["-j", "16"])
         .current_dir(QBE_ROOT_DIR)
         .output()
     {

@@ -1,7 +1,6 @@
-use crate::ast::{BinExpr, Expr, GroupExpr, LiteralExpr, UnaryExpr};
-use crate::ast::{BinOp, UnOp};
+use crate::ast::LiteralValue;
+use crate::ast::{BinExpr, BinOp, Expr, GroupExpr, LiteralExpr, Stmt, UnOp, UnaryExpr};
 use crate::emitter::EmitterResult;
-use crate::token::LiteralValue;
 use qbe;
 
 use super::Emitter;
@@ -12,7 +11,7 @@ pub struct QBEEmitter<'a> {
     tmp_counter: usize,
 
     /// Stmts to compile.
-    stmts: &'a Vec<Expr>,
+    stmts: &'a Vec<Stmt>,
 
     /// Current module.
     /// This is usually 1 module per file basis.
@@ -25,8 +24,8 @@ pub struct QBEEmitter<'a> {
 }
 
 /// Impl From for QBEEmitter.
-impl<'a> From<&'a Vec<Expr>> for QBEEmitter<'a> {
-    fn from(stmts: &'a Vec<Expr>) -> Self {
+impl<'a> From<&'a Vec<Stmt>> for QBEEmitter<'a> {
+    fn from(stmts: &'a Vec<Stmt>) -> Self {
         Self {
             tmp_counter: 0,
             stmts,
@@ -36,7 +35,7 @@ impl<'a> From<&'a Vec<Expr>> for QBEEmitter<'a> {
 }
 
 /// Impl Emitter trait for QBEEmitter.
-impl<'a> Emitter for QBEEmitter<'a> {
+impl Emitter for QBEEmitter<'_> {
     fn emit_ir(&mut self) -> EmitterResult<String> {
         self.emit();
         Ok(format!("{}", self.module))
@@ -44,7 +43,7 @@ impl<'a> Emitter for QBEEmitter<'a> {
 }
 
 /// More impl for QBEEmitter.
-impl<'a> QBEEmitter<'a> {
+impl QBEEmitter<'_> {
     /// Top level emit function to start emitting.
     fn emit(&mut self) {
         let mut main_func = qbe::Function::new(
@@ -55,7 +54,7 @@ impl<'a> QBEEmitter<'a> {
         );
         main_func.add_block("start");
         for stmt in self.stmts.iter() {
-            self.emit_expr(&mut main_func, stmt).unwrap();
+            // self.emit_expr(&mut main_func, stmt).unwrap();
         }
         let last_temp = format!("tmp.{}", self.tmp_counter);
         main_func.add_instr(qbe::Instr::Call(
@@ -66,7 +65,7 @@ impl<'a> QBEEmitter<'a> {
             ],
             Some(1),
         ));
-        main_func.add_instr(qbe::Instr::Ret(Some(qbe::Value::Const(0 as u64))));
+        main_func.add_instr(qbe::Instr::Ret(Some(qbe::Value::Const(0_u64))));
         self.module.add_function(main_func);
     }
 
@@ -89,9 +88,8 @@ impl<'a> QBEEmitter<'a> {
     fn emit_binary(
         &mut self,
         func: &mut qbe::Function<'static>,
-        expr: &Box<BinExpr>,
+        expr: &BinExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
-        let expr = expr.as_ref();
         let (_, left) = self.emit_expr(func, &expr.left)?;
         let (_, right) = self.emit_expr(func, &expr.right)?;
 
@@ -118,9 +116,8 @@ impl<'a> QBEEmitter<'a> {
     fn emit_unary(
         &mut self,
         func: &mut qbe::Function<'static>,
-        expr: &Box<UnaryExpr>,
+        expr: &UnaryExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
-        let expr = expr.as_ref();
         let temp = self.new_temp();
         let (_, operand) = self.emit_expr(func, &expr.operand)?;
         let ty = qbe::Type::Word;
@@ -141,9 +138,8 @@ impl<'a> QBEEmitter<'a> {
     fn emit_grouping(
         &mut self,
         func: &mut qbe::Function<'static>,
-        expr: &Box<GroupExpr>,
+        expr: &GroupExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
-        let expr = expr.as_ref();
         let temp = self.new_temp();
         let (_, value) = self.emit_expr(func, &expr.value)?;
         let ty = qbe::Type::Word;
@@ -167,7 +163,7 @@ impl<'a> QBEEmitter<'a> {
                     qbe::Instr::Copy(qbe::Value::Const(*v as u64)),
                 );
 
-                return Ok((qbe::Type::Double, temp));
+                Ok((qbe::Type::Double, temp))
             }
             LiteralValue::NumberInt(v) => {
                 let temp = self.new_temp();
@@ -177,12 +173,12 @@ impl<'a> QBEEmitter<'a> {
                     qbe::Instr::Copy(qbe::Value::Const(*v as u64)),
                 );
 
-                return Ok((qbe::Type::Word, temp));
+                Ok((qbe::Type::Word, temp))
             }
             LiteralValue::String(_) => todo!(),
             LiteralValue::Boolean(_) => todo!(),
             LiteralValue::Null => todo!(),
-        };
+        }
     }
 
     /// Creates a new temporary, returns the generated qbe::Value
