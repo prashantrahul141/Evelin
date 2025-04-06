@@ -1,6 +1,6 @@
 use log::{debug, error, trace};
 
-use crate::ast::{LiteralValue, Token, TokenType};
+pub use crate::ast::{LiteralValue, Token, TokenType};
 use crate::die;
 use crate::utils::{is_alpha, is_alphanumeric, is_numeric};
 
