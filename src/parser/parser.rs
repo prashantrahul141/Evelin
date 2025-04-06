@@ -1,8 +1,7 @@
 use log::debug;
 
-use crate::{
-    ast::{FnDecl, StructDecl},
-    token::{Token, TokenType},
+use crate::ast::{
+    {FnDecl, StructDecl}, {Token, TokenType},
 };
 
 pub struct Parser<'a> {

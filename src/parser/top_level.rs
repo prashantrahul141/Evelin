@@ -1,8 +1,7 @@
 use anyhow::anyhow;
 
-use crate::{
-    ast::{FnDecl, Stmt, StructDecl},
-    token::TokenType,
+use crate::ast::{
+    TokenType, {FnDecl, Stmt, StructDecl},
 };
 
 use super::{ParserResult, parser::Parser};
@@ -16,14 +15,18 @@ impl<'a> Parser<'a> {
 
         self.consume(TokenType::LeftParen, "Expected '(' after function name");
         let mut parameter = None;
-        if self.match_current(&TokenType::RightParen) {
-            parameter = Some(self.current().lexeme.clone());
+        if !self.match_current(&TokenType::RightParen) {
+            parameter = Some(self.advance().lexeme.clone());
         }
+
+        dbg!(&parameter);
 
         self.consume(
             TokenType::RightParen,
             "Expected ')' after function parameter",
         );
+
+        self.consume(TokenType::LeftBrace, "Expected { after function parameter");
         let body = match self.block()? {
             Stmt::Block(block) => block.stmts,
             _ => return Err(anyhow!("Expected block after function declaration")),
@@ -37,9 +40,9 @@ impl<'a> Parser<'a> {
     }
 
     pub(super) fn struct_decl(&mut self) -> ParserResult<StructDecl> {
-        let name = match self.consume(TokenType::Identifier, "Expected struct name.") {
+        let name = match self.consume(TokenType::Identifier, "Expected struct name") {
             Some(v) => v.lexeme.clone(),
-            None => return Err(anyhow!("Expected struct name,")),
+            None => return Err(anyhow!("Expected struct name")),
         };
 
         self.consume(TokenType::LeftBrace, "Expected '{' after struct name");

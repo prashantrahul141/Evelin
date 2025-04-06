@@ -3,12 +3,12 @@ use super::{MAX_NATIVE_FUNCTION_ARITY, ParserResult, parser::Parser};
 use anyhow::anyhow;
 use log::{error, trace};
 
-use crate::{
-    ast::{
+use crate::ast::{
+    {
         BinExpr, BinOp, CallExpr, Expr, FieldAccessExpr, GroupExpr, LiteralExpr, NativeCallExpr,
         UnOp, UnaryExpr, VariableExpr,
     },
-    token::{LiteralValue, TokenType},
+    {LiteralValue, TokenType},
 };
 
 impl<'a> Parser<'a> {

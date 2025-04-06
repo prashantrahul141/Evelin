@@ -1,7 +1,7 @@
 use log::{debug, error, trace};
 
+use crate::ast::{LiteralValue, Token, TokenType};
 use crate::die;
-use crate::token::{LiteralValue, Token, TokenType};
 use crate::utils::{is_alpha, is_alphanumeric, is_numeric};
 
 pub struct Lexer<'a> {
@@ -237,7 +237,7 @@ impl<'a> Lexer<'a> {
         self.add_token(
             ttype,
             self.in_src[self.start..self.current].to_string(),
-            crate::token::LiteralValue::Null,
+            LiteralValue::Null,
         );
     }
 

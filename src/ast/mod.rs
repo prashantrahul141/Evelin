@@ -1,9 +1,9 @@
 use log::error;
+mod token;
 
-use crate::{
-    die,
-    token::{LiteralValue, TokenType},
-};
+use crate::die;
+
+pub use token::{LiteralValue, Token, TokenType};
 
 #[derive(Debug, Clone, Copy)]
 pub enum BinOp {

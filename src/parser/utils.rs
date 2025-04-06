@@ -3,8 +3,8 @@ use super::parser::Parser;
 use log::{error, trace};
 
 use crate::{
+    ast::{Token, TokenType},
     die,
-    token::{Token, TokenType},
 };
 
 impl<'a> Parser<'a> {
@@ -41,6 +41,10 @@ impl<'a> Parser<'a> {
         if self.is_at_end() {
             return false;
         }
+        trace!(
+            "expected_type = {expected_type}, current = {}",
+            &self.current().ttype
+        );
         expected_type == &self.current().ttype
     }
 

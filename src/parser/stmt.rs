@@ -1,9 +1,8 @@
 use anyhow::anyhow;
 use log::trace;
 
-use crate::{
-    ast::{BlockStmt, IfStmt, LetStmt, PrintStmt, ReturnStmt, Stmt},
-    token::TokenType,
+use crate::ast::{
+    TokenType, {BlockStmt, IfStmt, LetStmt, PrintStmt, ReturnStmt, Stmt},
 };
 
 use super::{ParserResult, parser::Parser};
