@@ -1,57 +1,62 @@
+## BNF Grammer
+
 ```
-program       ::=     ( fn_decl | struct_decl )* EOF ;
+program         ::=     ( fn_decl | struct_decl )* EOF ;
 
-struct_decl   ::=     "struct" IDENTIFIER "{" field+ "}" ;
+struct_decl     ::=     "struct" IDENTIFIER "{" field+ "}" ;
 
-field         ::=     IDENTIFIER "," ;
+field           ::=     IDENTIFIER "," ;
 
-fn_decl       ::=     "fn" IDENTIFIER "(" parameters? ")" block ;
+fn_decl         ::=     "fn" IDENTIFIER "(" parameters? ")" block ;
 
-parameters    ::=     IDENTIFIER ;
+parameters      ::=     IDENTIFIER ;
 
-statement     ::=     block
-                    | let_stmt
-                    | if_stmt
-                    | print_stmt
-                    | return_stmt;
+statement       ::=     block
+                      | let_stmt
+                      | if_stmt
+                      | print_stmt
+                      | return_stmt
+                      | expression_stmt ;
 
-block         ::=     "{" statement* "}" ;
+block           ::=     "{" statement* "}" ;
 
-let_stmt      ::=     "let" IDENTIFIER "=" expression ";" ;
+let_stmt        ::=     "let" IDENTIFIER "=" expression ";" ;
 
-if_stmt       ::=     "if" "(" expression ")" statement ( "else" statement )? ;
+if_stmt         ::=     "if" "(" expression ")" statement ( "else" statement )? ;
 
-print_stmt    ::=     "print" expression  ";" ;
+print_stmt      ::=     "print" expression  ";" ;
 
-return_stmt   ::=     "return" expression? ";" ;
+return_stmt     ::=     "return" expression? ";" ;
 
-expression    ::=     logic_or ;
+expression_stmt ::=     expression_stmt ";" ;
 
-logic_or      ::=     logic_and ( "or" logic_and )* ;
+expression      ::=     logic_or ;
 
-logic_and     ::=     equality ( "and" equality )* ;
+logic_or        ::=     logic_and ( "or" logic_and )* ;
 
-equality      ::=     comparison ( ( "!=" | "==" ) comparison )* ;
+logic_and       ::=     equality ( "and" equality )* ;
 
-comparison    ::=     term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+equality        ::=     comparison ( ( "!=" | "==" ) comparison )* ;
 
-term          ::=     factor ( ( "-" | "+" ) factor )* ;
+comparison      ::=     term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 
-factor        ::=     unary ( ( "/" | "*" ) unary )* ;
+term            ::=     factor ( ( "-" | "+" ) factor )* ;
 
-unary         ::=     ( "!" | "-" ) unary | call | native_call;
+factor          ::=     unary ( ( "/" | "*" ) unary )* ;
 
-call          ::=     primary ( "(" expression? ")" )* ;
+unary           ::=     ( "!" | "-" ) unary | call | native_call;
 
-native_call   ::=     "extern" primary( "(" expression* ")" )* ;
+call            ::=     primary ( "(" expression? ")" | "." IDENTIFIER )* ;
 
-primary       ::=     NUMBER_INT
-                    | NUMBER_FLOAT
-                    | STRING
-                    | "true"
-                    | "false"
-                    | "(" expression ")"
-                    | IDENTIFIER ;
+native_call     ::=     "extern" primary( "(" expression* ")" )* ;
+
+primary         ::=     NUMBER_INT
+                      | NUMBER_FLOAT
+                      | STRING
+                      | "true"
+                      | "false"
+                      | "(" expression ")"
+                      | IDENTIFIER ;
 ```
 
 
