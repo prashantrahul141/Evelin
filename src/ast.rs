@@ -150,3 +150,22 @@ pub enum Stmt {
     Print(PrintStmt),
     Return(ReturnStmt),
 }
+
+#[derive(Debug, Clone)]
+pub struct StructDecl {
+    pub name: String,
+    pub fields: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct FnDecl {
+    pub name: String,
+    pub parameter: Option<String>,
+    pub body: Vec<Stmt>,
+}
+
+#[derive(Debug, Clone)]
+pub enum TopLevelDecl {
+    Struct(StructDecl),
+    Fn(FnDecl),
+}
