@@ -1,0 +1,1 @@
+extern printf("%d", 3) + log(3)
