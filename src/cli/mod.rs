@@ -35,7 +35,7 @@ impl FromStr for InFile {
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
-pub struct ZSCliOptions {
+pub struct EveCliOptions {
     /// File path, use '-' to start repl mode.
     pub file: InFile,
 
@@ -45,15 +45,15 @@ pub struct ZSCliOptions {
     pub debug: DebugTypes,
 }
 
-pub fn init() -> ZSCliOptions {
-    let cli = ZSCliOptions::parse();
+pub fn init() -> EveCliOptions {
+    let cli = EveCliOptions::parse();
     let level = match cli.debug {
         DebugTypes::Error => "error",
         DebugTypes::Debug => "debug",
         DebugTypes::Trace => "trace",
     };
 
-    let env = Env::default().filter_or("ZS_LOG_LEVEL", level);
+    let env = Env::default().filter_or("EVE_LOG_LEVEL", level);
 
     Builder::from_env(env)
         .format(|buf, record| {

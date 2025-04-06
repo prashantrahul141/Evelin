@@ -1,4 +1,4 @@
-use zs_qbe::init;
+use evelin::init;
 
 fn main() {
     init();
