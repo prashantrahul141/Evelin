@@ -1,5 +1,9 @@
 ```
-program       ::=     fn_decl* EOF ;
+program       ::=     ( fn_decl | struct_decl )* EOF ;
+
+struct_decl   ::=     "struct" IDENTIFIER "{" field+ "}" ;
+
+field         ::=     IDENTIFIER "," ;
 
 fn_decl       ::=     "fn" IDENTIFIER "(" parameters? ")" block ;
 
