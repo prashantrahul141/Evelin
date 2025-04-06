@@ -9,11 +9,6 @@ use crate::{
 use super::{ParserResult, parser::Parser};
 
 impl<'a> Parser<'a> {
-    // fn if_stmt(&mut self) -> ParserResult<Stmt> {
-    //     self.consume(TokenType::LeftParen, "Expected '(' after if statement");
-    //     let condition = self.expr();
-    // }
-
     pub(super) fn stmt(&mut self) -> ParserResult<Stmt> {
         if self.match_token(&[TokenType::LeftBrace]) {
             return self.block();
@@ -29,7 +24,7 @@ impl<'a> Parser<'a> {
         Err(anyhow!("Invalid statement type."))
     }
 
-    fn block(&mut self) -> ParserResult<Stmt> {
+    pub(super) fn block(&mut self) -> ParserResult<Stmt> {
         trace!("parsing block stmts.");
         let mut block_stmts = vec![];
         while !self.match_token(&[TokenType::RightBrace]) && !self.is_at_end() {

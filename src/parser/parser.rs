@@ -1,6 +1,9 @@
-use log::{debug, trace};
+use log::debug;
 
-use crate::{ast::Expr, token::Token};
+use crate::{
+    ast::{FnDecl, StructDecl},
+    token::{Token, TokenType},
+};
 
 pub struct Parser<'a> {
     /// Vec of tokens to parse.
@@ -12,8 +15,11 @@ pub struct Parser<'a> {
     /// flag to be set if any error occurs during parsing.
     pub has_errors: bool,
 
-    /// vec of parsed ast.
-    pub stmts: Vec<Expr>,
+    /// vec of all parsed struct declarations.
+    pub struct_decls: Vec<StructDecl>,
+
+    /// vec of all parsed function declarations.
+    pub fn_decls: Vec<FnDecl>,
 }
 
 impl<'a> From<&'a Vec<Token>> for Parser<'a> {
@@ -23,19 +29,29 @@ impl<'a> From<&'a Vec<Token>> for Parser<'a> {
             tokens,
             current: 0,
             has_errors: false,
-            stmts: vec![],
+            struct_decls: vec![],
+            fn_decls: vec![],
         }
     }
 }
 
 impl<'a> Parser<'a> {
     /// Public api to start parsing.
+    ///
     pub fn parse(&mut self) {
         while !self.is_at_end() {
-            trace!("parsing new stmt.");
-            match self.expr() {
-                Ok(v) => self.stmts.push(v),
-                Err(_) => todo!("me when parsing error"),
+            if self.match_token(&[TokenType::Struct]) {
+                match self.struct_decl() {
+                    Ok(decl) => self.struct_decls.push(decl),
+                    Err(e) => todo!("{:?}", e),
+                };
+            } else if self.match_token(&[TokenType::Fn]) {
+                match self.fn_decl() {
+                    Ok(decl) => self.fn_decls.push(decl),
+                    Err(e) => todo!("{:?}", e),
+                };
+            } else {
+                self.report_parser_error("Expected function or struct declaration.");
             }
         }
     }
