@@ -1,11 +1,11 @@
 #![allow(dead_code, unused_imports)]
 
-mod ast;
+pub mod ast;
 mod backend;
 mod cli;
 mod emitter;
-mod lexer;
-mod parser;
+pub mod lexer;
+pub mod parser;
 mod utils;
 
 use backend::Backend;
