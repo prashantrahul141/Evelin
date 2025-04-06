@@ -5,14 +5,15 @@ fn_decl       ::=     "fn" IDENTIFIER "(" parameters? ")" block ;
 
 parameters    ::=     IDENTIFIER ;
 
-let_decl      ::=     "let" IDENTIFIER "=" expression ";" ;
-
 statement     ::=     block
+                    | let_stmt
                     | if_stmt
                     | print_stmt
                     | return_stmt;
 
-block         ::=     "{" ( let_decl | statement )* "}" ;
+block         ::=     "{" statement* "}" ;
+
+let_stmt      ::=     "let" IDENTIFIER "=" expression ";" ;
 
 if_stmt       ::=     "if" "(" expression ")" statement ( "else" statement )? ;
 
