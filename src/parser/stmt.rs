@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use log::trace;
 
 use crate::{
-    ast::{IfStmt, PrintStmt, ReturnStmt, Stmt},
+    ast::{BlockStmt, IfStmt, PrintStmt, ReturnStmt, Stmt},
     token::TokenType,
 };
 
@@ -15,7 +15,9 @@ impl<'a> Parser<'a> {
     // }
 
     pub(super) fn stmt(&mut self) -> ParserResult<Stmt> {
-        if self.match_token(&[TokenType::Print]) {
+        if self.match_token(&[TokenType::LeftBrace]) {
+            return self.block();
+        } else if self.match_token(&[TokenType::Print]) {
             return self.print_stmt();
         } else if self.match_token(&[TokenType::Return]) {
             return self.return_stmt();
@@ -24,6 +26,20 @@ impl<'a> Parser<'a> {
         }
 
         Err(anyhow!("Invalid statement type."))
+    }
+
+    fn block(&mut self) -> ParserResult<Stmt> {
+        trace!("parsing block stmts.");
+        let mut block_stmts = vec![];
+        while !self.match_token(&[TokenType::RightBrace]) && !self.is_at_end() {
+            if self.match_token(&[TokenType::Let]) {
+                // parse let declaration.
+            } else {
+                block_stmts.push(self.stmt()?)
+            }
+        }
+
+        Ok(Stmt::Block(BlockStmt { stmts: block_stmts }))
     }
 
     fn if_stmt(&mut self) -> ParserResult<Stmt> {

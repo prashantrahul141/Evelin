@@ -115,6 +115,8 @@ pub enum Expr {
 }
 
 #[derive(Debug, Clone)]
+pub struct BlockStmt {
+    pub stmts: Vec<Stmt>,
 }
 
 #[derive(Debug, Clone)]
@@ -135,6 +137,7 @@ pub struct ReturnStmt {
 }
 #[derive(Debug, Clone)]
 pub enum Stmt {
+    Block(BlockStmt),
     If(Box<IfStmt>),
     Print(PrintStmt),
     Return(ReturnStmt),
