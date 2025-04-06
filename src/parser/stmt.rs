@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use log::trace;
 
 use crate::{
     ast::{IfStmt, PrintStmt, ReturnStmt, Stmt},
@@ -26,6 +27,7 @@ impl<'a> Parser<'a> {
     }
 
     fn if_stmt(&mut self) -> ParserResult<Stmt> {
+        trace!("Parsing if stmt");
         self.consume(TokenType::LeftParen, "Expected '(' after if statement");
         let condition = self.expr()?;
         self.consume(TokenType::RightParen, "Expected ')' after if statement");
@@ -35,6 +37,7 @@ impl<'a> Parser<'a> {
         let mut else_branch = None;
 
         if self.match_token(&[TokenType::Else]) {
+            trace!("found else branch in if stmt, parsing.");
             else_branch = Some(self.stmt()?);
         }
 
@@ -46,22 +49,24 @@ impl<'a> Parser<'a> {
     }
 
     fn print_stmt(&mut self) -> ParserResult<Stmt> {
+        trace!("Parsing print stmt");
         let value = self.expr();
         self.consume(TokenType::Semicolon, "Expected ';' after print statement");
 
         if let Ok(expr) = value {
-            return Ok(Stmt::Print(Box::new(PrintStmt { expr })));
+            return Ok(Stmt::Print(PrintStmt { expr }));
         }
 
         Err(anyhow!("Failed to parse print statement."))
     }
 
     fn return_stmt(&mut self) -> ParserResult<Stmt> {
+        trace!("Parsing return stmt");
         let return_value = self.expr();
         self.consume(TokenType::Semicolon, "Expected ';' after return statement");
 
         if let Ok(expr) = return_value {
-            return Ok(Stmt::Return(Box::new(ReturnStmt { expr })));
+            return Ok(Stmt::Return(ReturnStmt { expr }));
         }
 
         Err(anyhow!("Failed to parse return statement."))

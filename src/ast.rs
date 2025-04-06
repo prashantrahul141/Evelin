@@ -115,13 +115,6 @@ pub enum Expr {
 }
 
 #[derive(Debug, Clone)]
-pub struct PrintStmt {
-    pub expr: Expr,
-}
-
-#[derive(Debug, Clone)]
-pub struct ReturnStmt {
-    pub expr: Expr,
 }
 
 #[derive(Debug, Clone)]
@@ -132,8 +125,17 @@ pub struct IfStmt {
 }
 
 #[derive(Debug, Clone)]
+pub struct PrintStmt {
+    pub expr: Expr,
+}
+
+#[derive(Debug, Clone)]
+pub struct ReturnStmt {
+    pub expr: Expr,
+}
+#[derive(Debug, Clone)]
 pub enum Stmt {
-    Print(Box<PrintStmt>),
-    Return(Box<ReturnStmt>),
     If(Box<IfStmt>),
+    Print(PrintStmt),
+    Return(ReturnStmt),
 }
