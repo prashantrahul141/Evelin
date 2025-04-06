@@ -5,7 +5,7 @@ use crate::ast::{
     TokenType, {BlockStmt, IfStmt, LetStmt, PrintStmt, ReturnStmt, Stmt},
 };
 
-use super::{ParserResult, parser::Parser};
+use super::{Parser, ParserResult};
 
 impl<'a> Parser<'a> {
     pub(super) fn stmt(&mut self) -> ParserResult<Stmt> {

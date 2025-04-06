@@ -4,7 +4,7 @@ use crate::ast::{
     TokenType, {FnDecl, Stmt, StructDecl},
 };
 
-use super::{ParserResult, parser::Parser};
+use super::{Parser, ParserResult};
 
 impl<'a> Parser<'a> {
     pub(super) fn fn_decl(&mut self) -> ParserResult<FnDecl> {

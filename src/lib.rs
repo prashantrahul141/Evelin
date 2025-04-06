@@ -1,3 +1,5 @@
+#![allow(dead_code, unused_imports)]
+
 mod ast;
 mod backend;
 mod cli;
@@ -11,7 +13,7 @@ use backend::qbe_backend::QbeBackend;
 use emitter::Emitter;
 use emitter::qbe_emitter::QBEEmitter;
 use log::error;
-use parser::parser::Parser;
+use parser::Parser;
 use rustyline::DefaultEditor;
 use rustyline::error::ReadlineError;
 use std::fs;

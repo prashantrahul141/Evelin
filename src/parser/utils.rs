@@ -1,4 +1,4 @@
-use super::parser::Parser;
+use super::Parser;
 
 use log::{error, trace};
 

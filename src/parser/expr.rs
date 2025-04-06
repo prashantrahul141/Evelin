@@ -1,4 +1,4 @@
-use super::{MAX_NATIVE_FUNCTION_ARITY, ParserResult, parser::Parser};
+use super::{MAX_NATIVE_FUNCTION_ARITY, Parser, ParserResult};
 
 use anyhow::anyhow;
 use log::{error, trace};
