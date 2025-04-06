@@ -7,22 +7,16 @@ parameters    ::=     IDENTIFIER ;
 
 let_decl      ::=     "let" IDENTIFIER "=" expression ";" ;
 
-block         ::=     "{" ( let_decl | statement )* "}" ;
-
 statement     ::=     block
                     | if_stmt
                     | print_stmt
-                    | return_stmt
-                    | for_stmt
-                    | while_stmt ;
+                    | return_stmt;
 
-for_stmt      ::=     "for" "(" ( let_decl | ";" ) expression? ";" expression? ")" statement ;
+block         ::=     "{" ( let_decl | statement )* "}" ;
 
 if_stmt       ::=     "if" "(" expression ")" statement ( "else" statement )? ;
 
 print_stmt    ::=     "print" expression  ";" ;
-
-while_stmt    ::=     "while" "(" expression ")" statement ;
 
 return_stmt   ::=     "return" expression? ";" ;
 
