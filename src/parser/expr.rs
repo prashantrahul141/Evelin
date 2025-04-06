@@ -5,8 +5,8 @@ use log::{error, trace};
 
 use crate::{
     ast::{
-        BinExpr, BinOp, CallExpr, Expr, GroupExpr, LiteralExpr, NativeCallExpr, UnOp, UnaryExpr,
-        VariableExpr,
+        BinExpr, BinOp, CallExpr, Expr, FieldAccessExpr, GroupExpr, LiteralExpr, NativeCallExpr,
+        UnOp, UnaryExpr, VariableExpr,
     },
     token::{LiteralValue, TokenType},
 };
@@ -211,10 +211,12 @@ impl<'a> Parser<'a> {
         loop {
             if self.match_token(&[TokenType::LeftParen]) {
                 callee = self.finish_call(callee);
-                trace!("calle: {:?}", &callee);
+            } else if self.match_token(&[TokenType::Dot]) {
+                callee = self.finish_access(callee);
             } else {
                 break;
             }
+            trace!("calle: {:?}", &callee);
         }
 
         callee
@@ -244,6 +246,23 @@ impl<'a> Parser<'a> {
         }
 
         let error = self.report_parser_error("Failed to parse function call expression.");
+        Err(anyhow!(error))
+    }
+
+    /// parses trailing field access.
+    fn finish_access(&mut self, callee: ParserResult<Expr>) -> ParserResult<Expr> {
+        if let Ok(callee) = callee {
+            let field = match self.consume(TokenType::Identifier, "Expected field name") {
+                Some(v) => v.lexeme.clone(),
+                None => return Err(anyhow!("Expected field name")),
+            };
+            return Ok(Expr::FieldAccess(Box::new(FieldAccessExpr {
+                parent: callee,
+                field,
+            })));
+        }
+
+        let error = self.report_parser_error("Failed to parse trailing field access.");
         Err(anyhow!(error))
     }
 
