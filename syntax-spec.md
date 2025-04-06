@@ -21,9 +21,7 @@ print_stmt    ::=     "print" expression  ";" ;
 
 return_stmt   ::=     "return" expression? ";" ;
 
-expression    ::=     assignment ;
-
-assignment    ::=     IDENTIFIER "=" assignment | logic_or ;
+expression    ::=     logic_or ;
 
 logic_or      ::=     logic_and ( "or" logic_and )* ;
 
