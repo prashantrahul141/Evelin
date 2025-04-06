@@ -21,7 +21,8 @@ impl<'a> Parser<'a> {
         } else if self.match_token(&[TokenType::If]) {
             return self.if_stmt();
         }
-        Err(anyhow!("Invalid statement type."))
+
+        self.expression_stmt()
     }
 
     pub(super) fn block(&mut self) -> ParserResult<Stmt> {
@@ -96,5 +97,12 @@ impl<'a> Parser<'a> {
         }
 
         Err(anyhow!("Failed to parse return statement."))
+    }
+
+    fn expression_stmt(&mut self) -> ParserResult<Stmt> {
+        trace!("Parsing expression stmt");
+        let expr = self.expr()?;
+        self.consume(TokenType::Semicolon, "Expected ';' after expression");
+        Ok(Stmt::Expression(expr))
     }
 }
