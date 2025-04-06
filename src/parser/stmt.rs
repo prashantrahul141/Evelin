@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use log::trace;
 
 use crate::{
-    ast::{BlockStmt, IfStmt, PrintStmt, ReturnStmt, Stmt},
+    ast::{BlockStmt, IfStmt, LetStmt, PrintStmt, ReturnStmt, Stmt},
     token::TokenType,
 };
 
@@ -17,6 +17,8 @@ impl<'a> Parser<'a> {
     pub(super) fn stmt(&mut self) -> ParserResult<Stmt> {
         if self.match_token(&[TokenType::LeftBrace]) {
             return self.block();
+        } else if self.match_token(&[TokenType::Let]) {
+            return self.let_decl();
         } else if self.match_token(&[TokenType::Print]) {
             return self.print_stmt();
         } else if self.match_token(&[TokenType::Return]) {
@@ -24,7 +26,6 @@ impl<'a> Parser<'a> {
         } else if self.match_token(&[TokenType::If]) {
             return self.if_stmt();
         }
-
         Err(anyhow!("Invalid statement type."))
     }
 
@@ -32,14 +33,28 @@ impl<'a> Parser<'a> {
         trace!("parsing block stmts.");
         let mut block_stmts = vec![];
         while !self.match_token(&[TokenType::RightBrace]) && !self.is_at_end() {
-            if self.match_token(&[TokenType::Let]) {
-                // parse let declaration.
-            } else {
-                block_stmts.push(self.stmt()?)
-            }
+            block_stmts.push(self.stmt()?)
         }
 
         Ok(Stmt::Block(BlockStmt { stmts: block_stmts }))
+    }
+
+    fn let_decl(&mut self) -> ParserResult<Stmt> {
+        trace!("Parsing let declaration statement");
+        let name = match self.consume(
+            TokenType::Identifier,
+            "Expected identifier name after 'let'",
+        ) {
+            Some(n) => n.lexeme.clone(),
+            None => return Err(anyhow!("Expected identifier name after 'let'")),
+        };
+
+        self.consume(TokenType::Equal, "Expected '=' after identifier name");
+        let initialiser = self.expr()?;
+        self.consume(TokenType::Semicolon, "Expected ';' after let statement");
+
+        let stmt = Stmt::Let(LetStmt { name, initialiser });
+        Ok(stmt)
     }
 
     fn if_stmt(&mut self) -> ParserResult<Stmt> {
@@ -70,7 +85,7 @@ impl<'a> Parser<'a> {
         self.consume(TokenType::Semicolon, "Expected ';' after print statement");
 
         if let Ok(expr) = value {
-            return Ok(Stmt::Print(PrintStmt { expr }));
+            return Ok(Stmt::Print(PrintStmt { value: expr }));
         }
 
         Err(anyhow!("Failed to parse print statement."))
@@ -82,7 +97,7 @@ impl<'a> Parser<'a> {
         self.consume(TokenType::Semicolon, "Expected ';' after return statement");
 
         if let Ok(expr) = return_value {
-            return Ok(Stmt::Return(ReturnStmt { expr }));
+            return Ok(Stmt::Return(ReturnStmt { value: expr }));
         }
 
         Err(anyhow!("Failed to parse return statement."))

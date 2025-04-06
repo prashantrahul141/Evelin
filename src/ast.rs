@@ -120,6 +120,12 @@ pub struct BlockStmt {
 }
 
 #[derive(Debug, Clone)]
+pub struct LetStmt {
+    pub name: String,
+    pub initialiser: Expr,
+}
+
+#[derive(Debug, Clone)]
 pub struct IfStmt {
     pub condition: Expr,
     pub if_branch: Stmt,
@@ -128,16 +134,18 @@ pub struct IfStmt {
 
 #[derive(Debug, Clone)]
 pub struct PrintStmt {
-    pub expr: Expr,
+    pub value: Expr,
 }
 
 #[derive(Debug, Clone)]
 pub struct ReturnStmt {
-    pub expr: Expr,
+    pub value: Expr,
 }
+
 #[derive(Debug, Clone)]
 pub enum Stmt {
     Block(BlockStmt),
+    Let(LetStmt),
     If(Box<IfStmt>),
     Print(PrintStmt),
     Return(ReturnStmt),
