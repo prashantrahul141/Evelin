@@ -78,7 +78,7 @@ impl std::fmt::Display for LiteralValue {
 }
 
 // The token type.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     // type of the token.
     pub ttype: TokenType,
