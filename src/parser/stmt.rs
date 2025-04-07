@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use log::trace;
 
 use crate::ast::{
-    TokenType, {BlockStmt, IfStmt, LetStmt, PrintStmt, ReturnStmt, Stmt},
+    BlockStmt, IfStmt, LetStmt, PrintStmt, ReturnStmt, Stmt, StructInitStmt, TokenType,
 };
 
 use super::{Parser, ParserResult};
@@ -45,11 +45,32 @@ impl Parser<'_> {
         };
 
         self.consume(TokenType::Equal, "Expected '=' after identifier name");
-        let initialiser = self.expr()?;
-        self.consume(TokenType::Semicolon, "Expected ';' after let statement");
+        if self.match_current(&TokenType::Identifier) {
+            let struct_name = self.advance().lexeme.clone();
+            self.consume(TokenType::LeftBrace, "Expected '{' after struct name");
+            let mut arguments = vec![];
 
-        let stmt = Stmt::Let(LetStmt { name, initialiser });
-        Ok(stmt)
+            while !self.match_token(&[TokenType::RightBrace]) && !self.is_at_end() {
+                let arg = self.expr()?;
+                arguments.push(arg);
+                if !self.match_current(&TokenType::RightBrace) {
+                    self.consume(TokenType::Comma, "Expected comma after field name");
+                }
+            }
+
+            self.consume(TokenType::Semicolon, "Expected ';' after struct name");
+            let stmt = Stmt::StructInit(StructInitStmt {
+                name,
+                struct_name,
+                arguments,
+            });
+            Ok(stmt)
+        } else {
+            let initialiser = self.expr()?;
+            self.consume(TokenType::Semicolon, "Expected ';' after let statement");
+            let stmt = Stmt::Let(LetStmt { name, initialiser });
+            Ok(stmt)
+        }
     }
 
     fn if_stmt(&mut self) -> ParserResult<Stmt> {
