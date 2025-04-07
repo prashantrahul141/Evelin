@@ -10,6 +10,7 @@ mod utils;
 
 use backend::Backend;
 use backend::qbe_backend::QbeBackend;
+use colored::Colorize;
 use emitter::Emitter;
 use emitter::qbe_emitter::QBEEmitter;
 use log::error;
@@ -40,7 +41,7 @@ pub fn init() {
         cli::InFile::Stdin => {
             let mut rl = DefaultEditor::new().unwrap();
             loop {
-                let readline = rl.readline(">>> ");
+                let readline = rl.readline(&">>> ".green().bold().to_string());
                 match readline {
                     Ok(line) => {
                         let _ = rl.add_history_entry(line.as_str());
