@@ -133,6 +133,13 @@ pub struct LetStmt {
 }
 
 #[derive(Debug, Clone)]
+pub struct StructInitStmt {
+    pub name: String,
+    pub struct_name: String,
+    pub arguments: Vec<Expr>,
+}
+
+#[derive(Debug, Clone)]
 pub struct IfStmt {
     pub condition: Expr,
     pub if_branch: Stmt,
@@ -153,6 +160,7 @@ pub struct ReturnStmt {
 pub enum Stmt {
     Block(BlockStmt),
     Let(LetStmt),
+    StructInit(StructInitStmt),
     If(Box<IfStmt>),
     Print(PrintStmt),
     Return(ReturnStmt),
