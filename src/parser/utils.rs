@@ -1,7 +1,8 @@
 use super::Parser;
 
 use anyhow::bail;
-use log::{error, trace};
+use colored::Colorize;
+use log::{error, trace, warn};
 
 use crate::{
     ast::{Token, TokenType},
@@ -82,12 +83,21 @@ impl Parser<'_> {
         self.current().ttype == TokenType::Eof
     }
 
-    /// Sets parser's error flag, then logs the given error message.
-    /// * `message` - error message.
-    pub fn report_parser_error<T: Into<String>>(&mut self, message: T) -> String {
+    /// Sets parser's error flag, reports the error message to user,
+    /// then synchronizes to next statement.
+    /// * `message` - error.
+    pub fn report_parser_error(&mut self, err: anyhow::Error) {
         self.has_errors = true;
-        let value: String = message.into();
-        error!("Parsing error: at line {}: {}", self.previous().line, value);
+        warn!("Parsing error: at line {}: {:#}.", self.current().line, err);
+        println!(
+            "{}: at line {}: {:#}.",
+            "Parsing error".red(),
+            self.current().line,
+            err
+        );
+        self.synchronize();
+    }
+
     /// Returns the next token without consuming it.
     pub fn peek(&self) -> &Token {
         &self.tokens[self.current]
