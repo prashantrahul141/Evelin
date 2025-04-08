@@ -28,17 +28,18 @@ pub fn init() -> anyhow::Result<()> {
     debug!("{:?}", &parser.struct_decls);
     debug!("{:?}", &parser.fn_decls);
 
+    let mut qbe_generator = QBEEmitter::from((&parser.fn_decls, &parser.struct_decls));
+    let ir = qbe_generator.emit_ir().unwrap();
+    debug!("{:?}", ir);
+
     // let backend = QbeBackend::default();
-    // let mut qbe_generator = QBEEmitter::from(&parser.stmts);
-    // let ir = qbe_generator.emit_ir().unwrap();
-    // println!("{}", ir);
 
     Ok(())
 }
 
 fn main() {
     match init() {
-        Ok(_) => info!("Execution finished successfully."),
+        Ok(()) => info!("Execution finished successfully."),
         Err(err) => {
             error!("Execution failed : {:?}", err);
             println!("{} {:#}", "Error:".red(), err);

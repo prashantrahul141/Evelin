@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use log::debug;
+use log::info;
 
 mod expr;
 mod stmt;
@@ -10,9 +10,7 @@ pub const MAX_NATIVE_FUNCTION_ARITY: usize = 256;
 
 pub type ParserResult<T> = anyhow::Result<T>;
 
-use crate::ast::{
-    {FnDecl, StructDecl}, {Token, TokenType},
-};
+use crate::ast::{FnDecl, StructDecl, Token, TokenType};
 
 pub struct Parser<'a> {
     /// Vec of tokens to parse.
@@ -33,7 +31,7 @@ pub struct Parser<'a> {
 
 impl<'a> From<&'a Vec<Token>> for Parser<'a> {
     fn from(tokens: &'a Vec<Token>) -> Self {
-        debug!("Start parsing--------------------------------");
+        info!("Start parsing");
         Self {
             tokens,
             current: 0,
