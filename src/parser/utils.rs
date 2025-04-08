@@ -84,7 +84,10 @@ impl Parser<'_> {
         self.has_errors = true;
         let value: String = message.into();
         error!("Parsing error: at line {}: {}", self.previous().line, value);
+    /// Returns the next token without consuming it.
+    pub fn peek(&self) -> &Token {
+        &self.tokens[self.current]
+    }
 
-        value
     }
 }
