@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use log::debug;
 
 mod expr;
@@ -7,7 +8,7 @@ mod utils;
 
 pub const MAX_NATIVE_FUNCTION_ARITY: usize = 256;
 
-pub type ParserResult<T> = Result<T, anyhow::Error>;
+pub type ParserResult<T> = anyhow::Result<T>;
 
 use crate::ast::{
     {FnDecl, StructDecl}, {Token, TokenType},
@@ -45,22 +46,27 @@ impl<'a> From<&'a Vec<Token>> for Parser<'a> {
 
 impl Parser<'_> {
     /// Public api to start parsing.
-    ///
+    /// Calls (Parser::parse_internal)[parse_internal] in a loop.
     pub fn parse(&mut self) {
         while !self.is_at_end() {
-            if self.match_token(&[TokenType::Struct]) {
-                match self.struct_decl() {
-                    Ok(decl) => self.struct_decls.push(decl),
-                    Err(e) => todo!("{:?}", e),
-                };
-            } else if self.match_token(&[TokenType::Fn]) {
-                match self.fn_decl() {
-                    Ok(decl) => self.fn_decls.push(decl),
-                    Err(e) => todo!("{:?}", e),
-                };
-            } else {
-                self.report_parser_error("Expected function or struct declaration.");
-            }
+            self.parse_internal();
+        }
+    }
+
+    /// Internal parsing function, calls struct_decl or fn_decl as needed, reports parser error.
+    fn parse_internal(&mut self) {
+        if self.match_token(&[TokenType::Struct]) {
+            match self.struct_decl() {
+                Ok(decl) => self.struct_decls.push(decl),
+                Err(e) => self.report_parser_error(e),
+            };
+        } else if self.match_token(&[TokenType::Fn]) {
+            match self.fn_decl() {
+                Ok(decl) => self.fn_decls.push(decl),
+                Err(e) => self.report_parser_error(e),
+            };
+        } else {
+            self.report_parser_error(anyhow!("Expected struct or function declaration."));
         }
     }
 }
