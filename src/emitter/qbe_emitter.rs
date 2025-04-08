@@ -100,11 +100,11 @@ impl QBEEmitter<'_> {
             temp.clone(),
             ty.clone(),
             match expr.op {
-                BinOp::OpAdd => qbe::Instr::Add(left, right),
-                BinOp::OpSub => qbe::Instr::Sub(left, right),
-                BinOp::OpMul => qbe::Instr::Mul(left, right),
-                BinOp::OpDiv => qbe::Instr::Div(left, right),
-                BinOp::OpMod => qbe::Instr::Rem(left, right),
+                BinOp::Add => qbe::Instr::Add(left, right),
+                BinOp::Sub => qbe::Instr::Sub(left, right),
+                BinOp::Mul => qbe::Instr::Mul(left, right),
+                BinOp::Div => qbe::Instr::Div(left, right),
+                BinOp::Mod => qbe::Instr::Rem(left, right),
                 _ => todo!("TODO: other binary operations."),
             },
         );

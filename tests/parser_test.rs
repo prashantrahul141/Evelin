@@ -96,7 +96,7 @@ fn parses_binary_expression() {
     if let Stmt::Return(ret_stmt) = &parser[0].body[0] {
         match &ret_stmt.value {
             Expr::Binary(bin) => {
-                matches!(bin.op, BinOp::OpAdd);
+                matches!(bin.op, BinOp::Add);
             }
             _ => panic!("Expected binary expression"),
         }

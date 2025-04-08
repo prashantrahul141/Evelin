@@ -7,19 +7,19 @@ pub use token::{LiteralValue, Token, TokenType};
 
 #[derive(Debug, Clone, Copy)]
 pub enum BinOp {
-    OpAdd,          // +
-    OpSub,          // -
-    OpMul,          // *
-    OpDiv,          // /
-    OpMod,          // %
-    OpLess,         // <
-    OpLessEqual,    // <=
-    OpGreater,      // >
-    OpGreaterEqual, // >=
-    OpEqualEqual,   // ==
-    OpBangEqual,    // !=
-    OpAnd,          // and
-    OpOr,           // or
+    Add,          // +
+    Sub,          // -
+    Mul,          // *
+    Div,          // /
+    Mod,          // %
+    Less,         // <
+    LessEqual,    // <=
+    Greater,      // >
+    GreaterEqual, // >=
+    EqualEqual,   // ==
+    BangEqual,    // !=
+    And,          // and
+    Or,           // or
 }
 
 #[derive(Debug, Clone)]
@@ -32,19 +32,19 @@ pub struct BinExpr {
 impl From<&TokenType> for BinOp {
     fn from(value: &TokenType) -> Self {
         match value {
-            TokenType::Plus => BinOp::OpAdd,
-            TokenType::Minus => BinOp::OpSub,
-            TokenType::Slash => BinOp::OpDiv,
-            TokenType::Star => BinOp::OpMul,
-            TokenType::Mod => BinOp::OpMod,
-            TokenType::Less => BinOp::OpLess,
-            TokenType::LessEqual => BinOp::OpLessEqual,
-            TokenType::Greater => BinOp::OpGreater,
-            TokenType::GreaterEqual => BinOp::OpGreaterEqual,
-            TokenType::EqualEqual => BinOp::OpEqualEqual,
-            TokenType::BangEqual => BinOp::OpBangEqual,
-            TokenType::And => BinOp::OpAnd,
-            TokenType::Or => BinOp::OpOr,
+            TokenType::Plus => BinOp::Add,
+            TokenType::Minus => BinOp::Sub,
+            TokenType::Slash => BinOp::Div,
+            TokenType::Star => BinOp::Mul,
+            TokenType::Mod => BinOp::Mod,
+            TokenType::Less => BinOp::Less,
+            TokenType::LessEqual => BinOp::LessEqual,
+            TokenType::Greater => BinOp::Greater,
+            TokenType::GreaterEqual => BinOp::GreaterEqual,
+            TokenType::EqualEqual => BinOp::EqualEqual,
+            TokenType::BangEqual => BinOp::BangEqual,
+            TokenType::And => BinOp::And,
+            TokenType::Or => BinOp::Or,
             _ => {
                 die!("BinOp::from failed recieved: {}", value);
             }
