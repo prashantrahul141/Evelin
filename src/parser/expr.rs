@@ -1,6 +1,6 @@
 use super::{MAX_NATIVE_FUNCTION_ARITY, Parser, ParserResult};
 
-use anyhow::anyhow;
+use anyhow::{anyhow, bail};
 use log::{error, trace};
 
 use crate::ast::{
@@ -186,19 +186,16 @@ impl Parser<'_> {
                 }
             }
 
-            if self
-                .consume(
-                    TokenType::RightParen,
-                    "Expected ')' after function arguments.",
-                )
-                .is_some()
-            {
-                let call = Expr::NativeCall(Box::new(NativeCallExpr { callee, args }));
-                return Ok(call);
-            }
+            self.consume(
+                TokenType::RightParen,
+                "Expected ')' after function arguments.",
+            )?;
+
+            let call = Expr::NativeCall(Box::new(NativeCallExpr { callee, args }));
+            return Ok(call);
         }
 
-        Err(anyhow!("Failed to parse native function."))
+        bail!("Failed to parse native function call.");
     }
 
     /// Parses function calling expressions.
@@ -219,7 +216,7 @@ impl Parser<'_> {
             } else {
                 break;
             }
-            trace!("calle: {:?}", &callee);
+            trace!("callee: {:?}", &callee);
         }
 
         callee
@@ -242,31 +239,26 @@ impl Parser<'_> {
 
             self.consume(
                 TokenType::RightParen,
-                "Expected ')' after function argument.\n\nNote: Multiple function arguments are not supported, use structs for that.",
-            );
+                "Expected ')' after function argument.\n\nNote: Multiple function arguments are only supported for extern function calls, otherwise use structs."
+            )?;
 
             return Ok(callee);
         }
 
-        let error = self.report_parser_error("Failed to parse function call expression.");
-        Err(anyhow!(error))
+        bail!("Failed to parse function call expression.");
     }
 
     /// parses trailing field access.
     fn finish_access(&mut self, callee: ParserResult<Expr>) -> ParserResult<Expr> {
         if let Ok(callee) = callee {
-            let field = match self.consume(TokenType::Identifier, "Expected field name") {
-                Some(v) => v.lexeme.clone(),
-                None => return Err(anyhow!("Expected field name")),
-            };
+            let field = self.consume(TokenType::Identifier, "Expected field name")?;
             return Ok(Expr::FieldAccess(Box::new(FieldAccessExpr {
                 parent: callee,
-                field,
+                field: field.lexeme.clone(),
             })));
         }
 
-        let error = self.report_parser_error("Failed to parse trailing field access.");
-        Err(anyhow!(error))
+        bail!("Failed to parse trailing field access.");
     }
 
     /// Parses literal expressions.
@@ -290,7 +282,6 @@ impl Parser<'_> {
 
         // literal values get parsed in the lexer section, we can just clone it here.
         if self.match_token(&[
-            TokenType::Null,
             TokenType::String,
             TokenType::NumberInt,
             TokenType::NumberFloat,
@@ -308,7 +299,7 @@ impl Parser<'_> {
                 self.consume(
                     TokenType::RightParen,
                     format!("Expected ')' got {} instead", self.current().ttype).as_str(),
-                );
+                )?;
                 let literal = Expr::Grouping(Box::new(GroupExpr { value: expr }));
                 return Ok(literal);
             }
@@ -322,16 +313,9 @@ impl Parser<'_> {
             return Ok(var);
         }
 
-        let error = self.report_parser_error(format!(
-            "Expected literal value recieved {} instead.",
-            self.current().ttype
-        ));
-
-        error!(
-            "Expected literal value recieved {} instead.",
-            self.current()
+        bail!(
+            "Expected expression, identifier or grouping recieved '{}' instead",
+            self.current().lexeme
         );
-
-        Err(anyhow!(error))
     }
 }
