@@ -1,4 +1,4 @@
-use anyhow::anyhow;
+use anyhow::{anyhow, bail};
 
 use crate::ast::{
     TokenType, {FnDecl, Stmt, StructDecl},
@@ -8,12 +8,12 @@ use super::{Parser, ParserResult};
 
 impl Parser<'_> {
     pub(super) fn fn_decl(&mut self) -> ParserResult<FnDecl> {
-        let name = match self.consume(TokenType::Identifier, "Expected function name.") {
-            Some(v) => v.lexeme.clone(),
-            None => return Err(anyhow!("Expected function name,")),
-        };
+        let name = self
+            .consume(TokenType::Identifier, "Expected function name")?
+            .lexeme
+            .clone();
 
-        self.consume(TokenType::LeftParen, "Expected '(' after function name");
+        self.consume(TokenType::LeftParen, "Expected '(' after function name")?;
         let mut parameter = None;
         if !self.match_current(&TokenType::RightParen) {
             parameter = Some(self.advance().lexeme.clone());
@@ -24,12 +24,16 @@ impl Parser<'_> {
         self.consume(
             TokenType::RightParen,
             "Expected ')' after function parameter",
-        );
+        )?;
 
-        self.consume(TokenType::LeftBrace, "Expected { after function parameter");
+        self.consume(
+            TokenType::LeftBrace,
+            "Expected '{' after function parameter",
+        )?;
+
         let body = match self.block()? {
             Stmt::Block(block) => block.stmts,
-            _ => return Err(anyhow!("Expected block after function declaration")),
+            _ => bail!("Expected block after function declaration"),
         };
 
         Ok(FnDecl {
@@ -40,22 +44,24 @@ impl Parser<'_> {
     }
 
     pub(super) fn struct_decl(&mut self) -> ParserResult<StructDecl> {
-        let name = match self.consume(TokenType::Identifier, "Expected struct name") {
-            Some(v) => v.lexeme.clone(),
-            None => return Err(anyhow!("Expected struct name")),
-        };
+        let name = self
+            .consume(TokenType::Identifier, "Expected struct name")?
+            .lexeme
+            .clone();
 
-        self.consume(TokenType::LeftBrace, "Expected '{' after struct name");
+        self.consume(TokenType::LeftBrace, "Expected '{' after struct name")?;
 
         let mut fields = vec![];
         while !self.match_token(&[TokenType::RightBrace]) && !self.is_at_end() {
-            match self.consume(TokenType::Identifier, "Expected field name") {
-                Some(f) => fields.push(f.lexeme.clone()),
-                None => return Err(anyhow!("Expected field name")),
-            };
+            let field = self
+                .consume(TokenType::Identifier, "Expected field name")?
+                .lexeme
+                .clone();
+
+            fields.push(field);
 
             if !self.match_current(&TokenType::RightBrace) {
-                self.consume(TokenType::Comma, "Expected commo after field name");
+                self.consume(TokenType::Comma, "Expected ',' after field name")?;
             }
         }
 
