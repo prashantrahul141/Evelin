@@ -17,22 +17,25 @@ use std::fs;
 
 pub fn init() -> anyhow::Result<()> {
     let opts = cli::init()?;
-    let in_src = fs::read_to_string(opts.file).unwrap();
 
-    let mut lexer = lexer::Lexer::from(&in_src);
-    lexer.start();
-    debug!("{:?}", &lexer.tokens());
+    for f in opts.file {
+        let in_src = fs::read_to_string(f).unwrap();
 
-    let mut parser = Parser::from(lexer.tokens());
-    parser.parse();
-    debug!("{:?}", &parser.struct_decls);
-    debug!("{:?}", &parser.fn_decls);
+        let mut lexer = lexer::Lexer::from(&in_src);
+        lexer.start();
+        debug!("{:?}", &lexer.tokens());
 
-    let mut qbe_generator = QBEEmitter::from((&parser.fn_decls, &parser.struct_decls));
-    let ir = qbe_generator.emit_ir().unwrap();
-    debug!("{:?}", ir);
+        let mut parser = Parser::from(lexer.tokens());
+        parser.parse();
+        debug!("{:?}", &parser.struct_decls);
+        debug!("{:?}", &parser.fn_decls);
 
-    // let backend = QbeBackend::default();
+        let mut qbe_generator = QBEEmitter::from((&parser.fn_decls, &parser.struct_decls));
+        let ir = qbe_generator.emit_ir()?;
+        debug!("{:?}", ir);
+
+        // let backend = QbeBackend::default();
+    }
 
     Ok(())
 }
