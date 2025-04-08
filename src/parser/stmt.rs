@@ -1,4 +1,4 @@
-use anyhow::anyhow;
+use anyhow::{anyhow, bail};
 use log::trace;
 
 use crate::ast::{
@@ -28,7 +28,10 @@ impl Parser<'_> {
         trace!("parsing block stmts.");
         let mut block_stmts = vec![];
         while !self.match_token(&[TokenType::RightBrace]) && !self.is_at_end() {
-            block_stmts.push(self.stmt()?)
+            match self.stmt() {
+                Ok(stmt) => block_stmts.push(stmt),
+                Err(err) => self.report_parser_error(err),
+            }
         }
 
         Ok(Stmt::Block(BlockStmt { stmts: block_stmts }))
@@ -36,53 +39,57 @@ impl Parser<'_> {
 
     fn let_decl(&mut self) -> ParserResult<Stmt> {
         trace!("Parsing let declaration statement");
-        let name = match self.consume(
-            TokenType::Identifier,
-            "Expected identifier name after 'let'",
-        ) {
-            Some(n) => n.lexeme.clone(),
-            None => return Err(anyhow!("Expected identifier name after 'let'")),
-        };
+        let name = self
+            .consume(
+                TokenType::Identifier,
+                "Expected identifier name after 'let'",
+            )?
+            .lexeme
+            .clone();
 
-        self.consume(TokenType::Equal, "Expected '=' after identifier name");
+        self.consume(TokenType::Equal, "Expected '=' after identifier name")?;
+
         if self.match_current(&TokenType::Identifier) {
             let struct_name = self.advance().lexeme.clone();
-            self.consume(TokenType::LeftBrace, "Expected '{' after struct name");
+            self.consume(TokenType::LeftBrace, "Expected '{' after struct name")?;
             let mut arguments = vec![];
 
             while !self.match_token(&[TokenType::RightBrace]) && !self.is_at_end() {
                 let arg = self.expr()?;
                 arguments.push(arg);
                 if !self.match_current(&TokenType::RightBrace) {
-                    self.consume(TokenType::Comma, "Expected comma after field name");
+                    self.consume(
+                        TokenType::Comma,
+                        "Expected ',' after field value in struct declaration",
+                    )?;
                 }
             }
 
-            self.consume(TokenType::Semicolon, "Expected ';' after struct name");
-            let stmt = Stmt::StructInit(StructInitStmt {
+            self.consume(
+                TokenType::Semicolon,
+                "Expected ';' after struct declaration",
+            )?;
+            Ok(Stmt::StructInit(StructInitStmt {
                 name,
                 struct_name,
                 arguments,
-            });
-            Ok(stmt)
+            }))
         } else {
             let initialiser = self.expr()?;
-            self.consume(TokenType::Semicolon, "Expected ';' after let statement");
-            let stmt = Stmt::Let(LetStmt { name, initialiser });
-            Ok(stmt)
+            self.consume(TokenType::Semicolon, "Expected ';' after let statement")?;
+            Ok(Stmt::Let(LetStmt { name, initialiser }))
         }
     }
 
     fn if_stmt(&mut self) -> ParserResult<Stmt> {
         trace!("Parsing if stmt");
-        self.consume(TokenType::LeftParen, "Expected '(' after if statement");
+        self.consume(TokenType::LeftParen, "Expected '(' after 'if'")?;
         let condition = self.expr()?;
-        self.consume(TokenType::RightParen, "Expected ')' after if statement");
+        self.consume(TokenType::RightParen, "Expected ')' after if expression")?;
 
         let if_branch = self.stmt()?;
 
         let mut else_branch = None;
-
         if self.match_token(&[TokenType::Else]) {
             trace!("found else branch in if stmt, parsing.");
             else_branch = Some(self.stmt()?);
@@ -98,31 +105,31 @@ impl Parser<'_> {
     fn print_stmt(&mut self) -> ParserResult<Stmt> {
         trace!("Parsing print stmt");
         let value = self.expr();
-        self.consume(TokenType::Semicolon, "Expected ';' after print statement");
+        self.consume(TokenType::Semicolon, "Expected ';' after print statement")?;
 
         if let Ok(expr) = value {
             return Ok(Stmt::Print(PrintStmt { value: expr }));
         }
 
-        Err(anyhow!("Failed to parse print statement."))
+        bail!("Failed to parse print statement.");
     }
 
     fn return_stmt(&mut self) -> ParserResult<Stmt> {
         trace!("Parsing return stmt");
         let return_value = self.expr();
-        self.consume(TokenType::Semicolon, "Expected ';' after return statement");
+        self.consume(TokenType::Semicolon, "Expected ';' after return statement")?;
 
         if let Ok(expr) = return_value {
             return Ok(Stmt::Return(ReturnStmt { value: expr }));
         }
 
-        Err(anyhow!("Failed to parse return statement."))
+        bail!("Failed to parse return statement.");
     }
 
     fn expression_stmt(&mut self) -> ParserResult<Stmt> {
         trace!("Parsing expression stmt");
         let expr = self.expr()?;
-        self.consume(TokenType::Semicolon, "Expected ';' after expression");
+        self.consume(TokenType::Semicolon, "Expected ';' after expression")?;
         Ok(Stmt::Expression(expr))
     }
 }

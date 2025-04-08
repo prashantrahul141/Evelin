@@ -1,6 +1,8 @@
 use super::Parser;
 
-use log::{error, trace};
+use anyhow::bail;
+use colored::Colorize;
+use log::{error, trace, warn};
 
 use crate::{
     ast::{Token, TokenType},
@@ -11,13 +13,16 @@ impl Parser<'_> {
     /// Consumes current token if it matches the given token type.
     /// * `expected_type` - type of token to match with.
     /// * `message` - error message for when token doesn't match the expected type
-    pub(super) fn consume(&mut self, expected_type: TokenType, message: &str) -> Option<&Token> {
+    pub(super) fn consume(
+        &mut self,
+        expected_type: TokenType,
+        message: &str,
+    ) -> anyhow::Result<&Token> {
         if self.match_current(&expected_type) {
-            return Some(self.advance());
+            return Ok(self.advance());
         }
 
-        self.report_parser_error(message);
-        die!("{}", message);
+        bail!(message.to_owned());
     }
 
     /// Checks whether the current token is
@@ -25,14 +30,14 @@ impl Parser<'_> {
     /// and consumes it
     /// * `expected` - expected vec of tokens.
     pub(super) fn match_token(&mut self, expected: &[TokenType]) -> bool {
-        for ttype in expected {
+        expected.iter().any(|ttype| {
             if self.match_current(ttype) {
                 self.advance();
-                return true;
+                true
+            } else {
+                false
             }
-        }
-
-        false
+        })
     }
 
     /// Checks whether the current token is of given type
@@ -78,13 +83,52 @@ impl Parser<'_> {
         self.current().ttype == TokenType::Eof
     }
 
-    /// Sets parser's error flag, then logs the given error message.
-    /// * `message` - error message.
-    pub fn report_parser_error<T: Into<String>>(&mut self, message: T) -> String {
+    /// Sets parser's error flag, reports the error message to user,
+    /// then synchronizes to next statement.
+    /// * `message` - error.
+    pub fn report_parser_error(&mut self, err: anyhow::Error) {
         self.has_errors = true;
-        let value: String = message.into();
-        error!("Parsing error: at line {}: {}", self.previous().line, value);
+        warn!("Parsing error: at line {}: {:#}.", self.current().line, err);
+        println!(
+            "{}: at line {}: {:#}.",
+            "Parsing error".red(),
+            self.current().line,
+            err
+        );
+        self.synchronize();
+    }
 
-        value
+    /// Returns the next token without consuming it.
+    pub fn peek(&self) -> &Token {
+        &self.tokens[self.current]
+    }
+
+    /// Synchronizes: consumes all tokens untill next meaningful statement.
+    fn synchronize(&mut self) {
+        trace!("trying to synchronize");
+        self.advance();
+
+        while !self.is_at_end() {
+            if self.previous().ttype == TokenType::Semicolon {
+                trace!("found semicolon, ending synchronize");
+                return;
+            }
+
+            match self.peek().ttype {
+                TokenType::Struct
+                | TokenType::Fn
+                | TokenType::Let
+                | TokenType::Return
+                | TokenType::If
+                | TokenType::Print
+                | TokenType::Extern => {
+                    trace!("Found new statement beginner tokenm ending synchronize");
+                    return;
+                }
+                _ => trace!("didnt match any new statement beginner token."),
+            };
+
+            self.advance();
+        }
     }
 }
