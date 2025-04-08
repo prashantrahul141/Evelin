@@ -1,5 +1,6 @@
 use super::Parser;
 
+use anyhow::bail;
 use log::{error, trace};
 
 use crate::{
@@ -11,13 +12,16 @@ impl Parser<'_> {
     /// Consumes current token if it matches the given token type.
     /// * `expected_type` - type of token to match with.
     /// * `message` - error message for when token doesn't match the expected type
-    pub(super) fn consume(&mut self, expected_type: TokenType, message: &str) -> Option<&Token> {
+    pub(super) fn consume(
+        &mut self,
+        expected_type: TokenType,
+        message: &str,
+    ) -> anyhow::Result<&Token> {
         if self.match_current(&expected_type) {
-            return Some(self.advance());
+            return Ok(self.advance());
         }
 
-        self.report_parser_error(message);
-        die!("{}", message);
+        bail!(message.to_owned());
     }
 
     /// Checks whether the current token is
