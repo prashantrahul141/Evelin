@@ -10,5 +10,4 @@ env_logger = "0.11.7"
 clap = { version = "4.5.32", features = ["derive"] }
 qbe = "2.4.0"
 anyhow = "1.0.97"
-rustyline = "15.0.0"
 colored = "3.0.0"

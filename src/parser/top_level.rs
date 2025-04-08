@@ -1,4 +1,4 @@
-use anyhow::{anyhow, bail};
+use anyhow::bail;
 
 use crate::ast::{
     TokenType, {FnDecl, Stmt, StructDecl},

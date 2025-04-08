@@ -1,12 +1,10 @@
 use std::io::Write;
 use std::path::Path;
-use std::{path::PathBuf, str::FromStr};
+use std::path::PathBuf;
 
+use anyhow::bail;
 use clap::Parser;
 use env_logger::{Builder, Env};
-use log::{error, trace};
-
-use crate::die;
 
 #[derive(clap::ValueEnum, Clone, Debug)]
 pub enum DebugTypes {
@@ -15,29 +13,11 @@ pub enum DebugTypes {
     Trace,
 }
 
-#[derive(Clone, Debug)]
-pub enum InFile {
-    File(PathBuf),
-    Stdin,
-}
-
-impl FromStr for InFile {
-    type Err = anyhow::Error;
-
-    fn from_str(v: &str) -> Result<InFile, anyhow::Error> {
-        if v == "-" {
-            Ok(InFile::Stdin)
-        } else {
-            Ok(InFile::File(PathBuf::from_str(v).unwrap()))
-        }
-    }
-}
-
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 pub struct EveCliOptions {
-    /// File path, use '-' to start repl mode.
-    pub file: InFile,
+    /// Evelin source file path
+    pub file: PathBuf,
 
     /// Turn debugging information on
     #[clap(value_enum, default_value_t = DebugTypes::Error)]
@@ -45,7 +25,7 @@ pub struct EveCliOptions {
     pub debug: DebugTypes,
 }
 
-pub fn init() -> EveCliOptions {
+pub fn init() -> anyhow::Result<EveCliOptions> {
     let cli = EveCliOptions::parse();
     let level = match cli.debug {
         DebugTypes::Error => "error",
@@ -69,17 +49,10 @@ pub fn init() -> EveCliOptions {
         })
         .init();
 
-    match &cli.file {
-        InFile::File(f) => {
-            let file_path = Path::new(f);
-            if !file_path.is_file() && !file_path.exists() {
-                die!("File not found {}", f.to_str().unwrap());
-            }
-        }
-        InFile::Stdin => {
-            trace!("repl mode.");
-        }
-    };
+    let file_path = Path::new(&cli.file);
+    if !file_path.is_file() || !file_path.exists() {
+        bail!("File '{}' not found", cli.file.to_str().unwrap());
+    }
 
-    cli
+    Ok(cli)
 }
