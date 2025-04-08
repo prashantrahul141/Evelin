@@ -29,14 +29,14 @@ impl Parser<'_> {
     /// and consumes it
     /// * `expected` - expected vec of tokens.
     pub(super) fn match_token(&mut self, expected: &[TokenType]) -> bool {
-        for ttype in expected {
+        expected.iter().any(|ttype| {
             if self.match_current(ttype) {
                 self.advance();
-                return true;
+                true
+            } else {
+                false
             }
-        }
-
-        false
+        })
     }
 
     /// Checks whether the current token is of given type
@@ -105,12 +105,12 @@ impl Parser<'_> {
             }
 
             match self.peek().ttype {
-                TokenType::Let
+                TokenType::Struct
                 | TokenType::Fn
+                | TokenType::Let
                 | TokenType::Return
                 | TokenType::If
                 | TokenType::Print
-                | TokenType::Struct
                 | TokenType::Extern => {
                     trace!("Found new statement beginner tokenm ending synchronize");
                     return;
