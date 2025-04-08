@@ -89,5 +89,32 @@ impl Parser<'_> {
         &self.tokens[self.current]
     }
 
+    /// Synchronizes: consumes all tokens untill next meaningful statement.
+    fn synchronize(&mut self) {
+        trace!("trying to synchronize");
+        self.advance();
+
+        while !self.is_at_end() {
+            if self.previous().ttype == TokenType::Semicolon {
+                trace!("found semicolon, ending synchronize");
+                return;
+            }
+
+            match self.peek().ttype {
+                TokenType::Let
+                | TokenType::Fn
+                | TokenType::Return
+                | TokenType::If
+                | TokenType::Print
+                | TokenType::Struct
+                | TokenType::Extern => {
+                    trace!("Found new statement beginner tokenm ending synchronize");
+                    return;
+                }
+                _ => trace!("didnt match any new statement beginner token."),
+            };
+
+            self.advance();
+        }
     }
 }
