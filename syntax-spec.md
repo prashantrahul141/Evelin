@@ -30,7 +30,7 @@ print_stmt      ::=     "print" expression  ";" ;
 
 return_stmt     ::=     "return" expression? ";" ;
 
-expression_stmt ::=     expression_stmt ";" ;
+expression_stmt ::=     expression ";" ;
 
 expression      ::=     logic_or ;
 
