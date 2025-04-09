@@ -1,4 +1,4 @@
-use evelin::ast::{BinOp, Expr, FnDecl, LiteralValue, Stmt, StructDecl};
+use evelin::ast::{BinOp, Expr, FnDecl, LiteralValue, Stmt, StructDecl, TokenType};
 use evelin::lexer::Lexer;
 use evelin::parser::Parser;
 
@@ -57,12 +57,15 @@ fn parses_function_without_param() {
 
 #[test]
 fn parses_function_with_param() {
-    let parser = parse_fn("fn inc(x) { return x; }");
+    let parser = parse_fn("fn inc(x: i32) { return x; }");
 
     assert_eq!(parser.len(), 1);
     let f = &parser[0];
     assert_eq!(f.name, "inc");
-    assert_eq!(f.parameter.as_deref(), Some("x"));
+    assert_eq!(
+        f.parameter.as_ref(),
+        Some(&("x".to_owned(), TokenType::TypeI64))
+    );
 }
 
 #[test]
