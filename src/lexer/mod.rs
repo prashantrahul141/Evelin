@@ -64,6 +64,7 @@ impl Lexer<'_> {
             '.' => self.add_basic_token(TokenType::Dot),
             '-' => self.add_basic_token(TokenType::Minus),
             '+' => self.add_basic_token(TokenType::Plus),
+            ':' => self.add_basic_token(TokenType::Colon),
             ';' => self.add_basic_token(TokenType::Semicolon),
             '*' => self.add_basic_token(TokenType::Star),
             '%' => self.add_basic_token(TokenType::Mod),
