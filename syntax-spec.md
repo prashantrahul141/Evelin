@@ -5,11 +5,11 @@ program         ::=     ( fn_decl | struct_decl )* EOF ;
 
 struct_decl     ::=     "struct" IDENTIFIER "{" field+ "}" ;
 
-field           ::=     IDENTIFIER "," ;
+field           ::=     IDENTIFIER ":" type "," ;
 
 fn_decl         ::=     "fn" IDENTIFIER "(" parameters? ")" block ;
 
-parameters      ::=     IDENTIFIER ;
+parameters      ::=     IDENTIFIER ":" type ;
 
 statement       ::=     block
                       | let_stmt
@@ -59,6 +59,8 @@ primary         ::=     NUMBER_INT
                       | "false"
                       | "(" expression ")"
                       | IDENTIFIER ;
+
+type            ::=     "i64" | "f64" ;
 ```
 
 
