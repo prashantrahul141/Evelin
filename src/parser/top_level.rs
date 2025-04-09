@@ -15,11 +15,15 @@ impl Parser<'_> {
 
         self.consume(TokenType::LeftParen, "Expected '(' after function name")?;
         let mut parameter = None;
-        if !self.match_current(&TokenType::RightParen) {
-            parameter = Some(self.advance().lexeme.clone());
-        }
+        if self.match_current(&TokenType::Identifier) {
+            let field_name = self.advance().lexeme.clone();
+            self.consume(TokenType::Colon, "Expected ':' after function parameter")?;
 
-        dbg!(&parameter);
+            if !self.match_token(&[TokenType::TypeI64, TokenType::TypeF64]) {
+                bail!("Expected type after field name in function declaration");
+            }
+            parameter = Some((field_name, self.previous().ttype.clone()));
+        }
 
         self.consume(
             TokenType::RightParen,
@@ -53,12 +57,18 @@ impl Parser<'_> {
 
         let mut fields = vec![];
         while !self.match_token(&[TokenType::RightBrace]) && !self.is_at_end() {
-            let field = self
+            let field_name = self
                 .consume(TokenType::Identifier, "Expected field name")?
                 .lexeme
                 .clone();
 
-            fields.push(field);
+            self.consume(TokenType::Colon, "Expected ':' after field name")?;
+            if !self.match_token(&[TokenType::TypeI64, TokenType::TypeF64]) {
+                bail!("Expected type after field name in struct declaration");
+            }
+
+            let field_type = self.previous().ttype.clone();
+            fields.push((field_name, field_type));
 
             if !self.match_current(&TokenType::RightBrace) {
                 self.consume(TokenType::Comma, "Expected ',' after field name")?;
