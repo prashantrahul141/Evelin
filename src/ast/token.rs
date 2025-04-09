@@ -47,6 +47,9 @@ pub enum TokenType {
     Struct, // struct
     Extern, // extern
 
+    // Types
+    TypeI64,
+    TypeF64,
     Eof, // end of file.
 }
 
@@ -101,14 +104,14 @@ impl std::fmt::Display for Token {
 }
 
 /// static array of all reserved keywords.
-static RESERVED_KEYWORDS_KEYS: [&str; 13] = [
+static RESERVED_KEYWORDS_KEYS: [&str; 15] = [
     "true", "false", "null", "and", "or", "let", "fn", "return", "if", "else", "print", "struct",
-    "extern",
+    "extern", "i64", "f64",
 ];
 
 /// TokenTypes which are reserved keywords,
 /// THIS HAS TO BE IN SAME ORDER AS RESERVED_KEYWORDS_KEYS
-static RESERVED_KEYWORDS_TYPES: [TokenType; 13] = [
+static RESERVED_KEYWORDS_TYPES: [TokenType; 15] = [
     TokenType::True,
     TokenType::False,
     TokenType::Null,
@@ -122,6 +125,8 @@ static RESERVED_KEYWORDS_TYPES: [TokenType; 13] = [
     TokenType::Print,
     TokenType::Struct,
     TokenType::Extern,
+    TokenType::TypeI64,
+    TokenType::TypeF64,
 ];
 
 /// Checks whether given &str is a reserved keyword or not

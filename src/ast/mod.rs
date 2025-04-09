@@ -170,13 +170,13 @@ pub enum Stmt {
 #[derive(Debug, Clone)]
 pub struct StructDecl {
     pub name: String,
-    pub fields: Vec<String>,
+    pub fields: Vec<(String, TokenType)>,
 }
 
 #[derive(Debug, Clone)]
 pub struct FnDecl {
     pub name: String,
-    pub parameter: Option<String>,
+    pub parameter: Option<(String, TokenType)>,
     pub body: Vec<Stmt>,
 }
 
