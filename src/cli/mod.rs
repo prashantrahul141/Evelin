@@ -18,6 +18,7 @@ pub enum DebugTypes {
 }
 
 #[derive(Parser)]
+#[command(arg_required_else_help = true)]
 #[command(version, about= "The Evelin Programming Language", long_about = None)]
 pub struct EveCliOptions {
     /// Evelin source files path
