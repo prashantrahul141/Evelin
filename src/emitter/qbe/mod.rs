@@ -84,28 +84,29 @@ impl QBEEmitter<'_> {
     }
 
     /// Emits a single function
-    fn emit_function(&mut self, func_block: &mut qbe::Function<'static>, func_node: &FnDecl) {}
+    fn emit_function_body(&mut self, func: &mut qbe::Function<'static>, fn_body: &Vec<Stmt>) {
+        for stmt in fn_body {
+            let _ = match stmt {
+                Stmt::Block(_) => todo!(),
+                Stmt::Let(_) => todo!(),
+                Stmt::StructInit(_) => todo!(),
+                Stmt::If(_) => todo!(),
+                Stmt::Print(expr) => self.emit_print(func, &expr.value),
+                Stmt::Return(expr) => self.emit_return(func, &expr.value),
+                Stmt::Expression(expr) => self.emit_expr(func, expr),
+            };
+        }
+    }
 
-    /// Top level emit function to start emitting.
-    fn emit(&mut self) {
-        let mut main_func = qbe::Function::new(
-            qbe::Linkage::public(),
-            "main",
-            Vec::new(),
-            Some(qbe::Type::Word),
-        );
-        main_func.add_block("start");
-        let last_temp = format!("tmp.{}", self.tmp_counter);
-        main_func.add_instr(qbe::Instr::Call(
-            "printf".into(),
-            vec![
-                (qbe::Type::Long, qbe::Value::Global("fmt".into())),
-                (qbe::Type::Word, qbe::Value::Temporary(last_temp)),
-            ],
-            Some(1),
-        ));
-        main_func.add_instr(qbe::Instr::Ret(Some(qbe::Value::Const(0_u64))));
-        self.module.add_function(main_func);
+    /// emits print statement based upon expression type.
+    fn emit_print(
+        &mut self,
+        func: &mut qbe::Function<'static>,
+        expr: &Expr,
+    ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
+        let (ty, value) = self.emit_expr(func, expr)?;
+        Ok((ty, value))
+    }
 
     /// emits return statement
     fn emit_return(
