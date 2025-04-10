@@ -1,6 +1,6 @@
 use crate::ast::{
-    BinExpr, BinOp, CallExpr, Expr, FnDecl, GroupExpr, LiteralExpr, LiteralValue, Stmt, StructDecl,
-    TokenType, UnOp, UnaryExpr, VariableExpr,
+    BinExpr, BinOp, CallExpr, Expr, FnDecl, GroupExpr, LiteralExpr, LiteralValue, NativeCallExpr,
+    Stmt, StructDecl, TokenType, UnOp, UnaryExpr, VariableExpr,
 };
 use crate::die;
 use crate::emitter::EmitterResult;
@@ -128,6 +128,7 @@ impl QBEEmitter<'_> {
         match expr {
             Expr::Binary(bin) => self.emit_binary(func, bin),
             Expr::Call(call) => self.emit_call(func, call),
+            Expr::NativeCall(call) => self.emit_native_call(func, call),
             Expr::Unary(una) => self.emit_unary(func, una),
             Expr::Grouping(gro) => self.emit_grouping(func, gro),
             Expr::Literal(lit) => self.emit_literal(func, lit),
@@ -184,6 +185,29 @@ impl QBEEmitter<'_> {
             tmp.clone(),
             callee_type.clone(),
             qbe::Instr::Call(callee_value.to_string(), arg, None),
+        );
+
+        Ok((callee_type, tmp))
+    }
+
+    /// Emit eve native function call
+    fn emit_native_call(
+        &mut self,
+        func: &mut qbe::Function<'static>,
+        call: &Box<NativeCallExpr>,
+    ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
+        let (callee_type, callee_value) = self.emit_expr(func, &call.callee)?;
+        let args = call
+            .args
+            .iter()
+            .map(|arg| self.emit_expr(func, arg))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let tmp = self.new_tmp();
+        func.assign_instr(
+            tmp.clone(),
+            callee_type.clone(),
+            qbe::Instr::Call(callee_value.to_string(), args, None),
         );
 
         Ok((callee_type, tmp))
