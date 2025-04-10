@@ -218,3 +218,17 @@ impl QBEEmitter<'_> {
         qbe::Value::Temporary(format!("tmp.{}", self.tmp_counter))
     }
 }
+impl<'a> TryFrom<TokenType> for qbe::Type<'a> {
+    type Error = ();
+
+    fn try_from(value: TokenType) -> Result<Self, Self::Error> {
+        match value {
+            TokenType::TypeI64 => Ok(qbe::Type::Long),
+            TokenType::TypeF64 => Ok(qbe::Type::Double),
+            TokenType::TypeVoid => Err(()),
+            v => {
+                die!("qbe::Value::from failed, recieved token type: {}", v);
+            }
+        }
+    }
+}
