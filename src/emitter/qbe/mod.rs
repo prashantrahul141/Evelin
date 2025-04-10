@@ -98,6 +98,16 @@ impl QBEEmitter<'_> {
         ));
         main_func.add_instr(qbe::Instr::Ret(Some(qbe::Value::Const(0_u64))));
         self.module.add_function(main_func);
+
+    /// emits return statement
+    fn emit_return(
+        &mut self,
+        func: &mut qbe::Function<'static>,
+        expr: &Expr,
+    ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
+        let (ty, value) = self.emit_expr(func, expr)?;
+        func.add_instr(qbe::Instr::Ret(Some(value.clone())));
+        Ok((ty, value))
     }
 
     /// Emit generic expression ast.
