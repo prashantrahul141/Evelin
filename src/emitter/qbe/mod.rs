@@ -213,11 +213,17 @@ impl QBEEmitter<'_> {
     }
 
     /// Creates a new temporary, returns the generated qbe::Value
-    fn new_temp(&mut self) -> qbe::Value {
+    fn new_tmp(&mut self) -> qbe::Value {
         self.tmp_counter += 1;
         qbe::Value::Temporary(format!("tmp.{}", self.tmp_counter))
     }
+
+    /// Creates and returns a new temporary from a given name,
+    fn new_tmp_from(&mut self, name: &String) -> qbe::Value {
+        qbe::Value::Temporary(format!("tmp.{}", name))
+    }
 }
+
 impl<'a> TryFrom<TokenType> for qbe::Type<'a> {
     type Error = ();
 
