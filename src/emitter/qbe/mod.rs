@@ -139,11 +139,14 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         expr: &BinExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
-        let (_, left) = self.emit_expr(func, &expr.left)?;
-        let (_, right) = self.emit_expr(func, &expr.right)?;
-
+        let (ty_left, left) = self.emit_expr(func, &expr.left)?;
+        let (ty_right, right) = self.emit_expr(func, &expr.right)?;
         let tmp = self.new_tmp();
-        let ty = qbe::Type::Word;
+
+        let mut ty = qbe::Type::Long;
+        if matches!(ty_left, qbe::Type::Double) || matches!(ty_right, qbe::Type::Double) {
+            ty = qbe::Type::Double;
+        }
 
         func.assign_instr(
             tmp.clone(),
@@ -168,8 +171,7 @@ impl QBEEmitter<'_> {
         expr: &UnaryExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
         let tmp = self.new_tmp();
-        let (_, operand) = self.emit_expr(func, &expr.operand)?;
-        let ty = qbe::Type::Word;
+        let (ty, operand) = self.emit_expr(func, &expr.operand)?;
 
         func.assign_instr(
             tmp.clone(),
@@ -190,8 +192,7 @@ impl QBEEmitter<'_> {
         expr: &GroupExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
         let tmp = self.new_tmp();
-        let (_, value) = self.emit_expr(func, &expr.value)?;
-        let ty = qbe::Type::Word;
+        let (ty, value) = self.emit_expr(func, &expr.value)?;
         func.assign_instr(tmp.clone(), ty.clone(), qbe::Instr::Copy(value));
         Ok((ty, tmp))
     }
