@@ -36,12 +36,18 @@ fn parses_empty_struct() {
 
 #[test]
 fn parses_struct_with_fields() {
-    let parser = parser_struct("struct Point { x, y }");
+    let parser = parser_struct("struct Point { x: i64, y: f64 }");
 
     assert_eq!(parser.len(), 1);
     let s = &parser[0];
     assert_eq!(s.name, "Point");
-    assert_eq!(s.fields, vec!["x", "y"]);
+    assert_eq!(
+        s.fields,
+        vec![
+            ("x".to_string(), TokenType::TypeI64),
+            ("y".to_string(), TokenType::TypeF64)
+        ]
+    );
 }
 
 #[test]
@@ -57,7 +63,7 @@ fn parses_function_without_param() {
 
 #[test]
 fn parses_function_with_param() {
-    let parser = parse_fn("fn inc(x: i32) { return x; }");
+    let parser = parse_fn("fn inc(x: i64) { return x; }");
 
     assert_eq!(parser.len(), 1);
     let f = &parser[0];
