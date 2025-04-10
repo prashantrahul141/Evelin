@@ -8,7 +8,6 @@ pub enum TokenType {
     RightBrace, // }
     Comma,      // ,
     Dot,        // .
-    Minus,      // -
     Plus,       // +
     Colon,      // :
     Semicolon,  // ;
@@ -25,6 +24,8 @@ pub enum TokenType {
     GreaterEqual, // >=
     Less,         // <
     LessEqual,    // <=
+    Minus,        // -
+    FatArrow,     // ->
 
     // literals.
     Identifier,  // variables, function names, class names.
@@ -50,6 +51,8 @@ pub enum TokenType {
     // Types
     TypeI64,
     TypeF64,
+    TypeVoid,
+
     Eof, // end of file.
 }
 
@@ -97,6 +100,24 @@ pub struct Token {
     pub line: usize,
 }
 
+impl Token {
+    pub fn is_a_basic_type(&self) -> bool {
+        match self.ttype {
+            TokenType::TypeI64 | TokenType::TypeF64 => true,
+            _ => false,
+        }
+    }
+    pub fn is_a_extended_type(&self) -> bool {
+        match self.ttype {
+            TokenType::TypeVoid => true,
+            _ => false,
+        }
+    }
+    pub fn is_a_type(&self) -> bool {
+        self.is_a_basic_type() || self.is_a_extended_type()
+    }
+}
+
 impl std::fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
@@ -104,14 +125,14 @@ impl std::fmt::Display for Token {
 }
 
 /// static array of all reserved keywords.
-static RESERVED_KEYWORDS_KEYS: [&str; 15] = [
+static RESERVED_KEYWORDS_KEYS: [&str; 16] = [
     "true", "false", "null", "and", "or", "let", "fn", "return", "if", "else", "print", "struct",
-    "extern", "i64", "f64",
+    "extern", "i64", "f64", "void",
 ];
 
 /// TokenTypes which are reserved keywords,
 /// THIS HAS TO BE IN SAME ORDER AS RESERVED_KEYWORDS_KEYS
-static RESERVED_KEYWORDS_TYPES: [TokenType; 15] = [
+static RESERVED_KEYWORDS_TYPES: [TokenType; 16] = [
     TokenType::True,
     TokenType::False,
     TokenType::Null,
@@ -127,6 +148,7 @@ static RESERVED_KEYWORDS_TYPES: [TokenType; 15] = [
     TokenType::Extern,
     TokenType::TypeI64,
     TokenType::TypeF64,
+    TokenType::TypeVoid,
 ];
 
 /// Checks whether given &str is a reserved keyword or not
