@@ -1,5 +1,5 @@
 use crate::ast::{
-    BinExpr, BinOp, Expr, FnDecl, GroupExpr, LiteralExpr, LiteralValue, Stmt, StructDecl,
+    BinExpr, BinOp, CallExpr, Expr, FnDecl, GroupExpr, LiteralExpr, LiteralValue, Stmt, StructDecl,
     TokenType, UnOp, UnaryExpr, VariableExpr,
 };
 use crate::die;
@@ -127,6 +127,7 @@ impl QBEEmitter<'_> {
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
         match expr {
             Expr::Binary(bin) => self.emit_binary(func, bin),
+            Expr::Call(call) => self.emit_call(func, call),
             Expr::Unary(una) => self.emit_unary(func, una),
             Expr::Grouping(gro) => self.emit_grouping(func, gro),
             Expr::Literal(lit) => self.emit_literal(func, lit),
@@ -164,6 +165,28 @@ impl QBEEmitter<'_> {
         );
 
         Ok((ty, tmp))
+    }
+
+    /// Emit Eve function call
+    fn emit_call(
+        &mut self,
+        func: &mut qbe::Function<'static>,
+        call: &Box<CallExpr>,
+    ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
+        let (callee_type, callee_value) = self.emit_expr(func, &call.callee)?;
+        let arg = if let Some(arg_expr) = &call.arg {
+            vec![self.emit_expr(func, &arg_expr)?]
+        } else {
+            vec![]
+        };
+        let tmp = self.new_tmp();
+        func.assign_instr(
+            tmp.clone(),
+            callee_type.clone(),
+            qbe::Instr::Call(callee_value.to_string(), arg, None),
+        );
+
+        Ok((callee_type, tmp))
     }
 
     /// Emit unary operation ast.
@@ -205,7 +228,7 @@ impl QBEEmitter<'_> {
         expr: &Box<VariableExpr>,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
         let tmp = self.new_tmp_from(&expr.name);
-        let ty = qbe::Type::Word;
+        let ty = qbe::Type::Long;
         Ok((ty, tmp))
     }
 
