@@ -1,6 +1,10 @@
-use crate::ast::{BinExpr, BinOp, Expr, GroupExpr, LiteralExpr, Stmt, StructDecl, UnOp, UnaryExpr};
-use crate::ast::{FnDecl, LiteralValue};
+use crate::ast::{
+    BinExpr, BinOp, Expr, FnDecl, GroupExpr, LiteralExpr, LiteralValue, Stmt, StructDecl,
+    TokenType, UnOp, UnaryExpr,
+};
+use crate::die;
 use crate::emitter::EmitterResult;
+use log::error;
 use qbe;
 
 use super::Emitter;
@@ -20,9 +24,6 @@ pub struct QBEEmitter<'a> {
     /// This is usually 1 module per file basis.
     module: qbe::Module<'a>,
 
-    /// Contains all functions created in current module.
-    emitted_functions: Vec<qbe::Function<'static>>,
-
     // Contains all data definations created in current module.
     emitted_data_defs: Vec<qbe::DataDef<'static>>,
 }
@@ -35,7 +36,6 @@ impl<'a> From<(&'a Vec<FnDecl>, &'a Vec<StructDecl>)> for QBEEmitter<'a> {
             fn_decls: decls.0,
             struct_decls: decls.1,
             module: qbe::Module::new(),
-            emitted_functions: vec![],
             emitted_data_defs: vec![],
         }
     }
