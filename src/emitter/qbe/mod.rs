@@ -124,11 +124,11 @@ impl QBEEmitter<'_> {
         let (_, left) = self.emit_expr(func, &expr.left)?;
         let (_, right) = self.emit_expr(func, &expr.right)?;
 
-        let temp = self.new_temp();
+        let tmp = self.new_tmp();
         let ty = qbe::Type::Word;
 
         func.assign_instr(
-            temp.clone(),
+            tmp.clone(),
             ty.clone(),
             match expr.op {
                 BinOp::Add => qbe::Instr::Add(left, right),
@@ -140,7 +140,7 @@ impl QBEEmitter<'_> {
             },
         );
 
-        Ok((ty, temp))
+        Ok((ty, tmp))
     }
 
     /// Emit unary operation ast.
@@ -149,12 +149,12 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         expr: &UnaryExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
-        let temp = self.new_temp();
+        let tmp = self.new_tmp();
         let (_, operand) = self.emit_expr(func, &expr.operand)?;
         let ty = qbe::Type::Word;
 
         func.assign_instr(
-            temp.clone(),
+            tmp.clone(),
             ty.clone(),
             match expr.op {
                 UnOp::OpSub => qbe::Instr::Copy(operand),
@@ -162,7 +162,7 @@ impl QBEEmitter<'_> {
             },
         );
 
-        Ok((ty, temp))
+        Ok((ty, tmp))
     }
 
     /// Emits grouping ast.
@@ -171,11 +171,11 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         expr: &GroupExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
-        let temp = self.new_temp();
+        let tmp = self.new_tmp();
         let (_, value) = self.emit_expr(func, &expr.value)?;
         let ty = qbe::Type::Word;
-        func.assign_instr(temp.clone(), ty.clone(), qbe::Instr::Copy(value));
-        Ok((ty, temp))
+        func.assign_instr(tmp.clone(), ty.clone(), qbe::Instr::Copy(value));
+        Ok((ty, tmp))
     }
 
     /// Emits literal values in form of temporaries.
