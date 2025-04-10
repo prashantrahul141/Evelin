@@ -1,6 +1,6 @@
 use crate::ast::{
     BinExpr, BinOp, Expr, FnDecl, GroupExpr, LiteralExpr, LiteralValue, Stmt, StructDecl,
-    TokenType, UnOp, UnaryExpr,
+    TokenType, UnOp, UnaryExpr, VariableExpr,
 };
 use crate::die;
 use crate::emitter::EmitterResult;
@@ -130,6 +130,7 @@ impl QBEEmitter<'_> {
             Expr::Unary(una) => self.emit_unary(func, una),
             Expr::Grouping(gro) => self.emit_grouping(func, gro),
             Expr::Literal(lit) => self.emit_literal(func, lit),
+            Expr::Variable(var) => self.emit_variable(var),
             _ => todo!("implement"),
         }
     }
@@ -195,6 +196,16 @@ impl QBEEmitter<'_> {
         let tmp = self.new_tmp();
         let (ty, value) = self.emit_expr(func, &expr.value)?;
         func.assign_instr(tmp.clone(), ty.clone(), qbe::Instr::Copy(value));
+        Ok((ty, tmp))
+    }
+
+    /// Emits variable expression
+    fn emit_variable(
+        &mut self,
+        expr: &Box<VariableExpr>,
+    ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
+        let tmp = self.new_tmp_from(&expr.name);
+        let ty = qbe::Type::Word;
         Ok((ty, tmp))
     }
 
