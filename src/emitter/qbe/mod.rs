@@ -187,24 +187,26 @@ impl QBEEmitter<'_> {
         let v = &expr.value;
         match v {
             LiteralValue::NumberFloat(v) => {
-                let temp = self.new_temp();
+                let tmp = self.new_tmp();
+                let ty = qbe::Type::Double;
                 func.assign_instr(
-                    temp.clone(),
-                    qbe::Type::Double,
+                    tmp.clone(),
+                    ty.clone(),
                     qbe::Instr::Copy(qbe::Value::Const(*v as u64)),
                 );
 
-                Ok((qbe::Type::Double, temp))
+                Ok((ty, tmp))
             }
             LiteralValue::NumberInt(v) => {
-                let temp = self.new_temp();
+                let tmp = self.new_tmp();
+                let ty = qbe::Type::Long;
                 func.assign_instr(
-                    temp.clone(),
-                    qbe::Type::Word,
+                    tmp.clone(),
+                    ty.clone(),
                     qbe::Instr::Copy(qbe::Value::Const(*v as u64)),
                 );
 
-                Ok((qbe::Type::Word, temp))
+                Ok((ty, tmp))
             }
             LiteralValue::String(_) => todo!(),
             LiteralValue::Boolean(_) => todo!(),
