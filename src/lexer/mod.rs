@@ -62,7 +62,6 @@ impl Lexer<'_> {
             '}' => self.add_basic_token(TokenType::RightBrace),
             ',' => self.add_basic_token(TokenType::Comma),
             '.' => self.add_basic_token(TokenType::Dot),
-            '-' => self.add_basic_token(TokenType::Minus),
             '+' => self.add_basic_token(TokenType::Plus),
             ':' => self.add_basic_token(TokenType::Colon),
             ';' => self.add_basic_token(TokenType::Semicolon),
@@ -116,6 +115,14 @@ impl Lexer<'_> {
                     self.add_basic_token(TokenType::LessEqual);
                 } else {
                     self.add_basic_token(TokenType::Less);
+                }
+            }
+
+            '-' => {
+                if self.match_char('>') {
+                    self.add_basic_token(TokenType::FatArrow);
+                } else {
+                    self.add_basic_token(TokenType::Minus);
                 }
             }
 

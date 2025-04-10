@@ -10,7 +10,7 @@ fn tokenize<T: Into<String>>(input: T) -> Vec<evelin::lexer::Token> {
 
 #[test]
 fn test_single_char_tokens() {
-    let input = "(){},.-+:;*%";
+    let input = "(){},.-->+:;*%";
     let tokens = tokenize(input);
     let expected = vec![
         TokenType::LeftParen,
@@ -20,6 +20,7 @@ fn test_single_char_tokens() {
         TokenType::Comma,
         TokenType::Dot,
         TokenType::Minus,
+        TokenType::FatArrow,
         TokenType::Plus,
         TokenType::Colon,
         TokenType::Semicolon,
