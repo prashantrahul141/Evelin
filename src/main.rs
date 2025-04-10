@@ -10,7 +10,7 @@ use backend::Backend;
 use backend::qbe_backend::QbeBackend;
 use colored::Colorize;
 use emitter::Emitter;
-use emitter::qbe_emitter::QBEEmitter;
+use emitter::qbe::QBEEmitter;
 use log::{debug, error, info};
 use parser::Parser;
 use std::fs;

@@ -1,5 +1,5 @@
-use crate::ast::LiteralValue;
-use crate::ast::{BinExpr, BinOp, Expr, GroupExpr, LiteralExpr, Stmt, UnOp, UnaryExpr};
+use crate::ast::{BinExpr, BinOp, Expr, GroupExpr, LiteralExpr, Stmt, StructDecl, UnOp, UnaryExpr};
+use crate::ast::{FnDecl, LiteralValue};
 use crate::emitter::EmitterResult;
 use qbe;
 
@@ -10,26 +10,33 @@ pub struct QBEEmitter<'a> {
     /// Counts total number of temporaries created.
     tmp_counter: usize,
 
-    /// Stmts to compile.
-    stmts: &'a Vec<Stmt>,
+    /// Function declarations
+    fn_decls: &'a Vec<FnDecl>,
+
+    /// Struct declarations
+    struct_decls: &'a Vec<StructDecl>,
 
     /// Current module.
     /// This is usually 1 module per file basis.
     module: qbe::Module<'a>,
-    // Contains all functions created in current module.
-    // functions: Vec<qbe::Function<'static>>,
+
+    /// Contains all functions created in current module.
+    emitted_functions: Vec<qbe::Function<'static>>,
 
     // Contains all data definations created in current module.
-    // data_defs: Vec<qbe::DataDef<'static>>,
+    emitted_data_defs: Vec<qbe::DataDef<'static>>,
 }
 
 /// Impl From for QBEEmitter.
-impl<'a> From<&'a Vec<Stmt>> for QBEEmitter<'a> {
-    fn from(stmts: &'a Vec<Stmt>) -> Self {
+impl<'a> From<(&'a Vec<FnDecl>, &'a Vec<StructDecl>)> for QBEEmitter<'a> {
+    fn from(decls: (&'a Vec<FnDecl>, &'a Vec<StructDecl>)) -> Self {
         Self {
             tmp_counter: 0,
-            stmts,
+            fn_decls: decls.0,
+            struct_decls: decls.1,
             module: qbe::Module::new(),
+            emitted_functions: vec![],
+            emitted_data_defs: vec![],
         }
     }
 }
@@ -37,13 +44,40 @@ impl<'a> From<&'a Vec<Stmt>> for QBEEmitter<'a> {
 /// Impl Emitter trait for QBEEmitter.
 impl Emitter for QBEEmitter<'_> {
     fn emit_ir(&mut self) -> EmitterResult<String> {
-        self.emit();
+        self.emit_data_defs();
+        self.emit_functions();
         Ok(format!("{}", self.module))
     }
 }
 
 /// More impl for QBEEmitter.
 impl QBEEmitter<'_> {
+    /// Emits all parsed structs
+    fn emit_data_defs(&mut self) {
+        for struc in self.struct_decls {}
+    }
+
+    /// Emits a single function
+    fn emit_data_def(&mut self) {}
+
+    /// Emits all parsed functions
+    fn emit_functions(&mut self) {
+        for func in self.fn_decls {
+            let mut func_block = qbe::Function::new(
+                qbe::Linkage::public(),
+                &func.name,
+                Vec::new(),
+                Some(qbe::Type::Word),
+            );
+            func_block.add_block("start");
+            self.emit_function(&mut func_block, func);
+            self.module.add_function(func_block);
+        }
+    }
+
+    /// Emits a single function
+    fn emit_function(&mut self, func_block: &mut qbe::Function<'static>, func_node: &FnDecl) {}
+
     /// Top level emit function to start emitting.
     fn emit(&mut self) {
         let mut main_func = qbe::Function::new(
@@ -53,9 +87,6 @@ impl QBEEmitter<'_> {
             Some(qbe::Type::Word),
         );
         main_func.add_block("start");
-        for stmt in self.stmts.iter() {
-            // self.emit_expr(&mut main_func, stmt).unwrap();
-        }
         let last_temp = format!("tmp.{}", self.tmp_counter);
         main_func.add_instr(qbe::Instr::Call(
             "printf".into(),

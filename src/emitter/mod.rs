@@ -1,4 +1,4 @@
-pub mod qbe_emitter;
+pub mod qbe;
 
 pub type EmitterResult<T> = anyhow::Result<T>;
 
