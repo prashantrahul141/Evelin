@@ -52,18 +52,19 @@ fn parses_struct_with_fields() {
 
 #[test]
 fn parses_function_without_param() {
-    let parser = parse_fn("fn main() { return 42; }");
+    let parser = parse_fn("fn main() -> void { return 42; }");
 
     assert_eq!(parser.len(), 1);
     let f = &parser[0];
     assert_eq!(f.name, "main");
     assert!(f.parameter.is_none());
+    assert_eq!(f.return_type, TokenType::TypeVoid);
     assert!(!f.body.is_empty());
 }
 
 #[test]
 fn parses_function_with_param() {
-    let parser = parse_fn("fn inc(x: i64) { return x; }");
+    let parser = parse_fn("fn inc(x: i64) -> i64 { return x; }");
 
     assert_eq!(parser.len(), 1);
     let f = &parser[0];
@@ -72,11 +73,12 @@ fn parses_function_with_param() {
         f.parameter.as_ref(),
         Some(&("x".to_owned(), TokenType::TypeI64))
     );
+    assert_eq!(f.return_type, TokenType::TypeI64);
 }
 
 #[test]
 fn parses_if_else_statement() {
-    let parser = parse_fn("fn test() { if (true) { print 1; } else { print 2; } }");
+    let parser = parse_fn("fn test() -> i64 { if (true) { print 1; } else { print 2; } }");
 
     let body = &parser[0].body;
     assert!(matches!(body[0], Stmt::If(_)));
@@ -84,7 +86,7 @@ fn parses_if_else_statement() {
 
 #[test]
 fn parses_literal_expression() {
-    let parser = parse_fn("fn test() { return 123; }");
+    let parser = parse_fn("fn test() -> i64 { return 123; }");
 
     if let Stmt::Return(ret_stmt) = &parser[0].body[0] {
         match &ret_stmt.value {
@@ -100,7 +102,7 @@ fn parses_literal_expression() {
 
 #[test]
 fn parses_binary_expression() {
-    let parser = parse_fn("fn test() { return 1 + 2 * 3; }");
+    let parser = parse_fn("fn test() -> i64 { return 1 + 2 * 3; }");
 
     if let Stmt::Return(ret_stmt) = &parser[0].body[0] {
         match &ret_stmt.value {
@@ -116,7 +118,7 @@ fn parses_binary_expression() {
 
 #[test]
 fn parses_nested_blocks() {
-    let parser = parse_fn("fn test() { { { print 1; } } }");
+    let parser = parse_fn("fn test() -> i64 { { { print 1; } } }");
 
     assert_eq!(parser.len(), 1);
     let outer_block = &parser[0].body[0];

@@ -19,16 +19,27 @@ impl Parser<'_> {
             let field_name = self.advance().lexeme.clone();
             self.consume(TokenType::Colon, "Expected ':' after function parameter")?;
 
-            if !self.match_token(&[TokenType::TypeI64, TokenType::TypeF64]) {
+            if !self.current().is_a_basic_type() {
                 bail!("Expected type after field name in function declaration");
             }
-            parameter = Some((field_name, self.previous().ttype.clone()));
+            parameter = Some((field_name, self.advance().ttype.clone()));
         }
 
         self.consume(
             TokenType::RightParen,
             "Expected ')' after function parameter",
         )?;
+
+        self.consume(
+            TokenType::FatArrow,
+            "Expected '->' after function parameter",
+        )?;
+
+        if !self.current().is_a_type() {
+            bail!("Expected function return type");
+        }
+
+        let return_type = self.advance().ttype.clone();
 
         self.consume(
             TokenType::LeftBrace,
@@ -44,6 +55,7 @@ impl Parser<'_> {
             name,
             parameter,
             body,
+            return_type,
         })
     }
 
