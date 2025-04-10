@@ -7,7 +7,7 @@ struct_decl     ::=     "struct" IDENTIFIER "{" field+ "}" ;
 
 field           ::=     IDENTIFIER ":" type "," ;
 
-fn_decl         ::=     "fn" IDENTIFIER "(" parameters? ")" block ;
+fn_decl         ::=     "fn" IDENTIFIER "(" parameters? ")" "->" extended_type block ;
 
 parameters      ::=     IDENTIFIER ":" type ;
 
@@ -61,6 +61,7 @@ primary         ::=     NUMBER_INT
                       | IDENTIFIER ;
 
 type            ::=     "i64" | "f64" ;
+extended_type   ::=     type | "void" ;
 ```
 
 
