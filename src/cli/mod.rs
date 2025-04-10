@@ -59,10 +59,8 @@ pub fn init() -> anyhow::Result<EveCliOptions> {
     for f in &cli.file {
         let file_path = Path::new(f);
 
-        let ext_matches = file_path
-            .extension()
-            .and_then(|ext| ext.to_str())
-            .map_or(false, |ext| ext == EVE_FILE_EXTENSION);
+        let ext_matches =
+            file_path.extension().and_then(|ext| ext.to_str()) == Some(EVE_FILE_EXTENSION);
 
         let tmp_str = f.to_str().unwrap();
         if !file_path.is_file() || !file_path.exists() {

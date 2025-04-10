@@ -172,11 +172,11 @@ impl QBEEmitter<'_> {
     fn emit_call(
         &mut self,
         func: &mut qbe::Function<'static>,
-        call: &Box<CallExpr>,
+        call: &CallExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
         let (callee_type, callee_value) = self.emit_expr(func, &call.callee)?;
         let arg = if let Some(arg_expr) = &call.arg {
-            vec![self.emit_expr(func, &arg_expr)?]
+            vec![self.emit_expr(func, arg_expr)?]
         } else {
             vec![]
         };
@@ -194,7 +194,7 @@ impl QBEEmitter<'_> {
     fn emit_native_call(
         &mut self,
         func: &mut qbe::Function<'static>,
-        call: &Box<NativeCallExpr>,
+        call: &NativeCallExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
         let (callee_type, callee_value) = self.emit_expr(func, &call.callee)?;
         let args = call
@@ -249,7 +249,7 @@ impl QBEEmitter<'_> {
     /// Emits variable expression
     fn emit_variable(
         &mut self,
-        expr: &Box<VariableExpr>,
+        expr: &VariableExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
         let tmp = self.new_tmp_from(&expr.name);
         let ty = qbe::Type::Long;
@@ -304,7 +304,7 @@ impl QBEEmitter<'_> {
     }
 }
 
-impl<'a> TryFrom<TokenType> for qbe::Type<'a> {
+impl TryFrom<TokenType> for qbe::Type<'_> {
     type Error = ();
 
     fn try_from(value: TokenType) -> Result<Self, Self::Error> {

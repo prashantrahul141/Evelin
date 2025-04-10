@@ -102,16 +102,10 @@ pub struct Token {
 
 impl Token {
     pub fn is_a_basic_type(&self) -> bool {
-        match self.ttype {
-            TokenType::TypeI64 | TokenType::TypeF64 => true,
-            _ => false,
-        }
+        matches!(self.ttype, TokenType::TypeI64 | TokenType::TypeF64)
     }
     pub fn is_a_extended_type(&self) -> bool {
-        match self.ttype {
-            TokenType::TypeVoid => true,
-            _ => false,
-        }
+        matches!(self.ttype, TokenType::TypeVoid)
     }
     pub fn is_a_type(&self) -> bool {
         self.is_a_basic_type() || self.is_a_extended_type()
