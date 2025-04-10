@@ -46,7 +46,7 @@ impl Emitter for QBEEmitter<'_> {
     fn emit_ir(&mut self) -> EmitterResult<String> {
         self.emit_data_defs();
         self.emit_functions();
-        Ok(format!("{}", self.module))
+        Ok(self.module.to_string())
     }
 }
 
@@ -58,7 +58,7 @@ impl QBEEmitter<'_> {
     }
 
     /// Emits a single function
-    fn emit_data_def(&mut self) {}
+    fn emit_data_body(&mut self) {}
 
     /// Emits all parsed functions
     fn emit_functions(&mut self) {
@@ -66,11 +66,19 @@ impl QBEEmitter<'_> {
             let mut func_block = qbe::Function::new(
                 qbe::Linkage::public(),
                 &func.name,
-                Vec::new(),
-                Some(qbe::Type::Word),
+                func.parameter
+                    .iter()
+                    .map(|x| {
+                        (
+                            qbe::Type::try_from(x.1.to_owned()).unwrap(),
+                            self.new_tmp_from(&x.0),
+                        )
+                    })
+                    .collect::<Vec<_>>(),
+                qbe::Type::try_from(func.return_type.clone()).ok(),
             );
             func_block.add_block("start");
-            self.emit_function(&mut func_block, func);
+            self.emit_function_body(&mut func_block, &func.body);
             self.module.add_function(func_block);
         }
     }
