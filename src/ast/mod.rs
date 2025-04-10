@@ -177,6 +177,7 @@ pub struct StructDecl {
 pub struct FnDecl {
     pub name: String,
     pub parameter: Option<(String, TokenType)>,
+    pub return_type: TokenType,
     pub body: Vec<Stmt>,
 }
 
