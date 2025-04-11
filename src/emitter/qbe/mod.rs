@@ -144,7 +144,7 @@ impl QBEEmitter<'_> {
         trace!("emitting new stmt");
         match stmt {
             Stmt::Block(blk) => self.emit_block(func, &blk.stmts),
-            Stmt::Let(_) => todo!(),
+            Stmt::Let(lt) => self.emit_let(func, &lt.name, &lt.initialiser),
             Stmt::StructInit(_) => todo!(),
             Stmt::If(stmt) => {
                 self.emit_if_stmt(func, &stmt.condition, &stmt.if_branch, &stmt.else_branch)
@@ -167,6 +167,19 @@ impl QBEEmitter<'_> {
             self.emit_stmt(func, stmt)?;
         }
         self.scopes.pop();
+        Ok(())
+    }
+
+    // emits let declaration
+    fn emit_let(
+        &mut self,
+        func: &mut qbe::Function<'static>,
+        name: &String,
+        init: &Expr,
+    ) -> EmitterResult<()> {
+        let (ty, value) = self.emit_expr(func, init)?;
+        let result_value = self.new_var(ty.clone(), name.clone())?;
+        func.assign_instr(result_value, ty, qbe::Instr::Copy(value));
         Ok(())
     }
 
