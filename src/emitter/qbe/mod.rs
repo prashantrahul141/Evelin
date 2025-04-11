@@ -55,11 +55,35 @@ impl Emitter for QBEEmitter<'_> {
 impl QBEEmitter<'_> {
     /// Emits all parsed structs
     fn emit_data_defs(&mut self) {
+        self.init_data_def();
         for struc in self.struct_decls {}
     }
 
     /// Emits a single function
     fn emit_data_body(&mut self) {}
+
+    // Emits initialization data definition
+    fn init_data_def(&mut self) {
+        self.module.add_data(qbe::DataDef::new(
+            qbe::Linkage::private(),
+            "___FMT_INT",
+            None,
+            vec![
+                (qbe::Type::Byte, qbe::DataItem::Str("%ld".into())),
+                (qbe::Type::Byte, qbe::DataItem::Const(0)),
+            ],
+        ));
+
+        self.module.add_data(qbe::DataDef::new(
+            qbe::Linkage::private(),
+            "___FMT_DOUBLE",
+            None,
+            vec![
+                (qbe::Type::Byte, qbe::DataItem::Str("%lf".into())),
+                (qbe::Type::Byte, qbe::DataItem::Const(0)),
+            ],
+        ));
+    }
 
     /// Emits all parsed functions
     fn emit_functions(&mut self) {
