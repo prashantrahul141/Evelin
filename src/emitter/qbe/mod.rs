@@ -381,6 +381,33 @@ impl QBEEmitter<'_> {
         }
     }
 
+    /// Creates a new bindings bound to current scope.
+    fn new_var(&mut self, ty: qbe::Type<'static>, name: String) -> EmitterResult<qbe::Value> {
+        if self.get_var(&name).is_ok() {
+            bail!("Re-declaration of variable : {}", name);
+        }
+
+        let tmp = self.new_tmp();
+        let scope = self
+            .scopes
+            .last_mut()
+            .expect("Expected last scope to be present");
+        scope.insert(name.into(), (ty.to_owned(), tmp.to_owned()));
+
+        Ok(tmp)
+    }
+
+    /// Retrieves an existing bind
+    /// Searches in reverse order of scopes.
+    fn get_var(&mut self, name: &String) -> EmitterResult<&(qbe::Type<'static>, qbe::Value)> {
+        self.scopes
+            .iter()
+            .rev()
+            .filter_map(|x| x.get(name))
+            .next()
+            .ok_or_else(|| anyhow!("undefined variable: {}", name))
+    }
+
     /// Creates a new temporary, returns the generated qbe::Value
     fn new_tmp(&mut self) -> qbe::Value {
         self.tmp_counter += 1;
