@@ -130,6 +130,22 @@ impl QBEEmitter<'_> {
         expr: &Expr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
         let (ty, value) = self.emit_expr(func, expr)?;
+
+        let fmt = match ty {
+            qbe::Type::Long => "___FMT_INT",
+            qbe::Type::Double => "___FMT_DOUBLE",
+            _ => todo!(),
+        };
+
+        func.add_instr(qbe::Instr::Call(
+            "printf".into(),
+            vec![
+                (qbe::Type::Long, qbe::Value::Global(fmt.into())),
+                (ty.clone(), value.clone()),
+            ],
+            Some(1),
+        ));
+
         Ok((ty, value))
     }
 
