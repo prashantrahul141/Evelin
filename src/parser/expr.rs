@@ -1,7 +1,7 @@
 use super::{MAX_NATIVE_FUNCTION_ARITY, Parser, ParserResult};
 
 use anyhow::{Context, bail};
-use log::trace;
+use log::{debug, trace};
 
 use crate::ast::{
     BinExpr, BinOp, CallExpr, Expr, FieldAccessExpr, GroupExpr, LiteralExpr, LiteralValue,
@@ -191,7 +191,7 @@ impl Parser<'_> {
             .primary()
             .context("Failed to parse native function name")?;
 
-        if self.match_current(&TokenType::LeftParen) {
+        if self.match_token(&[TokenType::LeftParen]) {
             trace!("Parser::native_call callee_name = {:?}", &callee);
             return self.finish_call(callee);
         } else if self.match_token(&[TokenType::Dot]) {
