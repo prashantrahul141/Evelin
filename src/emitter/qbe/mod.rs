@@ -4,7 +4,8 @@ use crate::ast::{
 };
 use crate::die;
 use crate::emitter::EmitterResult;
-use log::error;
+use anyhow::bail;
+use log::{debug, error};
 use qbe;
 
 use super::Emitter;
@@ -174,20 +175,26 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         call: &CallExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
-        let (callee_type, callee_value) = self.emit_expr(func, &call.callee)?;
         let arg = if let Some(arg_expr) = &call.arg {
             vec![self.emit_expr(func, arg_expr)?]
         } else {
             vec![]
         };
-        let tmp = self.new_tmp();
-        func.assign_instr(
-            tmp.clone(),
-            callee_type.clone(),
-            qbe::Instr::Call(callee_value.to_string(), arg, None),
-        );
 
-        Ok((callee_type, tmp))
+        let tmp = self.new_tmp();
+
+        if let Expr::Variable(var) = &call.callee {
+            func.assign_instr(
+                tmp.clone(),
+                qbe::Type::Long,
+                qbe::Instr::Call(var.name.clone(), arg, None),
+            );
+        } else {
+            error!("Expected function name got '{:?}' instead", call.callee);
+            bail!("Expected function name got '{:?}' instead", call.callee);
+        }
+
+        Ok((qbe::Type::Long, tmp))
     }
 
     /// Emit eve native function call
@@ -196,7 +203,7 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         call: &NativeCallExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
-        let (callee_type, callee_value) = self.emit_expr(func, &call.callee)?;
+        let ty = qbe::Type::Long;
         let args = call
             .args
             .iter()
@@ -204,13 +211,19 @@ impl QBEEmitter<'_> {
             .collect::<Result<Vec<_>, _>>()?;
 
         let tmp = self.new_tmp();
-        func.assign_instr(
-            tmp.clone(),
-            callee_type.clone(),
-            qbe::Instr::Call(callee_value.to_string(), args, None),
-        );
 
-        Ok((callee_type, tmp))
+        if let Expr::Variable(var) = &call.callee {
+            func.assign_instr(
+                tmp.clone(),
+                ty.clone(),
+                qbe::Instr::Call(var.name.clone(), args, None),
+            );
+        } else {
+            error!("Expected function name got '{:?}' instead", call.callee);
+            bail!("Expected function name got '{:?}' instead", call.callee);
+        }
+
+        Ok((ty, tmp))
     }
 
     /// Emit unary operation ast.
