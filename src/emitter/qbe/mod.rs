@@ -159,6 +159,49 @@ impl QBEEmitter<'_> {
         Ok(())
     }
 
+    /// Emits if statement
+    fn emit_if_stmt(
+        &mut self,
+        func: &mut qbe::Function<'static>,
+        cond: &Expr,
+        if_clause: &Stmt,
+        else_clause: &Option<Stmt>,
+    ) -> EmitterResult<()> {
+        let (_, cond_result) = self.emit_expr(func, cond)?;
+        self.tmp_counter += 1;
+
+        let if_label = format!("cond.{}.if", self.tmp_counter);
+        let else_label = format!("cond.{}.else", self.tmp_counter);
+        let end_label = format!("cond.{}.end", self.tmp_counter);
+
+        func.add_instr(qbe::Instr::Jnz(
+            cond_result,
+            if_label.clone(),
+            if else_clause.is_some() {
+                else_label.clone()
+            } else {
+                end_label.clone()
+            },
+        ));
+
+        func.add_block(if_label);
+        self.emit_stmt(func, if_clause)?;
+
+        if let Some(else_clause) = else_clause {
+            // avoid fallthrough into else block even after executing if block.
+            if !func.blocks.last().is_some_and(|b| b.jumps()) {
+                func.add_instr(qbe::Instr::Jmp(end_label.clone()));
+            }
+
+            func.add_block(else_label);
+            self.emit_stmt(func, else_clause)?;
+        }
+
+        func.add_block(end_label);
+
+        Ok(())
+    }
+
     /// emits print statement based upon expression type.
     fn emit_print_stmt(
         &mut self,
