@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::ast::{
     BinExpr, BinOp, CallExpr, Expr, FieldAccessExpr, FnDecl, GroupExpr, LiteralExpr, LiteralValue,
     NativeCallExpr, Stmt, StructDecl, TokenType, UnOp, UnaryExpr, VariableExpr,
@@ -21,6 +23,9 @@ pub struct QBEEmitter<'a> {
     /// Struct declarations
     struct_decls: &'a Vec<StructDecl>,
 
+    /// Scopes for variables.
+    scopes: Vec<HashMap<String, (qbe::Type<'static>, qbe::Value)>>,
+
     /// Current module.
     /// This is usually 1 module per file basis.
     module: qbe::Module<'a>,
@@ -36,6 +41,7 @@ impl<'a> From<(&'a Vec<FnDecl>, &'a Vec<StructDecl>)> for QBEEmitter<'a> {
             tmp_counter: 0,
             fn_decls: decls.0,
             struct_decls: decls.1,
+            scopes: vec![],
             module: qbe::Module::new(),
             emitted_data_defs: vec![],
         }
