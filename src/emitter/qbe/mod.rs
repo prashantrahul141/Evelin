@@ -1,6 +1,6 @@
 use crate::ast::{
-    BinExpr, BinOp, CallExpr, Expr, FnDecl, GroupExpr, LiteralExpr, LiteralValue, NativeCallExpr,
-    Stmt, StructDecl, TokenType, UnOp, UnaryExpr, VariableExpr,
+    BinExpr, BinOp, CallExpr, Expr, FieldAccessExpr, FnDecl, GroupExpr, LiteralExpr, LiteralValue,
+    NativeCallExpr, Stmt, StructDecl, TokenType, UnOp, UnaryExpr, VariableExpr,
 };
 use crate::die;
 use crate::emitter::EmitterResult;
@@ -157,12 +157,32 @@ impl QBEEmitter<'_> {
             tmp.clone(),
             ty.clone(),
             match expr.op {
+                // arithmetic
                 BinOp::Add => qbe::Instr::Add(left, right),
                 BinOp::Sub => qbe::Instr::Sub(left, right),
                 BinOp::Mul => qbe::Instr::Mul(left, right),
                 BinOp::Div => qbe::Instr::Div(left, right),
                 BinOp::Mod => qbe::Instr::Rem(left, right),
-                _ => todo!("TODO: other binary operations."),
+
+                // logical
+                BinOp::Or => qbe::Instr::Or(left, right),
+                BinOp::And => qbe::Instr::And(left, right),
+
+                // comparison
+                cmp => qbe::Instr::Cmp(
+                    ty.clone(),
+                    match cmp {
+                        BinOp::Less => qbe::Cmp::Slt,
+                        BinOp::LessEqual => qbe::Cmp::Sle,
+                        BinOp::Greater => qbe::Cmp::Sgt,
+                        BinOp::GreaterEqual => qbe::Cmp::Sge,
+                        BinOp::EqualEqual => qbe::Cmp::Eq,
+                        BinOp::BangEqual => qbe::Cmp::Ne,
+                        _ => unreachable!("binop"),
+                    },
+                    left,
+                    right,
+                ),
             },
         );
 
