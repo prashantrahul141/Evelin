@@ -1,6 +1,6 @@
 use super::{MAX_NATIVE_FUNCTION_ARITY, Parser, ParserResult};
 
-use anyhow::bail;
+use anyhow::{Context, bail};
 use log::{error, trace};
 
 use crate::ast::{
@@ -147,118 +147,89 @@ impl Parser<'_> {
     /// Parses native function calling expression.
     fn native_call(&mut self) -> ParserResult<Expr> {
         trace!("Parsing native call");
-        let mut callee = self.primary();
-        trace!(
-            "Parser::primary before parsing trailing functions = {:?}",
-            &callee
-        );
+        if self.match_current(&TokenType::Identifier) {
+            let callee_name = self
+                .primary()
+                .context("Failed to parse native function name")?;
+            trace!("Parser::native_call callee_name = {:?}", &callee_name);
 
-        // parses trailing function calls
-        loop {
             if self.match_token(&[TokenType::LeftParen]) {
-                callee = self.native_finish_call(callee);
-                trace!("calle: {:?}", &callee);
-            } else {
-                break;
+                return self.native_finish_call(callee_name);
             }
         }
 
-        callee
+        self.primary()
     }
 
     /// Parses trailing native function calls and function arguments.
-    fn native_finish_call(&mut self, callee: ParserResult<Expr>) -> ParserResult<Expr> {
-        if let Ok(callee) = callee {
-            let mut args = vec![];
-            if !self.match_current(&TokenType::RightParen) {
-                loop {
-                    if args.len() >= MAX_NATIVE_FUNCTION_ARITY {
-                        error!("parsing function exceded the MAX_NATIVE_FUNCTION_ARITY limit");
-                    }
+    fn native_finish_call(&mut self, callee: Expr) -> ParserResult<Expr> {
+        let mut args = vec![];
+        if !self.match_current(&TokenType::RightParen) {
+            loop {
+                if args.len() >= MAX_NATIVE_FUNCTION_ARITY {
+                    bail!(
+                        "parsing function exceded the MAX_NATIVE_FUNCTION_ARITY limit of {}",
+                        MAX_NATIVE_FUNCTION_ARITY
+                    );
+                }
 
-                    if let Ok(arg) = self.expr() {
-                        args.push(arg);
-                    }
+                args.push(self.expr()?);
 
-                    if !self.match_token(&[TokenType::Comma]) {
-                        break;
-                    }
+                if !self.match_token(&[TokenType::Comma]) {
+                    break;
                 }
             }
-
-            self.consume(
-                TokenType::RightParen,
-                "Expected ')' after function arguments.",
-            )?;
-
-            let call = Expr::NativeCall(Box::new(NativeCallExpr { callee, args }));
-            return Ok(call);
         }
 
-        bail!("Failed to parse native function call.");
+        self.consume(
+            TokenType::RightParen,
+            "Expected ')' after function arguments.",
+        )?;
+
+        Ok(Expr::NativeCall(Box::new(NativeCallExpr { callee, args })))
     }
 
     /// Parses function calling expressions.
     fn call(&mut self) -> ParserResult<Expr> {
         trace!("Parsing call");
-        let mut callee = self.primary();
-        trace!(
-            "Parser::primary before parsing trailing functions = {:?}",
-            &callee
-        );
+        if self.match_current(&TokenType::Identifier) {
+            let callee_name = self.primary().context("Failed to parse function name")?;
+            trace!("Parser::call callee_name = {:?}", &callee_name);
 
-        // parses trailing function calls
-        loop {
             if self.match_token(&[TokenType::LeftParen]) {
-                callee = self.finish_call(callee);
+                return self.finish_call(callee_name);
             } else if self.match_token(&[TokenType::Dot]) {
-                callee = self.finish_access(callee);
-            } else {
-                break;
+                return self.finish_access(callee_name);
             }
-            trace!("callee: {:?}", &callee);
         }
 
-        callee
+        self.primary()
     }
 
     /// Parses trailing function calls and function argument.
-    fn finish_call(&mut self, callee: ParserResult<Expr>) -> ParserResult<Expr> {
-        if let Ok(mut callee) = callee {
-            if !self.match_current(&TokenType::RightParen) {
-                trace!("parsing function argument.");
-                if let Ok(arg) = self.expr() {
-                    callee = Expr::Call(Box::new(CallExpr {
-                        callee,
-                        arg: Some(arg),
-                    }));
-                }
-            } else {
-                callee = Expr::Call(Box::new(CallExpr { callee, arg: None }));
-            }
+    fn finish_call(&mut self, callee: Expr) -> ParserResult<Expr> {
+        let mut local_call = Box::new(CallExpr { callee, arg: None });
 
-            self.consume(
+        if !self.match_current(&TokenType::RightParen) {
+            trace!("parsing function argument");
+            local_call.arg = Some(self.expr()?);
+        }
+
+        self.consume(
                 TokenType::RightParen,
                 "Expected ')' after function argument.\n\nNote: Multiple function arguments are only supported for extern function calls, otherwise use structs."
             )?;
 
-            return Ok(callee);
-        }
-
-        bail!("Failed to parse function call expression.");
+        Ok(Expr::Call(local_call))
     }
 
     /// parses trailing field access.
-    fn finish_access(&mut self, callee: ParserResult<Expr>) -> ParserResult<Expr> {
-        if let Ok(callee) = callee {
-            let field = self.consume(TokenType::Identifier, "Expected field name")?;
-            return Ok(Expr::FieldAccess(Box::new(FieldAccessExpr {
-                parent: callee,
-                field: field.lexeme.clone(),
-            })));
-        }
-
-        bail!("Failed to parse trailing field access.");
+    fn finish_access(&mut self, callee: Expr) -> ParserResult<Expr> {
+        let field = self.consume(TokenType::Identifier, "Expected field name")?;
+        Ok(Expr::FieldAccess(Box::new(FieldAccessExpr {
+            parent: callee,
+            field: field.lexeme.clone(),
+        })))
     }
 
     /// Parses literal expressions.
