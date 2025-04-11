@@ -52,7 +52,7 @@ impl<'a> From<(&'a Vec<FnDecl>, &'a Vec<StructDecl>)> for QBEEmitter<'a> {
 impl Emitter for QBEEmitter<'_> {
     fn emit_ir(&mut self) -> EmitterResult<String> {
         self.emit_data_defs();
-        self.emit_functions();
+        self.emit_functions()?;
         Ok(self.module.to_string())
     }
 }
@@ -143,6 +143,20 @@ impl QBEEmitter<'_> {
             Stmt::Return(expr) => self.emit_return_stmt(func, &expr.value),
             Stmt::Expression(expr) => self.emit_expr_stmt(func, &expr),
         }
+    }
+
+    /// Emits blocks
+    fn emit_block(
+        &mut self,
+        func: &mut qbe::Function<'static>,
+        stmts: &Vec<Stmt>,
+    ) -> EmitterResult<()> {
+        self.scopes.push(HashMap::new());
+        for stmt in stmts.iter() {
+            self.emit_stmt(func, stmt)?;
+        }
+        self.scopes.pop();
+        Ok(())
     }
 
     /// emits print statement based upon expression type.
