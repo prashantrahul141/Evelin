@@ -92,27 +92,35 @@ impl QBEEmitter<'_> {
     }
 
     /// Emits all parsed functions
-    fn emit_functions(&mut self) {
+    fn emit_functions(&mut self) -> EmitterResult<()> {
         for func in self.fn_decls {
-            let mut func_block = qbe::Function::new(
-                qbe::Linkage::public(),
-                &func.name,
-                func.parameter
-                    .iter()
-                    .map(|x| {
-                        (
-                            qbe::Type::try_from(x.1.to_owned()).unwrap(),
-                            self.new_tmp_from(&x.0),
-                        )
-                    })
-                    .collect::<Vec<_>>(),
-                qbe::Type::try_from(func.return_type.clone()).ok(),
-            );
-            func_block.add_block("start");
-            self.emit_function_body(&mut func_block, &func.body);
-            func_block.add_instr(qbe::Instr::Ret(None));
-            self.module.add_function(func_block);
+            self.emit_function(func)?;
         }
+        Ok(())
+    }
+
+    /// Emits a single function
+    fn emit_function(&mut self, func: &FnDecl) -> EmitterResult<()> {
+        self.scopes.push(HashMap::new());
+        let mut func_block = qbe::Function::new(
+            qbe::Linkage::public(),
+            &func.name,
+            func.parameter
+                .iter()
+                .map(|x| {
+                    let ty = qbe::Type::try_from(x.1.clone())?;
+                    let val = self.new_var(ty.clone(), x.0.clone())?;
+                    Ok((ty, val))
+                })
+                .collect::<anyhow::Result<Vec<_>>>()?,
+            qbe::Type::try_from(func.return_type.clone()).ok(),
+        );
+        func_block.add_block("start");
+        self.emit_function_body(&mut func_block, &func.body);
+        func_block.add_instr(qbe::Instr::Ret(None));
+        self.module.add_function(func_block);
+        self.scopes.pop();
+        Ok(())
     }
 
     /// Emits a single function
