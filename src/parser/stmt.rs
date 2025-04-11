@@ -1,4 +1,3 @@
-use anyhow::bail;
 use log::trace;
 
 use crate::ast::{
@@ -104,26 +103,19 @@ impl Parser<'_> {
 
     fn print_stmt(&mut self) -> ParserResult<Stmt> {
         trace!("Parsing print stmt");
-        let value = self.expr();
+        let value = self.expr()?;
         self.consume(TokenType::Semicolon, "Expected ';' after print statement")?;
-
-        if let Ok(expr) = value {
-            return Ok(Stmt::Print(PrintStmt { value: expr }));
-        }
-
-        bail!("Failed to parse print statement.");
+        Ok(Stmt::Print(PrintStmt { value }))
     }
 
     fn return_stmt(&mut self) -> ParserResult<Stmt> {
         trace!("Parsing return stmt");
-        let return_value = self.expr();
+        let return_value = self.expr()?;
         self.consume(TokenType::Semicolon, "Expected ';' after return statement")?;
-
-        if let Ok(expr) = return_value {
-            return Ok(Stmt::Return(ReturnStmt { value: expr }));
-        }
-
-        bail!("Failed to parse return statement.");
+        trace!("Parser::return_stmt return_value = {:?}", return_value);
+        Ok(Stmt::Return(ReturnStmt {
+            value: return_value,
+        }))
     }
 
     fn expression_stmt(&mut self) -> ParserResult<Stmt> {
