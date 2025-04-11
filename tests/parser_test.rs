@@ -1,3 +1,5 @@
+use std::panic;
+
 use evelin::ast::{BinOp, Expr, FnDecl, LiteralValue, Stmt, StructDecl, TokenType};
 use evelin::lexer::Lexer;
 use evelin::parser::Parser;
@@ -123,4 +125,93 @@ fn parses_nested_blocks() {
     assert_eq!(parser.len(), 1);
     let outer_block = &parser[0].body[0];
     assert!(matches!(outer_block, Stmt::Block(_)));
+}
+
+#[test]
+fn parses_call_without_arg() {
+    let parser = parse_fn("fn main() -> i64 { main(); }");
+
+    assert_eq!(parser.len(), 1);
+    let block = &parser[0].body[0];
+    match block {
+        Stmt::Expression(stmt) => match stmt {
+            Expr::Call(call) => {
+                match call.callee.clone() {
+                    Expr::Variable(var) => {
+                        assert_eq!(var.name, "main".to_string());
+                    }
+                    _ => panic!("Expected Expr::Variable"),
+                }
+
+                assert!(call.arg.is_none());
+            }
+            _ => panic!("Expressed call expression."),
+        },
+        _ => panic!("Expected expression stmt."),
+    }
+}
+
+#[test]
+fn parses_call_with_arg() {
+    let parser = parse_fn("fn main() -> i64 { main(1 + 1); }");
+
+    assert_eq!(parser.len(), 1);
+    let block = &parser[0].body[0];
+    match block {
+        Stmt::Expression(stmt) => match stmt {
+            Expr::Call(call) => {
+                match call.callee.clone() {
+                    Expr::Variable(var) => {
+                        assert_eq!(var.name, "main".to_string());
+                    }
+                    _ => panic!("Expected Expr::Variable"),
+                }
+
+                match call.arg.clone() {
+                    Some(arg) => match arg {
+                        Expr::Binary(bin) => {
+                            match bin.left {
+                                Expr::Literal(_) => {}
+                                _ => panic!("Expected literal"),
+                            }
+
+                            matches!(bin.op, BinOp::Add);
+                            match bin.right {
+                                Expr::Literal(_) => {}
+                                _ => panic!("Expected literal"),
+                            }
+                        }
+                        _ => panic!("Should have been a binary expr"),
+                    },
+                    None => panic!("arg is none."),
+                }
+            }
+            _ => panic!("Expressed call expression."),
+        },
+        _ => panic!("Expected expression stmt."),
+    }
+}
+
+#[test]
+fn parses_native_call_without_arg() {
+    let parser = parse_fn("fn main() -> i64 { extern main(); }");
+
+    assert_eq!(parser.len(), 1);
+    let block = &parser[0].body;
+    match block.first().unwrap() {
+        Stmt::Expression(stmt) => match stmt {
+            Expr::NativeCall(call) => {
+                match call.callee.clone() {
+                    Expr::Variable(var) => {
+                        assert_eq!(var.name, "main".to_string());
+                    }
+                    _ => panic!("Expected Expr::Variable"),
+                }
+
+                assert_eq!(call.args.len(), 0);
+            }
+            _ => panic!("Expressed call expression."),
+        },
+        _ => panic!("Expected expression stmt."),
+    }
 }
