@@ -1,12 +1,14 @@
+mod utils;
+
 use std::collections::HashMap;
 
 use crate::ast::{
     BinExpr, BinOp, CallExpr, Expr, FieldAccessExpr, FnDecl, GroupExpr, LiteralExpr, LiteralValue,
-    NativeCallExpr, Stmt, StructDecl, TokenType, UnOp, UnaryExpr, VariableExpr,
+    NativeCallExpr, Stmt, StructDecl, UnOp, UnaryExpr, VariableExpr,
 };
 use crate::die;
 use crate::emitter::EmitterResult;
-use anyhow::{anyhow, bail};
+use anyhow::bail;
 use log::{debug, error, info, trace};
 use qbe;
 
@@ -483,55 +485,6 @@ impl QBEEmitter<'_> {
             LiteralValue::String(_) => todo!(),
             LiteralValue::Boolean(_) => todo!(),
             LiteralValue::Null => todo!(),
-        }
-    }
-
-    /// Creates a new bindings bound to current scope.
-    fn new_var(&mut self, ty: qbe::Type<'static>, name: String) -> EmitterResult<qbe::Value> {
-        if self.get_var(&name).is_ok() {
-            bail!("Re-declaration of variable : {}", name);
-        }
-
-        let tmp = self.new_tmp();
-        let scope = self
-            .scopes
-            .last_mut()
-            .expect("Expected last scope to be present");
-        scope.insert(name, (ty.to_owned(), tmp.to_owned()));
-
-        Ok(tmp)
-    }
-
-    /// Retrieves an existing bind
-    /// Searches in reverse order of scopes.
-    fn get_var(&mut self, name: &String) -> EmitterResult<&(qbe::Type<'static>, qbe::Value)> {
-        self.scopes
-            .iter()
-            .rev()
-            .filter_map(|x| x.get(name))
-            .next()
-            .ok_or_else(|| anyhow!("undefined variable: {}", name))
-    }
-
-    /// Creates a new temporary, returns the generated qbe::Value
-    fn new_tmp(&mut self) -> qbe::Value {
-        self.tmp_counter += 1;
-        trace!("creating new tmp = %tmp.{}", self.tmp_counter);
-        qbe::Value::Temporary(format!("tmp.{}", self.tmp_counter))
-    }
-}
-
-impl TryFrom<TokenType> for qbe::Type<'_> {
-    type Error = anyhow::Error;
-
-    fn try_from(value: TokenType) -> Result<Self, Self::Error> {
-        match value {
-            TokenType::TypeI64 => Ok(qbe::Type::Long),
-            TokenType::TypeF64 => Ok(qbe::Type::Double),
-            TokenType::TypeVoid => Err(anyhow!("qbe::Type::TryFrom recieved type = TypeVoid")),
-            v => {
-                die!("qbe::Value::from failed, recieved token type: {}", v);
-            }
         }
     }
 }
