@@ -6,8 +6,8 @@ use crate::ast::{
 };
 use crate::die;
 use crate::emitter::EmitterResult;
-use anyhow::bail;
-use log::{debug, error};
+use anyhow::{anyhow, bail};
+use log::{error, trace};
 use qbe;
 
 use super::Emitter;
@@ -146,17 +146,19 @@ impl QBEEmitter<'_> {
     }
 
     /// emits print statement based upon expression type.
-    fn emit_print(
+    fn emit_print_stmt(
         &mut self,
         func: &mut qbe::Function<'static>,
         expr: &Expr,
-    ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
+    ) -> EmitterResult<()> {
         let (ty, value) = self.emit_expr(func, expr)?;
 
         let fmt = match ty {
             qbe::Type::Long => "___FMT_INT",
             qbe::Type::Double => "___FMT_DOUBLE",
-            _ => todo!(),
+            _ => {
+                die!("formatting for this type doesn't exist");
+            }
         };
 
         func.add_instr(qbe::Instr::Call(
@@ -168,21 +170,31 @@ impl QBEEmitter<'_> {
             Some(1),
         ));
 
-        Ok((ty, value))
+        Ok(())
     }
 
     /// emits return statement
-    fn emit_return(
+    fn emit_return_stmt(
         &mut self,
         func: &mut qbe::Function<'static>,
         expr: &Expr,
-    ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
-        let (ty, value) = self.emit_expr(func, expr)?;
+    ) -> EmitterResult<()> {
+        let (_, value) = self.emit_expr(func, expr)?;
         func.add_instr(qbe::Instr::Ret(Some(value.clone())));
-        Ok((ty, value))
+        Ok(())
     }
 
-    /// Emit generic expression ast.
+    /// Emit expression stmt
+    fn emit_expr_stmt(
+        &mut self,
+        func: &mut qbe::Function<'static>,
+        expr: &Expr,
+    ) -> EmitterResult<()> {
+        let _ = self.emit_expr(func, expr);
+        Ok(())
+    }
+
+    /// Emit expr
     fn emit_expr(
         &mut self,
         func: &mut qbe::Function<'static>,
