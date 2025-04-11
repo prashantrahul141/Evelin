@@ -126,15 +126,22 @@ impl QBEEmitter<'_> {
     /// Emits a single function
     fn emit_function_body(&mut self, func: &mut qbe::Function<'static>, fn_body: &Vec<Stmt>) {
         for stmt in fn_body {
-            let _ = match stmt {
-                Stmt::Block(_) => todo!(),
-                Stmt::Let(_) => todo!(),
-                Stmt::StructInit(_) => todo!(),
-                Stmt::If(_) => todo!(),
-                Stmt::Print(expr) => self.emit_print(func, &expr.value),
-                Stmt::Return(expr) => self.emit_return(func, &expr.value),
-                Stmt::Expression(expr) => self.emit_expr(func, expr),
-            };
+            let _ = self.emit_stmt(func, stmt);
+        }
+    }
+
+    // Emits statement
+    fn emit_stmt(&mut self, func: &mut qbe::Function<'static>, stmt: &Stmt) -> EmitterResult<()> {
+        match stmt {
+            Stmt::Block(blk) => self.emit_block(func, &blk.stmts),
+            Stmt::Let(_) => todo!(),
+            Stmt::StructInit(_) => todo!(),
+            Stmt::If(stmt) => {
+                self.emit_if_stmt(func, &stmt.condition, &stmt.if_branch, &stmt.else_branch)
+            }
+            Stmt::Print(expr) => self.emit_print_stmt(func, &expr.value),
+            Stmt::Return(expr) => self.emit_return_stmt(func, &expr.value),
+            Stmt::Expression(expr) => self.emit_expr_stmt(func, &expr),
         }
     }
 
