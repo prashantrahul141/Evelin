@@ -129,12 +129,12 @@ impl QBEEmitter<'_> {
         match expr {
             Expr::Binary(bin) => self.emit_binary(func, bin),
             Expr::Call(call) => self.emit_call(func, call),
+            Expr::FieldAccess(fiac) => self.emit_field_access(func, fiac),
             Expr::NativeCall(call) => self.emit_native_call(func, call),
             Expr::Unary(una) => self.emit_unary(func, una),
             Expr::Grouping(gro) => self.emit_grouping(func, gro),
             Expr::Literal(lit) => self.emit_literal(func, lit),
             Expr::Variable(var) => self.emit_variable(var),
-            _ => todo!("implement"),
         }
     }
 
@@ -195,6 +195,15 @@ impl QBEEmitter<'_> {
         }
 
         Ok((qbe::Type::Long, tmp))
+    }
+
+    /// Emits struct field access
+    fn emit_field_access(
+        &self,
+        func: &mut qbe::Function<'static>,
+        fiac: &FieldAccessExpr,
+    ) -> Result<(qbe::Type<'static>, qbe::Value), anyhow::Error> {
+        todo!()
     }
 
     /// Emit eve native function call
