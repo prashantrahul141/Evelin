@@ -1,14 +1,11 @@
 use super::{MAX_NATIVE_FUNCTION_ARITY, Parser, ParserResult};
 
 use anyhow::{Context, bail};
-use log::{error, trace};
+use log::trace;
 
 use crate::ast::{
-    {
-        BinExpr, BinOp, CallExpr, Expr, FieldAccessExpr, GroupExpr, LiteralExpr, NativeCallExpr,
-        UnOp, UnaryExpr, VariableExpr,
-    },
-    {LiteralValue, TokenType},
+    BinExpr, BinOp, CallExpr, Expr, FieldAccessExpr, GroupExpr, LiteralExpr, LiteralValue,
+    NativeCallExpr, TokenType, UnOp, UnaryExpr, VariableExpr,
 };
 
 impl Parser<'_> {
@@ -147,18 +144,16 @@ impl Parser<'_> {
     /// Parses native function calling expression.
     fn native_call(&mut self) -> ParserResult<Expr> {
         trace!("Parsing native call");
-        if self.match_current(&TokenType::Identifier) {
-            let callee_name = self
-                .primary()
-                .context("Failed to parse native function name")?;
-            trace!("Parser::native_call callee_name = {:?}", &callee_name);
+        let callee = self
+            .primary()
+            .context("Failed to parse native function name")?;
 
-            if self.match_token(&[TokenType::LeftParen]) {
-                return self.native_finish_call(callee_name);
-            }
+        if self.match_current(&TokenType::LeftParen) {
+            trace!("Parser::native_call callee_name = {:?}", &callee);
+            return self.native_finish_call(callee);
         }
 
-        self.primary()
+        Ok(callee)
     }
 
     /// Parses trailing native function calls and function arguments.
@@ -192,18 +187,18 @@ impl Parser<'_> {
     /// Parses function calling expressions.
     fn call(&mut self) -> ParserResult<Expr> {
         trace!("Parsing call");
-        if self.match_current(&TokenType::Identifier) {
-            let callee_name = self.primary().context("Failed to parse function name")?;
-            trace!("Parser::call callee_name = {:?}", &callee_name);
+        let callee = self
+            .primary()
+            .context("Failed to parse native function name")?;
 
-            if self.match_token(&[TokenType::LeftParen]) {
-                return self.finish_call(callee_name);
-            } else if self.match_token(&[TokenType::Dot]) {
-                return self.finish_access(callee_name);
-            }
+        if self.match_current(&TokenType::LeftParen) {
+            trace!("Parser::native_call callee_name = {:?}", &callee);
+            return self.finish_call(callee);
+        } else if self.match_token(&[TokenType::Dot]) {
+            return self.finish_access(callee);
         }
 
-        self.primary()
+        Ok(callee)
     }
 
     /// Parses trailing function calls and function argument.
