@@ -348,8 +348,7 @@ impl QBEEmitter<'_> {
         &mut self,
         expr: &VariableExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
-        let tmp = self.new_tmp_from(&expr.name);
-        let ty = qbe::Type::Long;
+        let (ty, tmp) = self.get_var(&expr.name)?.clone();
         Ok((ty, tmp))
     }
 
@@ -419,11 +418,13 @@ impl QBEEmitter<'_> {
     /// Creates a new temporary, returns the generated qbe::Value
     fn new_tmp(&mut self) -> qbe::Value {
         self.tmp_counter += 1;
+        trace!("creating new tmp = %tmp.{}", self.tmp_counter);
         qbe::Value::Temporary(format!("tmp.{}", self.tmp_counter))
     }
 
     /// Creates and returns a new temporary from a given name,
     fn new_tmp_from(&mut self, name: &String) -> qbe::Value {
+        trace!("creating new tmp = %tmp.{}", name);
         qbe::Value::Temporary(format!("tmp.{}", name))
     }
 }
