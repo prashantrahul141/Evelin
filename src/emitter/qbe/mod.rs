@@ -104,6 +104,7 @@ impl QBEEmitter<'_> {
             );
             func_block.add_block("start");
             self.emit_function_body(&mut func_block, &func.body);
+            func_block.add_instr(qbe::Instr::Ret(None));
             self.module.add_function(func_block);
         }
     }
