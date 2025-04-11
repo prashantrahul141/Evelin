@@ -174,11 +174,11 @@ impl QBEEmitter<'_> {
     fn emit_let(
         &mut self,
         func: &mut qbe::Function<'static>,
-        name: &String,
+        name: &str,
         init: &Expr,
     ) -> EmitterResult<()> {
         let (ty, value) = self.emit_expr(func, init)?;
-        let result_value = self.new_var(ty.clone(), name.clone())?;
+        let result_value = self.new_var(ty.clone(), name.to_owned())?;
         func.assign_instr(result_value, ty, qbe::Instr::Copy(value));
         Ok(())
     }
