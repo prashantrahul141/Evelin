@@ -7,7 +7,7 @@ use crate::ast::{
 use crate::die;
 use crate::emitter::EmitterResult;
 use anyhow::{anyhow, bail};
-use log::{error, trace};
+use log::{debug, error, info, trace};
 use qbe;
 
 use super::Emitter;
@@ -37,6 +37,7 @@ pub struct QBEEmitter<'a> {
 /// Impl From for QBEEmitter.
 impl<'a> From<(&'a Vec<FnDecl>, &'a Vec<StructDecl>)> for QBEEmitter<'a> {
     fn from(decls: (&'a Vec<FnDecl>, &'a Vec<StructDecl>)) -> Self {
+        info!("creating new QBEEmitter instance");
         Self {
             tmp_counter: 0,
             fn_decls: decls.0,
@@ -51,6 +52,7 @@ impl<'a> From<(&'a Vec<FnDecl>, &'a Vec<StructDecl>)> for QBEEmitter<'a> {
 /// Impl Emitter trait for QBEEmitter.
 impl Emitter for QBEEmitter<'_> {
     fn emit_ir(&mut self) -> EmitterResult<String> {
+        debug!("start emitting qbe ir");
         self.emit_data_defs();
         self.emit_functions()?;
         Ok(self.module.to_string())
@@ -70,6 +72,7 @@ impl QBEEmitter<'_> {
 
     // Emits initialization data definition
     fn init_data_def(&mut self) {
+        debug!("emiting initial data definition");
         self.module.add_data(qbe::DataDef::new(
             qbe::Linkage::private(),
             "___FMT_INT",
@@ -93,6 +96,7 @@ impl QBEEmitter<'_> {
 
     /// Emits all parsed functions
     fn emit_functions(&mut self) -> EmitterResult<()> {
+        debug!("Emitting functions");
         for func in self.fn_decls {
             self.emit_function(func)?;
         }
@@ -101,6 +105,7 @@ impl QBEEmitter<'_> {
 
     /// Emits a single function
     fn emit_function(&mut self, func: &FnDecl) -> EmitterResult<()> {
+        trace!("Emitting a new function: '{}'", &func.name);
         self.scopes.push(HashMap::new());
         let mut func_block = qbe::Function::new(
             qbe::Linkage::public(),
@@ -118,6 +123,7 @@ impl QBEEmitter<'_> {
         func_block.add_block("start");
         self.emit_function_body(&mut func_block, &func.body);
         func_block.add_instr(qbe::Instr::Ret(None));
+        trace!("adding new function = {}", &func_block);
         self.module.add_function(func_block);
         self.scopes.pop();
         Ok(())
@@ -125,6 +131,7 @@ impl QBEEmitter<'_> {
 
     /// Emits a single function
     fn emit_function_body(&mut self, func: &mut qbe::Function<'static>, fn_body: &Vec<Stmt>) {
+        trace!("emitting function body");
         for stmt in fn_body {
             let _ = self.emit_stmt(func, stmt);
         }
@@ -132,6 +139,7 @@ impl QBEEmitter<'_> {
 
     // Emits statement
     fn emit_stmt(&mut self, func: &mut qbe::Function<'static>, stmt: &Stmt) -> EmitterResult<()> {
+        trace!("emitting new stmt");
         match stmt {
             Stmt::Block(blk) => self.emit_block(func, &blk.stmts),
             Stmt::Let(_) => todo!(),
@@ -141,7 +149,7 @@ impl QBEEmitter<'_> {
             }
             Stmt::Print(expr) => self.emit_print_stmt(func, &expr.value),
             Stmt::Return(expr) => self.emit_return_stmt(func, &expr.value),
-            Stmt::Expression(expr) => self.emit_expr_stmt(func, &expr),
+            Stmt::Expression(expr) => self.emit_expr_stmt(func, expr),
         }
     }
 
@@ -149,8 +157,9 @@ impl QBEEmitter<'_> {
     fn emit_block(
         &mut self,
         func: &mut qbe::Function<'static>,
-        stmts: &Vec<Stmt>,
+        stmts: &[Stmt],
     ) -> EmitterResult<()> {
+        trace!("emitting new block");
         self.scopes.push(HashMap::new());
         for stmt in stmts.iter() {
             self.emit_stmt(func, stmt)?;
@@ -167,6 +176,7 @@ impl QBEEmitter<'_> {
         if_clause: &Stmt,
         else_clause: &Option<Stmt>,
     ) -> EmitterResult<()> {
+        trace!("emitting if stmt");
         let (_, cond_result) = self.emit_expr(func, cond)?;
         self.tmp_counter += 1;
 
@@ -188,6 +198,7 @@ impl QBEEmitter<'_> {
         self.emit_stmt(func, if_clause)?;
 
         if let Some(else_clause) = else_clause {
+            trace!("emitting else clause for if stmt");
             // avoid fallthrough into else block even after executing if block.
             if !func.blocks.last().is_some_and(|b| b.jumps()) {
                 func.add_instr(qbe::Instr::Jmp(end_label.clone()));
@@ -208,6 +219,7 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         expr: &Expr,
     ) -> EmitterResult<()> {
+        trace!("emitting print stmt expr = {:?}", expr);
         let (ty, value) = self.emit_expr(func, expr)?;
 
         let fmt = match ty {
@@ -217,6 +229,7 @@ impl QBEEmitter<'_> {
                 die!("formatting for this type doesn't exist");
             }
         };
+        trace!("print FMT = {}", fmt);
 
         func.add_instr(qbe::Instr::Call(
             "printf".into(),
@@ -236,6 +249,7 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         expr: &Expr,
     ) -> EmitterResult<()> {
+        trace!("emitting new return stmt expr = {:?}", &expr);
         let (_, value) = self.emit_expr(func, expr)?;
         func.add_instr(qbe::Instr::Ret(Some(value.clone())));
         Ok(())
@@ -257,6 +271,7 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         expr: &Expr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
+        trace!("emitting expr = {:?}", expr);
         match expr {
             Expr::Binary(bin) => self.emit_binary(func, bin),
             Expr::Call(call) => self.emit_call(func, call),
@@ -275,6 +290,7 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         expr: &BinExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
+        trace!("emitting binary expr = {:?}", expr);
         let (ty_left, left) = self.emit_expr(func, &expr.left)?;
         let (ty_right, right) = self.emit_expr(func, &expr.right)?;
         let tmp = self.new_tmp();
@@ -326,6 +342,7 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         call: &CallExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
+        trace!("emitting call expr call = {:?}", call);
         let arg = if let Some(arg_expr) = &call.arg {
             vec![self.emit_expr(func, arg_expr)?]
         } else {
@@ -363,6 +380,7 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         call: &NativeCallExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
+        trace!("emitting native call expr call = {:?}", call);
         let ty = qbe::Type::Long;
         let args = call
             .args
@@ -392,6 +410,7 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         expr: &UnaryExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
+        trace!("emitting unary expr = {:?}", expr);
         let tmp = self.new_tmp();
         let (ty, operand) = self.emit_expr(func, &expr.operand)?;
 
@@ -413,6 +432,7 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         expr: &GroupExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
+        trace!("emitting grouping expr = {:?}", expr);
         let tmp = self.new_tmp();
         let (ty, value) = self.emit_expr(func, &expr.value)?;
         func.assign_instr(tmp.clone(), ty.clone(), qbe::Instr::Copy(value));
@@ -424,6 +444,7 @@ impl QBEEmitter<'_> {
         &mut self,
         expr: &VariableExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
+        trace!("emitting variable expr = {:?}", expr);
         let (ty, tmp) = self.get_var(&expr.name)?.clone();
         Ok((ty, tmp))
     }
@@ -434,6 +455,7 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         expr: &LiteralExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
+        trace!("emitting literal expr = {:?}", expr);
         let v = &expr.value;
         match v {
             LiteralValue::NumberFloat(v) => {
@@ -475,7 +497,7 @@ impl QBEEmitter<'_> {
             .scopes
             .last_mut()
             .expect("Expected last scope to be present");
-        scope.insert(name.into(), (ty.to_owned(), tmp.to_owned()));
+        scope.insert(name, (ty.to_owned(), tmp.to_owned()));
 
         Ok(tmp)
     }
@@ -496,12 +518,6 @@ impl QBEEmitter<'_> {
         self.tmp_counter += 1;
         trace!("creating new tmp = %tmp.{}", self.tmp_counter);
         qbe::Value::Temporary(format!("tmp.{}", self.tmp_counter))
-    }
-
-    /// Creates and returns a new temporary from a given name,
-    fn new_tmp_from(&mut self, name: &String) -> qbe::Value {
-        trace!("creating new tmp = %tmp.{}", name);
-        qbe::Value::Temporary(format!("tmp.{}", name))
     }
 }
 
