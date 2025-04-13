@@ -144,9 +144,7 @@ impl Parser<'_> {
     /// Parses native function calling expression.
     fn native_call(&mut self) -> ParserResult<Expr> {
         trace!("Parsing native call");
-        let callee = self
-            .primary()
-            .context("Failed to parse native function name")?;
+        let callee = self.primary()?;
 
         trace!("Parser::native_call callee_name = {:?}", &callee);
         if self.match_token(&[TokenType::LeftParen]) {
@@ -191,7 +189,7 @@ impl Parser<'_> {
     /// Parses function calling expressions.
     fn call(&mut self) -> ParserResult<Expr> {
         trace!("Parsing call");
-        let callee = self.primary().context("Failed to parse function name")?;
+        let callee = self.primary()?;
 
         if self.match_token(&[TokenType::LeftParen]) {
             trace!("Parser::call callee_name = {:?}", &callee);

@@ -25,7 +25,7 @@ pub fn init() -> anyhow::Result<()> {
         let in_src = fs::read_to_string(&f).context("Failed to read input file")?;
 
         let mut lexer = lexer::Lexer::from(&in_src);
-        lexer.start();
+        lexer.start()?;
         debug!("{:?}", &lexer.tokens());
 
         let mut parser = Parser::from(lexer.tokens());
@@ -74,7 +74,6 @@ fn main() {
     match init() {
         Ok(()) => info!("Execution finished successfully."),
         Err(err) => {
-            error!("Execution failed : {:?}", err);
             println!("{} {:#}", "Error:".red(), err);
         }
     }

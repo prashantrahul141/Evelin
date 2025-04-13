@@ -1,3 +1,4 @@
+use anyhow::bail;
 use log::{debug, error, trace};
 
 pub use crate::ast::{LiteralValue, Token, TokenType};
@@ -43,17 +44,18 @@ impl<'a> From<&'a String> for Lexer<'a> {
 
 impl Lexer<'_> {
     /// Starts lexer
-    pub fn start(&mut self) {
+    pub fn start(&mut self) -> anyhow::Result<()> {
         debug!("start scanning tokens.");
         while !self.is_at_end() {
             self.start = self.current;
-            self.scan_token();
+            self.scan_token()?;
         }
         self.add_basic_token(TokenType::Eof);
+        Ok(())
     }
 
     /// Scans indiviual tokens.
-    fn scan_token(&mut self) {
+    fn scan_token(&mut self) -> anyhow::Result<()> {
         let current_char = self.advance();
         match current_char {
             '(' => self.add_basic_token(TokenType::LeftParen),
@@ -143,14 +145,16 @@ impl Lexer<'_> {
                     self.scan_identifier();
                 } else {
                     // 3. everything else is illegal.
-                    die!(
-                        "Illegal character found at line {} : {}",
+                    bail!(
+                        "Illegal character found at line {} : '{}'",
                         self.line,
                         current_char
                     );
                 }
             }
         }
+
+        Ok(())
     }
 
     /// Scans identifiers, reserved or user defined
