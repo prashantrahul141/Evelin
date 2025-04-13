@@ -17,17 +17,35 @@ pub enum DebugTypes {
     Trace,
 }
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 #[command(arg_required_else_help = true)]
 #[command(version, about= "The Evelin Programming Language", long_about = None)]
 pub struct EveCliOptions {
     /// Evelin source files path
     pub file: Vec<PathBuf>,
 
+    /// C compiler
+    #[clap(default_value = "cc")]
+    #[arg(short, long)]
+    pub cc: String,
+
     /// Turn debugging information on
     #[clap(value_enum, default_value_t = DebugTypes::Error)]
     #[arg(short, long)]
     pub debug: DebugTypes,
+
+    /// Out file name
+    #[clap(default_value = "out")]
+    #[arg(short, long)]
+    pub out: String,
+
+    /// External library name passed to the linker as -l<lib1> -l<lib2>
+    #[arg(short, long = "lib_name", value_delimiter = ' ', num_args = 1.. )]
+    pub lib_name: Option<Vec<String>>,
+
+    /// External library directory passed to the linker as -L<path_1> -L<path_2>
+    #[arg(short = 'L', long = "lib_path", value_delimiter = ' ', num_args = 1.. )]
+    pub lib_path: Option<Vec<String>>,
 }
 
 pub fn init() -> anyhow::Result<EveCliOptions> {
