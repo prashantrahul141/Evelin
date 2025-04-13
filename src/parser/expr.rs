@@ -148,8 +148,8 @@ impl Parser<'_> {
             .primary()
             .context("Failed to parse native function name")?;
 
-        if self.match_current(&TokenType::LeftParen) {
-            trace!("Parser::native_call callee_name = {:?}", &callee);
+        trace!("Parser::native_call callee_name = {:?}", &callee);
+        if self.match_token(&[TokenType::LeftParen]) {
             return self.native_finish_call(callee);
         }
 
@@ -158,17 +158,21 @@ impl Parser<'_> {
 
     /// Parses trailing native function calls and function arguments.
     fn native_finish_call(&mut self, callee: Expr) -> ParserResult<Expr> {
-        let mut args = vec![];
+        let mut local_call = Box::new(NativeCallExpr {
+            callee,
+            args: vec![],
+        });
+
         if !self.match_current(&TokenType::RightParen) {
             loop {
-                if args.len() >= MAX_NATIVE_FUNCTION_ARITY {
+                if local_call.args.len() >= MAX_NATIVE_FUNCTION_ARITY {
                     bail!(
-                        "parsing function exceded the MAX_NATIVE_FUNCTION_ARITY limit of {}",
+                        "parsing function exceeded the MAX_NATIVE_FUNCTION_ARITY limit of {}",
                         MAX_NATIVE_FUNCTION_ARITY
                     );
                 }
 
-                args.push(self.expr()?);
+                local_call.args.push(self.expr()?);
 
                 if !self.match_token(&[TokenType::Comma]) {
                     break;
@@ -181,18 +185,16 @@ impl Parser<'_> {
             "Expected ')' after function arguments.",
         )?;
 
-        Ok(Expr::NativeCall(Box::new(NativeCallExpr { callee, args })))
+        Ok(Expr::NativeCall(local_call))
     }
 
     /// Parses function calling expressions.
     fn call(&mut self) -> ParserResult<Expr> {
         trace!("Parsing call");
-        let callee = self
-            .primary()
-            .context("Failed to parse native function name")?;
+        let callee = self.primary().context("Failed to parse function name")?;
 
         if self.match_token(&[TokenType::LeftParen]) {
-            trace!("Parser::native_call callee_name = {:?}", &callee);
+            trace!("Parser::call callee_name = {:?}", &callee);
             return self.finish_call(callee);
         } else if self.match_token(&[TokenType::Dot]) {
             return self.finish_access(callee);
@@ -280,7 +282,7 @@ impl Parser<'_> {
         }
 
         bail!(
-            "Expected literal, expression, or identifier recieved '{}' instead",
+            "Expected literal, expression, or identifier received '{}' instead",
             self.current().lexeme
         );
     }
