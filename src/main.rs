@@ -15,7 +15,7 @@ use emitter::Emitter;
 use emitter::qbe::QBEEmitter;
 use log::{debug, error, info};
 use parser::Parser;
-use std::{fs, path::PathBuf};
+use std::fs;
 
 pub fn init() -> anyhow::Result<()> {
     let opts = cli::init()?;
@@ -41,16 +41,15 @@ pub fn init() -> anyhow::Result<()> {
         let obj_code = backend.generate(ir)?;
         debug!("OBJ_CODE: {}", obj_code);
 
-        let mut abs_outfile = PathBuf::from(
-            std::path::absolute(f).context("Failed to get absolute path of the input file")?,
-        );
+        let mut abs_outfile =
+            std::path::absolute(f).context("Failed to get absolute path of the input file")?;
         abs_outfile.set_extension("s");
         fs::write(&abs_outfile, obj_code).context("Failed to write qbe output to a file")?;
         out_files.push(abs_outfile);
     }
 
     // build executable using platform's c compiler
-    let out = cc::Build::new()
+    let out = cc::Build::default()
         .set_c_compiler(opts.cc)
         .files(&out_files)
         .set_outfile(opts.out)
@@ -59,7 +58,7 @@ pub fn init() -> anyhow::Result<()> {
         .set_opt(3)
         .compile()?;
 
-    if out.stderr.len() != 0 {
+    if !out.stderr.is_empty() {
         bail!(String::from_utf8(out.stderr).unwrap_or("c compiler error".to_owned()));
     }
 

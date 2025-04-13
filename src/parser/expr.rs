@@ -1,7 +1,7 @@
 use super::{MAX_NATIVE_FUNCTION_ARITY, Parser, ParserResult};
 
 use anyhow::{Context, bail};
-use log::{debug, trace};
+use log::trace;
 
 use crate::ast::{
     BinExpr, BinOp, CallExpr, Expr, FieldAccessExpr, GroupExpr, LiteralExpr, LiteralValue,

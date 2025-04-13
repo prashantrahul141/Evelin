@@ -33,6 +33,12 @@ pub struct Build {
     pub compiler_flags: CCFlags,
 }
 
+impl Default for Build {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Build {
     pub fn new() -> Self {
         Self {
