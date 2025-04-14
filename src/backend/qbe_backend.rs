@@ -1,4 +1,3 @@
-use core::panic;
 use std::{
     fs::File,
     io::Write,
@@ -7,9 +6,6 @@ use std::{
 };
 
 use anyhow::Context;
-use log::error;
-
-use crate::die;
 
 use super::Backend;
 
@@ -22,27 +18,27 @@ const QBE_EXECUTABLE_PATH: &str = "./qbe";
 const QBE_EXECUTABLE_PATH: &str = "/tmp/qbe";
 
 /// Public qbe backend struct.
-pub struct QbeBackend {}
+pub struct QbeBackend;
 
-impl Default for QbeBackend {
-    fn default() -> Self {
-        let mut exe_file = File::create(QBE_EXECUTABLE_PATH).unwrap_or_else(|e| {
-            die!("Failed to create /tmp/qbe file. {}", e);
-        });
+impl QbeBackend {
+    pub fn new() -> anyhow::Result<Self> {
+        let mut exe_file = File::create(QBE_EXECUTABLE_PATH)
+            .context(format!("Failed to create {} file", QBE_EXECUTABLE_PATH))?;
 
-        exe_file.write_all(QBE_BINARY_DATA).unwrap_or_else(|e| {
-            die!("Failed to write to /tmp/qbe file: {}", e);
-        });
+        exe_file
+            .write_all(QBE_BINARY_DATA)
+            .context(format!("Failed to write to {} file", QBE_EXECUTABLE_PATH))?;
 
-        let metadata = exe_file.metadata().unwrap_or_else(|e| {
-            die!(
-                "Failed to get metadata for qbe binary file at /tmp/qbe : {}",
-                e
-            );
-        });
-
-        metadata.permissions().set_mode(0o677);
-        Self {}
+        let metadata = exe_file.metadata()?;
+        let mut permission = metadata.permissions();
+        permission.set_mode(0o777);
+        std::fs::set_permissions(QBE_EXECUTABLE_PATH, permission.clone()).with_context(|| {
+            format!(
+                "Failed to elevate qbe binary file permission: {:?}",
+                permission
+            )
+        })?;
+        Ok(Self {})
     }
 }
 
