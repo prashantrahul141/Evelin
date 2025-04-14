@@ -16,8 +16,11 @@ use emitter::qbe::QBEEmitter;
 use log::{debug, info};
 use parser::Parser;
 use std::fs;
+use std::time::Instant;
 
 pub fn init() -> anyhow::Result<()> {
+    let initial_time = Instant::now();
+
     let opts = cli::init()?;
 
     let mut out_files = vec![];
@@ -52,20 +55,28 @@ pub fn init() -> anyhow::Result<()> {
     let out = cc::Build::default()
         .set_c_compiler(opts.cc)
         .files(&out_files)
-        .set_outfile(opts.out)
+        .set_outfile(&opts.out)
         .set_lib_paths(opts.lib_path.unwrap_or(vec![]))
         .set_lib_names(opts.lib_name.unwrap_or(vec![]))
         .set_opt(3)
         .compile()?;
 
+    // delete temporary files.
+    for file in out_files {
+        fs::remove_file(file)?;
+    }
+
+    let elapsed_time = initial_time.elapsed();
     if !out.stderr.is_empty() {
         bail!(String::from_utf8(out.stderr).unwrap_or("c compiler error".to_owned()));
     }
 
-    // delete temprory files.
-    for file in out_files {
-        fs::remove_file(file)?;
-    }
+    println!(
+        "{} '{}' in {:.2?}",
+        "Compiled".green(),
+        opts.out,
+        elapsed_time
+    );
 
     Ok(())
 }
