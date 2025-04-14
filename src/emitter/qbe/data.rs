@@ -13,10 +13,20 @@ impl QBEEmitter<'_> {
         debug!("emiting initial data definition");
         self.module.add_data(qbe::DataDef::new(
             qbe::Linkage::private(),
-            "___FMT_INT",
+            "___FMT_WORD",
             None,
             vec![
-                (qbe::Type::Byte, qbe::DataItem::Str("%ld".into())),
+                (qbe::Type::Byte, qbe::DataItem::Str("%d".into())),
+                (qbe::Type::Byte, qbe::DataItem::Const(0)),
+            ],
+        ));
+
+        self.module.add_data(qbe::DataDef::new(
+            qbe::Linkage::private(),
+            "___FMT_LONG",
+            None,
+            vec![
+                (qbe::Type::Byte, qbe::DataItem::Str("%s".into())),
                 (qbe::Type::Byte, qbe::DataItem::Const(0)),
             ],
         ));
@@ -26,17 +36,17 @@ impl QBEEmitter<'_> {
             "___FMT_SINGLE",
             None,
             vec![
-                (qbe::Type::Byte, qbe::DataItem::Str("%lf".into())),
+                (qbe::Type::Byte, qbe::DataItem::Str("%f".into())),
                 (qbe::Type::Byte, qbe::DataItem::Const(0)),
             ],
         ));
 
         self.module.add_data(qbe::DataDef::new(
             qbe::Linkage::private(),
-            "___FMT_POINTER",
+            "___FMT_DOUBLE",
             None,
             vec![
-                (qbe::Type::Byte, qbe::DataItem::Str("%s".into())),
+                (qbe::Type::Byte, qbe::DataItem::Str("%lf".into())),
                 (qbe::Type::Byte, qbe::DataItem::Const(0)),
             ],
         ));

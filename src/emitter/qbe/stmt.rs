@@ -112,9 +112,10 @@ impl QBEEmitter<'_> {
         let (ty, value) = self.emit_expr(func, expr)?;
 
         let fmt = match ty {
-            qbe::Type::Word => "___FMT_INT",
+            qbe::Type::Word => "___FMT_WORD",
+            qbe::Type::Long => "___FMT_LONG",
             qbe::Type::Single => "___FMT_SINGLE",
-            qbe::Type::Long => "___FMT_POINTER",
+            qbe::Type::Double => "___FMT_DOUBLE",
             _ => {
                 die!("formatting for this type doesn't exist");
             }
