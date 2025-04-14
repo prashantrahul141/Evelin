@@ -46,6 +46,18 @@ impl QBEEmitter<'_> {
         trace!("creating new tmp = %tmp.{}", self.tmp_counter);
         qbe::Value::Temporary(format!("tmp.{}", self.tmp_counter))
     }
+
+    /// Creates a new global, returns the generated qbe::Value
+    pub(super) fn new_glob(&mut self) -> qbe::Value {
+        qbe::Value::Global(self.new_glob_name())
+    }
+
+    /// Creates a new global, returns the generated qbe::Value
+    pub(super) fn new_glob_name(&mut self) -> String {
+        self.tmp_counter += 1;
+        trace!("creating new glob = @glob.{}", self.tmp_counter);
+        format!("glob.{}", self.tmp_counter)
+    }
 }
 
 impl TryFrom<TokenType> for qbe::Type<'_> {
