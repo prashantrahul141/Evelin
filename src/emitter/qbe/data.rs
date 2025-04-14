@@ -6,7 +6,16 @@ use super::QBEEmitter;
 
 impl QBEEmitter<'_> {
     /// Emits a single function
-    pub(super) fn emit_data_def(&mut self, struct_decl: &StructDecl) {}
+    pub(super) fn emit_data_def(&mut self, struct_decl: &StructDecl) {
+        self.tmp_counter += 1;
+        let typedef = qbe::TypeDef {
+            name: struct_decl.name.clone(),
+            align: None,
+            items: vec![],
+        };
+
+        self.module.add_type(typedef);
+    }
 
     // Emits initialization data definition
     pub(super) fn init_data_def(&mut self) {

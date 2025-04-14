@@ -49,8 +49,8 @@ pub enum TokenType {
     Extern, // extern
 
     // Types
-    TypeI64,
-    TypeF64,
+    TypeI32,
+    TypeF32,
     TypeVoid,
 
     Eof, // end of file.
@@ -65,8 +65,8 @@ impl std::fmt::Display for TokenType {
 // Some tokens contains values with them.
 #[derive(Debug, Clone)]
 pub enum LiteralValue {
-    NumberFloat(f64),
-    NumberInt(i64),
+    NumberFloat(f32),
+    NumberInt(i32),
     String(String),
     Boolean(bool),
     Null,
@@ -102,7 +102,7 @@ pub struct Token {
 
 impl Token {
     pub fn is_a_basic_type(&self) -> bool {
-        matches!(self.ttype, TokenType::TypeI64 | TokenType::TypeF64)
+        matches!(self.ttype, TokenType::TypeI32 | TokenType::TypeF32)
     }
     pub fn is_a_extended_type(&self) -> bool {
         matches!(self.ttype, TokenType::TypeVoid)
@@ -121,7 +121,7 @@ impl std::fmt::Display for Token {
 /// static array of all reserved keywords.
 static RESERVED_KEYWORDS_KEYS: [&str; 16] = [
     "true", "false", "null", "and", "or", "let", "fn", "return", "if", "else", "print", "struct",
-    "extern", "i64", "f64", "void",
+    "extern", "i32", "f32", "void",
 ];
 
 /// TokenTypes which are reserved keywords,
@@ -140,8 +140,8 @@ static RESERVED_KEYWORDS_TYPES: [TokenType; 16] = [
     TokenType::Print,
     TokenType::Struct,
     TokenType::Extern,
-    TokenType::TypeI64,
-    TokenType::TypeF64,
+    TokenType::TypeI32,
+    TokenType::TypeF32,
     TokenType::TypeVoid,
 ];
 

@@ -75,7 +75,7 @@ impl Parser<'_> {
                 .clone();
 
             self.consume(TokenType::Colon, "Expected ':' after field name")?;
-            if !self.match_token(&[TokenType::TypeI64, TokenType::TypeF64]) {
+            if !self.match_token(&[TokenType::TypeI32, TokenType::TypeF32]) {
                 bail!("Expected type after field name in struct declaration");
             }
 

@@ -60,7 +60,7 @@ primary         ::=     NUMBER_INT
                       | "(" expression ")"
                       | IDENTIFIER ;
 
-type            ::=     "i64" | "f64" ;
+type            ::=     "i32" | "f32" ;
 extended_type   ::=     type | "void" ;
 ```
 
