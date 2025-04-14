@@ -495,7 +495,29 @@ impl QBEEmitter<'_> {
 
                 Ok((ty, tmp))
             }
-            LiteralValue::String(_) => todo!(),
+            LiteralValue::String(v) => {
+                let tmp = self.new_tmp();
+                let ty = qbe::Type::Long;
+                let glob_name = self.new_glob_name();
+                let def = self.module.add_data(qbe::DataDef::new(
+                    qbe::Linkage::private(),
+                    glob_name,
+                    None,
+                    vec![
+                        (qbe::Type::Byte, qbe::DataItem::Str(v.into())),
+                        (qbe::Type::Byte, qbe::DataItem::Const(0)),
+                    ],
+                ));
+
+                func.assign_instr(
+                    tmp.clone(),
+                    ty.clone(),
+                    qbe::Instr::Copy(qbe::Value::Global(def.name.clone())),
+                );
+
+                Ok((ty, tmp))
+            }
+
             LiteralValue::Boolean(_) => todo!(),
             LiteralValue::Null => todo!(),
         }
