@@ -40,9 +40,9 @@ impl QBEEmitter<'_> {
         let (ty_right, right) = self.emit_expr(func, &expr.right)?;
         let tmp = self.new_tmp();
 
-        let mut ty = qbe::Type::Long;
-        if matches!(ty_left, qbe::Type::Double) || matches!(ty_right, qbe::Type::Double) {
-            ty = qbe::Type::Double;
+        let mut ty = qbe::Type::Word;
+        if matches!(ty_left, qbe::Type::Single) || matches!(ty_right, qbe::Type::Single) {
+            ty = qbe::Type::Single;
         }
 
         func.assign_instr(
@@ -88,6 +88,7 @@ impl QBEEmitter<'_> {
         call: &CallExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
         trace!("emitting call expr call = {:?}", call);
+        let ty = qbe::Type::Word;
         let arg = if let Some(arg_expr) = &call.arg {
             vec![self.emit_expr(func, arg_expr)?]
         } else {
@@ -99,7 +100,7 @@ impl QBEEmitter<'_> {
         if let Expr::Variable(var) = &call.callee {
             func.assign_instr(
                 tmp.clone(),
-                qbe::Type::Long,
+                ty.clone(),
                 qbe::Instr::Call(var.name.clone(), arg, None),
             );
         } else {
@@ -107,7 +108,7 @@ impl QBEEmitter<'_> {
             bail!("Expected function name got '{:?}' instead", call.callee);
         }
 
-        Ok((qbe::Type::Long, tmp))
+        Ok((ty, tmp))
     }
 
     /// Emits struct field access
@@ -126,7 +127,7 @@ impl QBEEmitter<'_> {
         call: &NativeCallExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
         trace!("emitting native call expr call = {:?}", call);
-        let ty = qbe::Type::Long;
+        let ty = qbe::Type::Word;
         let args = call
             .args
             .iter()
@@ -205,7 +206,7 @@ impl QBEEmitter<'_> {
         match v {
             LiteralValue::NumberFloat(v) => {
                 let tmp = self.new_tmp();
-                let ty = qbe::Type::Double;
+                let ty = qbe::Type::Single;
                 func.assign_instr(
                     tmp.clone(),
                     ty.clone(),
@@ -216,7 +217,7 @@ impl QBEEmitter<'_> {
             }
             LiteralValue::NumberInt(v) => {
                 let tmp = self.new_tmp();
-                let ty = qbe::Type::Long;
+                let ty = qbe::Type::Word;
                 func.assign_instr(
                     tmp.clone(),
                     ty.clone(),

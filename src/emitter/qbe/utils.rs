@@ -66,7 +66,7 @@ impl TryFrom<TokenType> for qbe::Type<'_> {
     fn try_from(value: TokenType) -> Result<Self, Self::Error> {
         match value {
             TokenType::TypeI64 => Ok(qbe::Type::Long),
-            TokenType::TypeF64 => Ok(qbe::Type::Double),
+            TokenType::TypeF64 => Ok(qbe::Type::Single),
             TokenType::TypeVoid => Err(anyhow!("qbe::Type::TryFrom recieved type = TypeVoid")),
             v => {
                 die!("qbe::Value::from failed, recieved token type: {}", v);

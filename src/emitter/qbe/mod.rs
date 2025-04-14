@@ -61,7 +61,9 @@ impl QBEEmitter<'_> {
     /// Emits all parsed structs
     fn emit_data_defs(&mut self) {
         self.init_data_def();
-        for struc in self.struct_decls {}
+        for struc in self.struct_decls {
+            self.emit_data_def(struc);
+        }
     }
     /// Emits all parsed functions
     fn emit_functions(&mut self) -> EmitterResult<()> {
