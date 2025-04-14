@@ -27,8 +27,14 @@ impl QBEEmitter<'_> {
         );
         func_block.add_block("start");
         self.emit_function_body(&mut func_block, &func.body);
-        func_block.add_instr(qbe::Instr::Ret(None));
+
+        // add a ret instruction if there isnt one at the end of a function declaration.
+        if !func_block.blocks.last_mut().is_some_and(|b| b.jumps()) {
+            func_block.add_instr(qbe::Instr::Ret(None));
+        }
+
         trace!("adding new function = {}", &func_block);
+
         self.module.add_function(func_block);
         self.scopes.pop();
         Ok(())
