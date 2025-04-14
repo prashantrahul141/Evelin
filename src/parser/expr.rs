@@ -1,6 +1,6 @@
 use super::{MAX_NATIVE_FUNCTION_ARITY, Parser, ParserResult};
 
-use anyhow::{Context, bail};
+use anyhow::bail;
 use log::trace;
 
 use crate::ast::{

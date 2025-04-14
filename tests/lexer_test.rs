@@ -3,7 +3,7 @@ use evelin::lexer::{Lexer, LiteralValue, TokenType};
 fn tokenize<T: Into<String>>(input: T) -> Vec<evelin::lexer::Token> {
     let l = input.into();
     let mut lexer = Lexer::from(&l);
-    lexer.start();
+    lexer.start().unwrap();
     let t = lexer.tokens();
     (*t).clone()
 }

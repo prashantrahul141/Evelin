@@ -13,7 +13,7 @@ use backend::qbe_backend::QbeBackend;
 use colored::Colorize;
 use emitter::Emitter;
 use emitter::qbe::QBEEmitter;
-use log::{debug, error, info};
+use log::{debug, info};
 use parser::Parser;
 use std::fs;
 
@@ -35,11 +35,11 @@ pub fn init() -> anyhow::Result<()> {
 
         let mut qbe_generator = QBEEmitter::from((&parser.fn_decls, &parser.struct_decls));
         let ir = qbe_generator.emit_ir()?;
-        debug!("IR: {}", ir);
+        debug!("IR: \n{}", ir);
 
-        let backend = QbeBackend::default();
+        let backend = QbeBackend::new()?;
         let obj_code = backend.generate(ir)?;
-        debug!("OBJ_CODE: {}", obj_code);
+        debug!("OBJ_CODE: \n{}", obj_code);
 
         let mut abs_outfile =
             std::path::absolute(f).context("Failed to get absolute path of the input file")?;
