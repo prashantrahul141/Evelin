@@ -9,7 +9,7 @@ use anyhow::Context;
 
 use super::Backend;
 
-const QBE_BINARY_DATA: &[u8] = include_bytes!("../external/qbe-1.2/qbe");
+const QBE_BINARY_DATA: &[u8] = include_bytes!("../../external/qbe-1.2/qbe");
 
 #[cfg(target_os = "macos")]
 const QBE_EXECUTABLE_PATH: &str = "./qbe";

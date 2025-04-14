@@ -1,7 +1,7 @@
 use std::process::Command;
 
-const QBE_ROOT_DIR: &str = "./src/external/qbe-1.2/";
-const EXTERNAL_ROOT_DIR: &str = "./src/external/";
+const QBE_ROOT_DIR: &str = "./external/qbe-1.2/";
+const EXTERNAL_ROOT_DIR: &str = "./external/";
 const QBE_URI: &str = "https://c9x.me/compile/release/qbe-1.2.tar.xz";
 
 macro_rules! p {
@@ -11,7 +11,7 @@ macro_rules! p {
 }
 
 fn main() {
-    println!("cargo::rerun-if-changed=src/external/qbe-1.2/main.c");
+    println!("cargo::rerun-if-changed=external/qbe-1.2/main.c");
     p!("Rerun build.");
 
     if let Err(e) = Command::new("wget")
