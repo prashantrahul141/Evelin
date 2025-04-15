@@ -1,0 +1,13 @@
+fn main() -> void {
+  let a = 3;
+  if (a == 3) {
+    print "a is 3\n";
+  }
+
+  let b = 4;
+  if (b < 0) {
+    print "math error";
+  } else {
+    print "4 is greater than 0";
+  }
+}

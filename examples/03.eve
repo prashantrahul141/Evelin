@@ -1,0 +1,11 @@
+fn main() -> void {
+  let a = "Strings are easy\n";
+  print a;
+
+  let b = "Even
+multi-line
+strings
+are easy";
+
+  print b;
+}

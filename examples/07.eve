@@ -1,0 +1,13 @@
+// Evelin has struct
+struct Vec2 {
+  x: float,
+  y: float
+}
+
+fn main() -> void {
+  // struct initialization
+  let a = Vec2 { x: 1.0, y: 3.0 };
+  let b = Vec2 { x: 3.0, y: 4.0 };
+  let slope = (b.y - a.y)/(b.x - a.x);
+  print slope;
+}

@@ -1,0 +1,10 @@
+// This is how you define functions
+// Functions in Evelin can have only 1 param.
+fn increment(n: int) -> int {
+  return n + 1;
+}
+
+fn main() -> void {
+  let a = increment(3);
+  print a;
+}

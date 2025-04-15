@@ -1,0 +1,15 @@
+// Loops in Evelin can only be done using recursion
+
+fn print_numbers_recursive(n: int) -> int {
+  if (n < 0) {
+    return;
+  }
+
+  print_numbers_recursive(n - 1);
+  print n;
+  print "\n";
+}
+
+fn main() -> void {
+  print_numbers_recursive(10);
+}

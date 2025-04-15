@@ -1,0 +1,9 @@
+fn main() -> void {
+  // this line is a comment
+
+  // temporary variable declaration: only possible inside functions
+  let a = 3;
+  let b = 1;
+
+  print a + b; // 4
+}
