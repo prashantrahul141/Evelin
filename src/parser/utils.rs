@@ -86,7 +86,8 @@ impl Parser<'_> {
     /// Increments parser's error count, reports the error message to user,
     /// then synchronizes to next statement.
     /// * `message` - error.
-    pub fn report_parser_error(&mut self, err: anyhow::Error) {
+    /// * `sync` - whether to synchronize or not
+    pub fn report_parser_error(&mut self, err: anyhow::Error, sync: bool) {
         self.errors_count += 1;
         warn!("Parsing error: at line {}: {:#}.", self.current().line, err);
         println!(
@@ -95,7 +96,10 @@ impl Parser<'_> {
             self.current().line,
             err
         );
-        self.synchronize();
+
+        if sync {
+            self.synchronize();
+        }
     }
 
     /// Returns the next token without consuming it.
@@ -126,10 +130,28 @@ impl Parser<'_> {
                 | TokenType::If
                 | TokenType::Print
                 | TokenType::Extern => {
-                    trace!("Found new statement beginner tokenm ending synchronize");
+                    trace!("Found new statement beginner token ending synchronize");
                     return;
                 }
                 _ => trace!("didnt match any new statement beginner token."),
+            };
+
+            self.advance();
+        }
+    }
+
+    /// Synchronizes at top level: consumes all tokens untill next fn or struct decl
+    pub(super) fn synchronize_toplevel(&mut self) {
+        trace!("trying to synchronize at top level");
+        self.advance();
+
+        while !self.is_at_end() {
+            match self.current().ttype {
+                TokenType::Struct | TokenType::Fn => {
+                    trace!("Found new fn or struct decl token, ending top level synchronize");
+                    return;
+                }
+                _ => trace!("didnt match any new fn or struct token."),
             };
 
             self.advance();

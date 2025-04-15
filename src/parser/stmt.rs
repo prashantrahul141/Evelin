@@ -29,7 +29,7 @@ impl Parser<'_> {
         while !self.match_token(&[TokenType::RightBrace]) && !self.is_at_end() {
             match self.stmt() {
                 Ok(stmt) => block_stmts.push(stmt),
-                Err(err) => self.report_parser_error(err),
+                Err(err) => self.report_parser_error(err, true),
             }
         }
 

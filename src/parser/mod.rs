@@ -56,15 +56,21 @@ impl Parser<'_> {
         if self.match_token(&[TokenType::Struct]) {
             match self.struct_decl() {
                 Ok(decl) => self.struct_decls.push(decl),
-                Err(e) => self.report_parser_error(e),
+                Err(e) => {
+                    self.report_parser_error(e, false);
+                    self.synchronize_toplevel();
+                }
             };
         } else if self.match_token(&[TokenType::Fn]) {
             match self.fn_decl() {
                 Ok(decl) => self.fn_decls.push(decl),
-                Err(e) => self.report_parser_error(e),
+                Err(e) => {
+                    self.report_parser_error(e, false);
+                    self.synchronize_toplevel();
+                }
             };
         } else {
-            self.report_parser_error(anyhow!("Expected struct or function declaration."));
+            self.report_parser_error(anyhow!("Expected struct or function declaration"), false);
         }
     }
 }
