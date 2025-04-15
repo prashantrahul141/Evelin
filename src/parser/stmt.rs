@@ -48,7 +48,7 @@ impl Parser<'_> {
 
         self.consume(TokenType::Equal, "Expected '=' after identifier name")?;
 
-        if self.match_current(&TokenType::Identifier) {
+        if self.match_current(&TokenType::Identifier) && self.peek().ttype == TokenType::LeftBrace {
             let struct_name = self.advance().lexeme.clone();
             self.consume(TokenType::LeftBrace, "Expected '{' after struct name")?;
             let mut arguments = vec![];
