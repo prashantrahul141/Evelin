@@ -136,7 +136,7 @@ pub struct LetStmt {
 pub struct StructInitStmt {
     pub name: String,
     pub struct_name: String,
-    pub arguments: Vec<Expr>,
+    pub arguments: Vec<(String, Expr)>,
 }
 
 #[derive(Debug, Clone)]
