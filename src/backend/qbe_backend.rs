@@ -57,7 +57,7 @@ impl Backend for QbeBackend {
 
             libc::free(output_ptr as *mut libc::c_void);
 
-            return Ok(rs_out);
+            Ok(rs_out)
         }
     }
 }
