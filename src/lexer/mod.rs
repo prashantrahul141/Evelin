@@ -200,7 +200,7 @@ impl Lexer<'_> {
         let lexeme = self.in_src[self.start..self.current].to_string();
 
         if is_float {
-            let literal = LiteralValue::NumberFloat(lexeme.parse::<f32>().unwrap());
+            let literal = LiteralValue::NumberFloat(lexeme.parse::<f64>().unwrap());
             self.add_token(TokenType::NumberFloat, lexeme, literal);
         } else {
             let literal = LiteralValue::NumberInt(lexeme.parse::<i32>().unwrap());

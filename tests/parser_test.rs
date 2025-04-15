@@ -46,8 +46,8 @@ fn parses_struct_with_fields() {
     assert_eq!(
         s.fields,
         vec![
-            ("x".to_string(), TokenType::TypeI32),
-            ("y".to_string(), TokenType::TypeF32)
+            ("x".to_string(), TokenType::TypeInt),
+            ("y".to_string(), TokenType::TypeFloat)
         ]
     );
 }
@@ -120,9 +120,9 @@ fn parses_function_with_param() {
     assert_eq!(f.name, "inc");
     assert_eq!(
         f.parameter.as_ref(),
-        Some(&("x".to_owned(), TokenType::TypeI32))
+        Some(&("x".to_owned(), TokenType::TypeInt))
     );
-    assert_eq!(f.return_type, TokenType::TypeI32);
+    assert_eq!(f.return_type, TokenType::TypeInt);
 }
 
 #[test]
