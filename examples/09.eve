@@ -1,0 +1,5 @@
+// Compile using: evelin 09.eve -lcowsay -L.
+
+fn main() -> void {
+  extern cowsay("Hi from Evelin!!");
+}
