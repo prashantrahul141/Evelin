@@ -153,7 +153,7 @@ pub struct PrintStmt {
 
 #[derive(Debug, Clone)]
 pub struct ReturnStmt {
-    pub value: Expr,
+    pub value: Option<Expr>,
 }
 
 #[derive(Debug, Clone)]

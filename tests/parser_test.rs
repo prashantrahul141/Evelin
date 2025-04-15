@@ -1,3 +1,4 @@
+use core::panic;
 use std::panic;
 
 use evelin::ast::{BinOp, Expr, FnDecl, LiteralExpr, LiteralValue, Stmt, StructDecl, TokenType};
@@ -139,10 +140,14 @@ fn parses_literal_expression() {
 
     if let Stmt::Return(ret_stmt) = &parser[0].body[0] {
         match &ret_stmt.value {
-            Expr::Literal(lit) => {
-                matches!(lit.value, LiteralValue::NumberInt(123));
-            }
-            _ => panic!("Expected literal int"),
+            Some(val) => match val {
+                Expr::Literal(lit) => {
+                    matches!(lit.value, LiteralValue::NumberInt(123));
+                }
+                _ => panic!("Expected literal value"),
+            },
+
+            None => panic!("None value for return stmt"),
         }
     } else {
         panic!("Expected return stmt");
@@ -155,10 +160,14 @@ fn parses_binary_expression() {
 
     if let Stmt::Return(ret_stmt) = &parser[0].body[0] {
         match &ret_stmt.value {
-            Expr::Binary(bin) => {
-                matches!(bin.op, BinOp::Add);
-            }
-            _ => panic!("Expected binary expression"),
+            Some(val) => match val {
+                Expr::Binary(bin) => {
+                    matches!(bin.op, BinOp::Add);
+                }
+                _ => panic!("Expected binary expression"),
+            },
+
+            None => panic!("None value for return stmt"),
         }
     } else {
         panic!("Expected return stmt");

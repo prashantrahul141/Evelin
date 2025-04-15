@@ -121,12 +121,13 @@ impl Parser<'_> {
 
     fn return_stmt(&mut self) -> ParserResult<Stmt> {
         trace!("Parsing return stmt");
-        let return_value = self.expr()?;
+        let mut stmt = ReturnStmt { value: None };
+        if !self.match_current(&TokenType::Semicolon) {
+            stmt.value = Some(self.expr()?);
+        }
         self.consume(TokenType::Semicolon, "Expected ';' after return statement")?;
-        trace!("Parser::return_stmt return_value = {:?}", return_value);
-        Ok(Stmt::Return(ReturnStmt {
-            value: return_value,
-        }))
+        trace!("Parser::return_stmt return_value = {:?}", &stmt.value);
+        Ok(Stmt::Return(stmt))
     }
 
     fn expression_stmt(&mut self) -> ParserResult<Stmt> {

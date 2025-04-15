@@ -198,11 +198,15 @@ impl QBEEmitter<'_> {
     fn emit_return_stmt(
         &mut self,
         func: &mut qbe::Function<'static>,
-        expr: &Expr,
+        expr: &Option<Expr>,
     ) -> EmitterResult<()> {
         trace!("emitting new return stmt expr = {:?}", &expr);
-        let (_, value) = self.emit_expr(func, expr)?;
-        func.add_instr(qbe::Instr::Ret(Some(value.clone())));
+        let mut inst = qbe::Instr::Ret(None);
+        if let Some(expr) = expr {
+            let (_, value) = self.emit_expr(func, expr)?;
+            inst = qbe::Instr::Ret(Some(value));
+        }
+        func.add_instr(inst);
         Ok(())
     }
 
