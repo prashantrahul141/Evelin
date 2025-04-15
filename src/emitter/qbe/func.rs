@@ -26,7 +26,7 @@ impl QBEEmitter<'_> {
             qbe::Type::try_from(func.return_type.clone()).ok(),
         );
         func_block.add_block("start");
-        self.emit_function_body(&mut func_block, &func.body);
+        self.emit_function_body(&mut func_block, &func.body)?;
 
         // add a ret instruction if there isnt one at the end of a function declaration.
         if !func_block.blocks.last_mut().is_some_and(|b| b.jumps()) {
@@ -41,10 +41,16 @@ impl QBEEmitter<'_> {
     }
 
     /// Emits a single function
-    fn emit_function_body(&mut self, func: &mut qbe::Function<'static>, fn_body: &Vec<Stmt>) {
+    fn emit_function_body(
+        &mut self,
+        func: &mut qbe::Function<'static>,
+        fn_body: &Vec<Stmt>,
+    ) -> EmitterResult<()> {
         trace!("emitting function body");
         for stmt in fn_body {
-            let _ = self.emit_stmt(func, stmt);
+            self.emit_stmt(func, stmt)?;
         }
+
+        Ok(())
     }
 }

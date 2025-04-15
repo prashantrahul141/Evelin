@@ -201,7 +201,7 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         expr: &Expr,
     ) -> EmitterResult<()> {
-        let _ = self.emit_expr(func, expr);
+        self.emit_expr(func, expr)?;
         Ok(())
     }
 }

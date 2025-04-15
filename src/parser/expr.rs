@@ -191,8 +191,8 @@ impl Parser<'_> {
         trace!("Parsing call");
         let callee = self.primary()?;
 
+        trace!("Parser::call callee_name = {:?}", &callee);
         if self.match_token(&[TokenType::LeftParen]) {
-            trace!("Parser::call callee_name = {:?}", &callee);
             return self.finish_call(callee);
         } else if self.match_token(&[TokenType::Dot]) {
             return self.finish_access(callee);
