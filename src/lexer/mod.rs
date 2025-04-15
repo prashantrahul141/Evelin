@@ -228,7 +228,9 @@ impl Lexer<'_> {
         self.advance();
 
         // add token.
-        let literal = self.in_src[self.start + 1..self.current - 1].to_string();
+        let literal = self.in_src[self.start + 1..self.current - 1]
+            .to_string()
+            .replace("\n", "\\n");
         self.add_token(
             TokenType::String,
             literal.clone(),
