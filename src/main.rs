@@ -45,7 +45,7 @@ pub fn init() -> anyhow::Result<()> {
         let ir = qbe_generator.emit_ir()?;
         debug!("IR: \n{}", ir);
 
-        let backend = QbeBackend::new()?;
+        let backend = QbeBackend::default();
         let obj_code = backend.generate(ir)?;
         debug!("OBJ_CODE: \n{}", obj_code);
 

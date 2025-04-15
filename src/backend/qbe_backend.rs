@@ -15,9 +15,9 @@ unsafe extern "C" {
 /// Public qbe backend struct.
 pub struct QbeBackend;
 
-impl QbeBackend {
-    pub fn new() -> anyhow::Result<Self> {
-        Ok(Self {})
+impl Default for QbeBackend {
+    fn default() -> Self {
+        Self {}
     }
 }
 
