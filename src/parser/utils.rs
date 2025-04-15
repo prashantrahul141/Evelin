@@ -101,7 +101,7 @@ impl Parser<'_> {
     /// Returns the next token without consuming it.
     pub fn peek(&self) -> &Token {
         if self.current + 1 >= self.tokens.len() {
-            return &self.tokens.last().unwrap();
+            return self.tokens.last().unwrap();
         }
 
         &self.tokens[self.current + 1]

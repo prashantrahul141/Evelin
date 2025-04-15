@@ -152,7 +152,7 @@ impl QBEEmitter<'_> {
         func.assign_instr(
             field_ptr.clone(),
             qbe::Type::Long,
-            qbe::Instr::Add(parent_tmp, qbe::Value::Const(offset.clone())),
+            qbe::Instr::Add(parent_tmp, qbe::Value::Const(offset)),
         );
 
         // parent_tmp -> src, ty -> ty, offset -> offset
@@ -257,7 +257,7 @@ impl QBEEmitter<'_> {
                 func.assign_instr(
                     tmp.clone(),
                     ty.clone(),
-                    qbe::Instr::Copy(qbe::Value::Const((*v).to_bits() as u64)),
+                    qbe::Instr::Copy(qbe::Value::Const((*v).to_bits())),
                 );
 
                 Ok((ty, tmp))

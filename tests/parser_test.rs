@@ -1,6 +1,3 @@
-use core::panic;
-use std::panic;
-
 use evelin::ast::{BinOp, Expr, FnDecl, LiteralExpr, LiteralValue, Stmt, StructDecl, TokenType};
 use evelin::lexer::Lexer;
 use evelin::parser::Parser;
