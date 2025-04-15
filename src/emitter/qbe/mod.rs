@@ -28,7 +28,10 @@ pub struct QBEEmitter<'a> {
     /// Scopes for variables.
     scopes: Vec<HashMap<String, (qbe::Type<'static>, qbe::Value)>>,
 
-    /// struct meta data
+    /// Type defs emitted for this module
+    type_defs: Vec<qbe::TypeDef<'static>>,
+
+    /// struct meta data struct_name -> (struct-meta, struct-size)
     struct_meta: HashMap<String, (StructMeta, u64)>,
 
     /// Current module.
@@ -45,6 +48,7 @@ impl<'a> From<(&'a Vec<FnDecl>, &'a Vec<StructDecl>)> for QBEEmitter<'a> {
             fn_decls: decls.0,
             struct_decls: decls.1,
             scopes: vec![],
+            type_defs: vec![],
             struct_meta: HashMap::new(),
             module: qbe::Module::new(),
         }

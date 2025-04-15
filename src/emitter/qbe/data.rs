@@ -5,7 +5,7 @@ use log::debug;
 
 use super::QBEEmitter;
 
-/// mapping of field -> (type, offset)
+/// mapping of field-name -> (field-type, field-offset)
 pub(super) type StructMeta = HashMap<String, (qbe::Type<'static>, u64)>;
 
 impl QBEEmitter<'_> {
@@ -44,6 +44,7 @@ impl QBEEmitter<'_> {
         self.struct_meta
             .insert(struct_decl.name.clone(), (meta, offset));
 
+        self.type_defs.push(typedef.clone());
         self.module.add_type(typedef);
     }
 

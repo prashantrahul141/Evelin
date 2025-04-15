@@ -76,7 +76,18 @@ impl QBEEmitter<'_> {
             .with_context(|| format!("Initialiser of undeclared struct '{}'", struct_name))?
             .to_owned();
 
-        let tmp = self.new_var(qbe::Type::Long, name.to_owned())?;
+        let type_def = self
+            .type_defs
+            .iter()
+            .find(|x| x.name == struct_name)
+            .cloned()
+            .with_context(|| format!("Initialiser of undeclared struct '{}'", struct_name))?;
+
+        let boxed_type_def = Box::new(type_def);
+        let tmp = self.new_var(
+            qbe::Type::Aggregate(Box::leak(boxed_type_def)),
+            name.to_owned(),
+        )?;
         func.assign_instr(tmp.clone(), qbe::Type::Long, qbe::Instr::Alloc8(size));
 
         for (name, expr) in args {
