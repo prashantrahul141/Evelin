@@ -90,7 +90,7 @@ fn main() {
     match init() {
         Ok(()) => info!("Execution finished successfully."),
         Err(err) => {
-            println!("{} {:#}", "Error:".red(), err);
+            eprintln!("{} {:#}", "Error:".red(), err);
         }
     }
 }

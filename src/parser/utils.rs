@@ -90,7 +90,7 @@ impl Parser<'_> {
     pub fn report_parser_error(&mut self, err: anyhow::Error, sync: bool) {
         self.errors_count += 1;
         warn!("Parsing error: at line {}: {:#}.", self.current().line, err);
-        println!(
+        eprintln!(
             "{}: at line {}: {:#}.",
             "Parsing error".red(),
             self.current().line,
