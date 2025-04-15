@@ -11,3 +11,4 @@ clap = { version = "4.5.32", features = ["derive"] }
 qbe = "2.5.0"
 anyhow = "1.0.97"
 colored = "3.0.0"
+libc = "0.2.172"
