@@ -31,7 +31,7 @@ impl QbeBackend {
 
         let metadata = exe_file.metadata()?;
         let mut permission = metadata.permissions();
-        permission.set_mode(0o777);
+        permission.set_mode(0o722);
         std::fs::set_permissions(QBE_EXECUTABLE_PATH, permission.clone()).with_context(|| {
             format!(
                 "Failed to elevate qbe binary file permission: {:?}",
