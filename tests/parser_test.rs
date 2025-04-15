@@ -38,7 +38,7 @@ fn parses_empty_struct() {
 
 #[test]
 fn parses_struct_with_fields() {
-    let parser = parser_struct("struct Point { x: i32, y: f32 }");
+    let parser = parser_struct("struct Point { x: int, y: float }");
 
     assert_eq!(parser.len(), 1);
     let s = &parser[0];
@@ -54,7 +54,7 @@ fn parses_struct_with_fields() {
 
 #[test]
 fn parses_let_stmt() {
-    let parser = parse_fn("fn test() -> i32 { let a = 123; }");
+    let parser = parse_fn("fn test() -> int { let a = 123; }");
 
     if let Stmt::Let(let_stmt) = &parser[0].body[0] {
         match &let_stmt.initialiser {
@@ -72,7 +72,7 @@ fn parses_let_stmt() {
 
 #[test]
 fn parses_struct_init_stmt() {
-    let parser = parse_fn("fn test() -> i32 { let a = Point { x: 2, y: 3 }; }");
+    let parser = parse_fn("fn test() -> int { let a = Point { x: 2, y: 3 }; }");
     if let Stmt::StructInit(struct_init) = &parser[0].body[0] {
         assert_eq!("Point".to_string(), struct_init.struct_name);
         assert_eq!("a".to_string(), struct_init.name);
@@ -113,7 +113,7 @@ fn parses_function_without_param() {
 
 #[test]
 fn parses_function_with_param() {
-    let parser = parse_fn("fn inc(x: i32) -> i32 { return x; }");
+    let parser = parse_fn("fn inc(x: int) -> int { return x; }");
 
     assert_eq!(parser.len(), 1);
     let f = &parser[0];
@@ -127,7 +127,7 @@ fn parses_function_with_param() {
 
 #[test]
 fn parses_if_else_statement() {
-    let parser = parse_fn("fn test() -> i32 { if (true) { print 1; } else { print 2; } }");
+    let parser = parse_fn("fn test() -> int { if (true) { print 1; } else { print 2; } }");
 
     let body = &parser[0].body;
     assert!(matches!(body[0], Stmt::If(_)));
@@ -135,7 +135,7 @@ fn parses_if_else_statement() {
 
 #[test]
 fn parses_literal_expression() {
-    let parser = parse_fn("fn test() -> i32 { return 123; }");
+    let parser = parse_fn("fn test() -> int { return 123; }");
 
     if let Stmt::Return(ret_stmt) = &parser[0].body[0] {
         match &ret_stmt.value {
@@ -151,7 +151,7 @@ fn parses_literal_expression() {
 
 #[test]
 fn parses_binary_expression() {
-    let parser = parse_fn("fn test() -> i32 { return 1 + 2 * 3; }");
+    let parser = parse_fn("fn test() -> int { return 1 + 2 * 3; }");
 
     if let Stmt::Return(ret_stmt) = &parser[0].body[0] {
         match &ret_stmt.value {
@@ -167,7 +167,7 @@ fn parses_binary_expression() {
 
 #[test]
 fn parses_nested_blocks() {
-    let parser = parse_fn("fn test() -> i32 { { { print 1; } } }");
+    let parser = parse_fn("fn test() -> int { { { print 1; } } }");
 
     assert_eq!(parser.len(), 1);
     let outer_block = &parser[0].body[0];
@@ -176,7 +176,7 @@ fn parses_nested_blocks() {
 
 #[test]
 fn parses_call_without_arg() {
-    let parser = parse_fn("fn main() -> i32 { main(); }");
+    let parser = parse_fn("fn main() -> int { main(); }");
 
     assert_eq!(parser.len(), 1);
     let block = &parser[0].body[0];
@@ -200,7 +200,7 @@ fn parses_call_without_arg() {
 
 #[test]
 fn parses_call_with_arg() {
-    let parser = parse_fn("fn main() -> i32 { main(1 + 1); }");
+    let parser = parse_fn("fn main() -> int { main(1 + 1); }");
 
     assert_eq!(parser.len(), 1);
     let block = &parser[0].body[0];
@@ -241,7 +241,7 @@ fn parses_call_with_arg() {
 
 #[test]
 fn parses_native_call_without_arg() {
-    let parser = parse_fn("fn main() -> i32 { extern main(); }");
+    let parser = parse_fn("fn main() -> int { extern main(); }");
 
     assert_eq!(parser.len(), 1);
     let block = &parser[0].body;

@@ -96,6 +96,9 @@ fn test_keywords() {
         ("print", TokenType::Print),
         ("struct", TokenType::Struct),
         ("extern", TokenType::Extern),
+        ("float", TokenType::TypeFloat),
+        ("int", TokenType::TypeInt),
+        ("void", TokenType::TypeVoid),
     ];
 
     for (kw_str, expected_type) in keywords {
