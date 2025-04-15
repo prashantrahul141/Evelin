@@ -100,7 +100,11 @@ impl Parser<'_> {
 
     /// Returns the next token without consuming it.
     pub fn peek(&self) -> &Token {
-        &self.tokens[self.current]
+        if self.current + 1 >= self.tokens.len() {
+            return &self.tokens.last().unwrap();
+        }
+
+        &self.tokens[self.current + 1]
     }
 
     /// Synchronizes: consumes all tokens untill next meaningful statement.
@@ -114,7 +118,7 @@ impl Parser<'_> {
                 return;
             }
 
-            match self.peek().ttype {
+            match self.current().ttype {
                 TokenType::Struct
                 | TokenType::Fn
                 | TokenType::Let
