@@ -58,6 +58,28 @@ impl QBEEmitter<'_> {
         trace!("creating new glob = @glob.{}", self.tmp_counter);
         format!("glob.{}", self.tmp_counter)
     }
+
+    /// Get maximum alignment of a type
+    pub(super) fn type_alignment(ty: &qbe::Type) -> u64 {
+        match ty {
+            qbe::Type::Byte | qbe::Type::SignedByte | qbe::Type::UnsignedByte => 1,
+            qbe::Type::Halfword | qbe::Type::SignedHalfword | qbe::Type::UnsignedHalfword => 2,
+            qbe::Type::Word | qbe::Type::Single => 4,
+            qbe::Type::Long | qbe::Type::Double => 8,
+            qbe::Type::Aggregate(td) => td
+                .items
+                .iter()
+                .map(|(item_ty, _)| QBEEmitter::type_alignment(item_ty))
+                .max()
+                .unwrap_or(1),
+            qbe::Type::Zero => 1,
+        }
+    }
+
+    /// Get next round offset value depending on alignment
+    pub(super) fn align_offset(offset: u64, alignment: u64) -> u64 {
+        (offset + alignment - 1) & !(alignment - 1)
+    }
 }
 
 impl TryFrom<TokenType> for qbe::Type<'_> {
