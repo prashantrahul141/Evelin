@@ -22,7 +22,7 @@ block           ::=     "{" statement* "}" ;
 
 let_stmt        ::=     "let" IDENTIFIER "=" ( expression | struct_init ) ";" ;
 
-struct_init     ::=      IDENTIFIER "{" (expression ",")* "}" ;
+struct_init     ::=      IDENTIFIER "{" ( IDENTIFIER ":" expression "," )* "}" ;
 
 if_stmt         ::=     "if" "(" expression ")" statement ( "else" statement )? ;
 
