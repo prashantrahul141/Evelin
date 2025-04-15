@@ -1,0 +1,3 @@
+[submodule "external/qbe"]
+	path = external/qbe
+	url = https://github.com/prashantrahul141/qbe-fork
