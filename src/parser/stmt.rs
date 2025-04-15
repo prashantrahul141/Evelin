@@ -54,8 +54,19 @@ impl Parser<'_> {
             let mut arguments = vec![];
 
             while !self.match_token(&[TokenType::RightBrace]) && !self.is_at_end() {
+                let arg_name = self
+                    .consume(
+                        TokenType::Identifier,
+                        "Expected field name inside struct initialiser",
+                    )?
+                    .lexeme
+                    .clone();
+                self.consume(
+                    TokenType::Colon,
+                    "Expected ':' after field name in struct initialiser",
+                )?;
                 let arg = self.expr()?;
-                arguments.push(arg);
+                arguments.push((arg_name, arg));
                 if !self.match_current(&TokenType::RightBrace) {
                     self.consume(
                         TokenType::Comma,
