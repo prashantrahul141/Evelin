@@ -24,7 +24,9 @@
             cargo
             rustc
             rustfmt
+            rust-analyzer
             rustPackages.clippy
+            binutils
             gnumake
             wget
             gnutar
