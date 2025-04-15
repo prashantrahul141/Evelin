@@ -41,8 +41,8 @@ impl QBEEmitter<'_> {
         let tmp = self.new_tmp();
 
         let mut ty = qbe::Type::Word;
-        if matches!(ty_left, qbe::Type::Single) || matches!(ty_right, qbe::Type::Single) {
-            ty = qbe::Type::Single;
+        if matches!(ty_left, qbe::Type::Double) || matches!(ty_right, qbe::Type::Double) {
+            ty = qbe::Type::Double;
         }
 
         func.assign_instr(
@@ -253,11 +253,11 @@ impl QBEEmitter<'_> {
         match v {
             LiteralValue::NumberFloat(v) => {
                 let tmp = self.new_tmp();
-                let ty = qbe::Type::Single;
+                let ty = qbe::Type::Double;
                 func.assign_instr(
                     tmp.clone(),
                     ty.clone(),
-                    qbe::Instr::Copy(qbe::Value::Const(*v as u64)),
+                    qbe::Instr::Copy(qbe::Value::Const((*v).to_bits() as u64)),
                 );
 
                 Ok((ty, tmp))
