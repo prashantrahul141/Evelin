@@ -8,6 +8,7 @@ use std::collections::HashMap;
 
 use crate::ast::{FnDecl, StructDecl};
 use crate::emitter::EmitterResult;
+use data::StructMeta;
 use log::{debug, info};
 use qbe;
 
@@ -27,6 +28,9 @@ pub struct QBEEmitter<'a> {
     /// Scopes for variables.
     scopes: Vec<HashMap<String, (qbe::Type<'static>, qbe::Value)>>,
 
+    /// struct meta data
+    struct_meta: HashMap<String, (StructMeta, u64)>,
+
     /// Current module.
     /// This is usually 1 module per file basis.
     module: qbe::Module<'a>,
@@ -41,6 +45,7 @@ impl<'a> From<(&'a Vec<FnDecl>, &'a Vec<StructDecl>)> for QBEEmitter<'a> {
             fn_decls: decls.0,
             struct_decls: decls.1,
             scopes: vec![],
+            struct_meta: HashMap::new(),
             module: qbe::Module::new(),
         }
     }
