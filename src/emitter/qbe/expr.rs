@@ -3,7 +3,7 @@ use crate::ast::{
     NativeCallExpr, UnOp, UnaryExpr, VariableExpr,
 };
 use crate::emitter::EmitterResult;
-use anyhow::bail;
+use anyhow::{Context, bail};
 use log::{error, trace};
 use qbe;
 
@@ -113,11 +113,58 @@ impl QBEEmitter<'_> {
 
     /// Emits struct field access
     fn emit_field_access(
-        &self,
+        &mut self,
         func: &mut qbe::Function<'static>,
         fiac: &FieldAccessExpr,
     ) -> Result<(qbe::Type<'static>, qbe::Value), anyhow::Error> {
-        todo!()
+        trace!("emitting field access = {:?}", &fiac);
+
+        let (parent_tmp, struct_ty) = match &fiac.parent {
+            Expr::Variable(var) => {
+                let (struct_ty, src) = self.get_var(&var.name)?.to_owned();
+                let struct_ty = match struct_ty {
+                    qbe::Type::Aggregate(ag) => ag,
+                    _ => bail!("Field access is only supported for struct types"),
+                };
+
+                (src, struct_ty)
+            }
+            _ => todo!("idk"),
+        };
+
+        let (fields_table, _) = self
+            .struct_meta
+            .get(&struct_ty.name)
+            .with_context(|| format!("Use of undeclared struct var '{}'", &struct_ty.name))?
+            .to_owned();
+
+        let (field_ty, offset) = fields_table
+            .get(&fiac.field)
+            .with_context(|| {
+                format!(
+                    "Field '{}' does not exist on struct '{}'",
+                    &fiac.field, &struct_ty.name
+                )
+            })?
+            .to_owned();
+
+        let field_ptr = self.new_tmp();
+        func.assign_instr(
+            field_ptr.clone(),
+            qbe::Type::Long,
+            qbe::Instr::Add(parent_tmp, qbe::Value::Const(offset.clone())),
+        );
+
+        // parent_tmp -> src, ty -> ty, offset -> offset
+
+        let tmp = self.new_tmp();
+        func.assign_instr(
+            tmp.clone(),
+            field_ty.clone(),
+            qbe::Instr::Load(field_ty.clone(), field_ptr),
+        );
+
+        Ok((field_ty, tmp))
     }
 
     /// Emit eve native function call
