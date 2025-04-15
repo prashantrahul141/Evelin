@@ -1,6 +1,6 @@
 use std::panic;
 
-use evelin::ast::{BinOp, Expr, FnDecl, LiteralValue, Stmt, StructDecl, TokenType};
+use evelin::ast::{BinOp, Expr, FnDecl, LiteralExpr, LiteralValue, Stmt, StructDecl, TokenType};
 use evelin::lexer::Lexer;
 use evelin::parser::Parser;
 
@@ -50,6 +50,61 @@ fn parses_struct_with_fields() {
             ("y".to_string(), TokenType::TypeF32)
         ]
     );
+}
+
+#[test]
+fn parses_let_stmt() {
+    let parser = parse_fn("fn test() -> i32 { let a = 123; }");
+
+    if let Stmt::Let(let_stmt) = &parser[0].body[0] {
+        match &let_stmt.initialiser {
+            Expr::Literal(lit) => {
+                matches!(lit.value, LiteralValue::NumberInt(123));
+            }
+            _ => panic!("Expected literal int"),
+        }
+
+        assert_eq!("a".to_string(), let_stmt.name);
+    } else {
+        panic!("Expected let stmt");
+    }
+}
+
+#[test]
+fn parses_struct_init_stmt() {
+    let parser = parse_fn("fn test() -> i32 { let a = Point { x: 2, y: 3 }; }");
+
+    if let Stmt::StructInit(struct_init) = &parser[0].body[0] {
+        //vec![(
+        //    "x".to_string(),
+        //    Expr::Literal(LiteralExpr {
+        //        value: LiteralValue::NumberInt(2)
+        //    })
+        //)]
+
+        assert_eq!("Point".to_string(), struct_init.struct_name);
+        assert_eq!("a".to_string(), struct_init.name);
+
+        let first = &struct_init.arguments[0];
+        assert_eq!(first.0, "x".to_owned());
+        matches!(
+            first.1,
+            Expr::Literal(LiteralExpr {
+                value: LiteralValue::NumberInt(2),
+            }),
+        );
+
+        let second = &struct_init.arguments[1];
+        assert_eq!(second.0, "y".to_owned());
+        matches!(
+            second.1,
+            Expr::Literal(LiteralExpr {
+                value: LiteralValue::NumberInt(3),
+            }),
+        );
+    } else {
+        panic!("Expected struct init stmt");
+    }
 }
 
 #[test]
