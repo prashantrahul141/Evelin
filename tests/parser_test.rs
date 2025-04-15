@@ -73,15 +73,7 @@ fn parses_let_stmt() {
 #[test]
 fn parses_struct_init_stmt() {
     let parser = parse_fn("fn test() -> i32 { let a = Point { x: 2, y: 3 }; }");
-
     if let Stmt::StructInit(struct_init) = &parser[0].body[0] {
-        //vec![(
-        //    "x".to_string(),
-        //    Expr::Literal(LiteralExpr {
-        //        value: LiteralValue::NumberInt(2)
-        //    })
-        //)]
-
         assert_eq!("Point".to_string(), struct_init.struct_name);
         assert_eq!("a".to_string(), struct_init.name);
 
