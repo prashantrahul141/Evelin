@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::ast::{Expr, Stmt};
 use crate::die;
 use crate::emitter::EmitterResult;
+use anyhow::{Context, bail};
 use log::{error, trace};
 use qbe;
 
@@ -19,7 +20,9 @@ impl QBEEmitter<'_> {
         match stmt {
             Stmt::Block(blk) => self.emit_block(func, &blk.stmts),
             Stmt::Let(lt) => self.emit_let(func, &lt.name, &lt.initialiser),
-            Stmt::StructInit(_) => todo!(),
+            Stmt::StructInit(st) => {
+                self.emit_struct_init(func, &st.name, &st.struct_name, &st.arguments)
+            }
             Stmt::If(stmt) => {
                 self.emit_if_stmt(func, &stmt.condition, &stmt.if_branch, &stmt.else_branch)
             }
@@ -54,6 +57,52 @@ impl QBEEmitter<'_> {
         let (ty, value) = self.emit_expr(func, init)?;
         let result_value = self.new_var(ty.clone(), name.to_owned())?;
         func.assign_instr(result_value, ty, qbe::Instr::Copy(value));
+        Ok(())
+    }
+
+    // emits struct initialization
+    fn emit_struct_init(
+        &mut self,
+        func: &mut qbe::Function<'static>,
+        name: &str,
+        struct_name: &str,
+        args: &Vec<(String, Expr)>,
+    ) -> EmitterResult<()> {
+        trace!("emitting struct init stmt");
+
+        let (meta, size) = self
+            .struct_meta
+            .get(struct_name)
+            .with_context(|| format!("Initialiser of undeclared struct '{}'", struct_name))?
+            .to_owned();
+
+        let tmp = self.new_var(qbe::Type::Long, name.to_owned())?;
+        func.assign_instr(tmp.clone(), qbe::Type::Long, qbe::Instr::Alloc8(size));
+
+        for (name, expr) in args {
+            // get meta about arg
+            let (field_type, offset) = meta
+                .get(name)
+                .with_context(|| format!("Unknown field : '{}'", name))?;
+
+            let (_, expr_tmp) = self.emit_expr(func, expr)?;
+            match field_type {
+                qbe::Type::Aggregate(_) => {
+                    bail!("Aggregate types inside structs are not supported yet.");
+                }
+                _ => {
+                    let field_tmp = self.new_tmp();
+                    func.assign_instr(
+                        field_tmp.clone(),
+                        qbe::Type::Long,
+                        qbe::Instr::Add(tmp.clone(), qbe::Value::Const(*offset)),
+                    );
+
+                    func.add_instr(qbe::Instr::Store(field_type.clone(), field_tmp, expr_tmp));
+                }
+            }
+        }
+
         Ok(())
     }
 
