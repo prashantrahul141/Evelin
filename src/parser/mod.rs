@@ -20,7 +20,7 @@ pub struct Parser<'a> {
     pub(super) current: usize,
 
     /// flag to be set if any error occurs during parsing.
-    pub has_errors: bool,
+    pub errors_count: usize,
 
     /// vec of all parsed struct declarations.
     pub struct_decls: Vec<StructDecl>,
@@ -35,7 +35,7 @@ impl<'a> From<&'a Vec<Token>> for Parser<'a> {
         Self {
             tokens,
             current: 0,
-            has_errors: false,
+            errors_count: 0,
             struct_decls: vec![],
             fn_decls: vec![],
         }

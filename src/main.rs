@@ -35,7 +35,12 @@ pub fn init() -> anyhow::Result<()> {
         parser.parse();
         debug!("{:?}", &parser.struct_decls);
         debug!("{:?}", &parser.fn_decls);
-
+        if parser.errors_count != 0 {
+            bail!(
+                "Failed to compile due to {} parsing error(s)",
+                parser.errors_count
+            );
+        }
         let mut qbe_generator = QBEEmitter::from((&parser.fn_decls, &parser.struct_decls));
         let ir = qbe_generator.emit_ir()?;
         debug!("IR: \n{}", ir);

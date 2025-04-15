@@ -83,11 +83,11 @@ impl Parser<'_> {
         self.current().ttype == TokenType::Eof
     }
 
-    /// Sets parser's error flag, reports the error message to user,
+    /// Increments parser's error count, reports the error message to user,
     /// then synchronizes to next statement.
     /// * `message` - error.
     pub fn report_parser_error(&mut self, err: anyhow::Error) {
-        self.has_errors = true;
+        self.errors_count += 1;
         warn!("Parsing error: at line {}: {:#}.", self.current().line, err);
         println!(
             "{}: at line {}: {:#}.",
