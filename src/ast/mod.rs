@@ -180,9 +180,3 @@ pub struct FnDecl {
     pub return_type: TokenType,
     pub body: Vec<Stmt>,
 }
-
-#[derive(Debug, Clone)]
-pub enum TopLevelDecl {
-    Struct(StructDecl),
-    Fn(FnDecl),
-}
