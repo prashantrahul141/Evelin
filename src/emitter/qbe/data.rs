@@ -23,14 +23,14 @@ impl QBEEmitter<'_> {
         let mut max_align = 0;
 
         for field in &struct_decl.fields {
-            let ty = qbe::Type::try_from(field.1.clone()).unwrap();
+            let ty = qbe::Type::try_from(field.field_type.clone()).unwrap();
             let field_align = Self::type_alignment(&ty);
             max_align = cmp::max(max_align, field_align);
 
             // align with the current offset
             offset = Self::align_offset(offset, field_align);
 
-            meta.insert(field.0.clone(), (ty.clone(), offset));
+            meta.insert(field.field_name.clone(), (ty.clone(), offset));
             typedef.items.push((ty.clone(), 1));
 
             offset += ty.size();

@@ -167,16 +167,22 @@ pub enum Stmt {
     Expression(Expr),
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct FnStDeclField {
+    pub field_name: String,
+    pub field_type: TokenType,
+}
+
 #[derive(Debug, Clone)]
 pub struct StructDecl {
     pub name: String,
-    pub fields: Vec<(String, TokenType)>,
+    pub fields: Vec<FnStDeclField>,
 }
 
 #[derive(Debug, Clone)]
 pub struct FnDecl {
     pub name: String,
-    pub parameter: Option<(String, TokenType)>,
+    pub parameter: Option<FnStDeclField>,
     pub return_type: TokenType,
     pub body: Vec<Stmt>,
 }

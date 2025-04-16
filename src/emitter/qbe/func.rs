@@ -18,8 +18,8 @@ impl QBEEmitter<'_> {
             func.parameter
                 .iter()
                 .map(|x| {
-                    let ty = qbe::Type::try_from(x.1.clone())?;
-                    let val = self.new_var(ty.clone(), x.0.clone())?;
+                    let ty = qbe::Type::try_from(x.field_type.clone())?;
+                    let val = self.new_var(ty.clone(), x.field_name.clone())?;
                     Ok((ty, val))
                 })
                 .collect::<anyhow::Result<Vec<_>>>()?,
