@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::ast::{Expr, Stmt};
+use crate::ast::{Expr, StInitField, Stmt};
 use crate::die;
 use crate::emitter::EmitterResult;
 use anyhow::{Context, bail};
@@ -66,7 +66,7 @@ impl QBEEmitter<'_> {
         func: &mut qbe::Function<'static>,
         name: &str,
         struct_name: &str,
-        args: &Vec<(String, Expr)>,
+        args: &Vec<StInitField>,
     ) -> EmitterResult<()> {
         trace!("emitting struct init stmt");
 
@@ -90,13 +90,13 @@ impl QBEEmitter<'_> {
         )?;
         func.assign_instr(tmp.clone(), qbe::Type::Long, qbe::Instr::Alloc8(size));
 
-        for (name, expr) in args {
+        for arg in args {
             // get meta about arg
             let (field_type, offset) = meta
                 .get(name)
                 .with_context(|| format!("Unknown field : '{}'", name))?;
 
-            let (_, expr_tmp) = self.emit_expr(func, expr)?;
+            let (_, expr_tmp) = self.emit_expr(func, &arg.field_expr)?;
             match field_type {
                 qbe::Type::Aggregate(_) => {
                     bail!("Aggregate types inside structs are not supported yet.");

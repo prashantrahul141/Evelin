@@ -84,18 +84,18 @@ fn parses_struct_init_stmt() {
         assert_eq!("a".to_string(), struct_init.name);
 
         let first = &struct_init.arguments[0];
-        assert_eq!(first.0, "x".to_owned());
+        assert_eq!(first.field_name, "x".to_owned());
         matches!(
-            first.1,
+            first.field_expr,
             Expr::Literal(LiteralExpr {
                 value: LiteralValue::NumberInt(2),
             }),
         );
 
         let second = &struct_init.arguments[1];
-        assert_eq!(second.0, "y".to_owned());
+        assert_eq!(second.field_name, "y".to_owned());
         matches!(
-            second.1,
+            second.field_expr,
             Expr::Literal(LiteralExpr {
                 value: LiteralValue::NumberInt(3),
             }),

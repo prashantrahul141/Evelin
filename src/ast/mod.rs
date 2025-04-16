@@ -133,10 +133,16 @@ pub struct LetStmt {
 }
 
 #[derive(Debug, Clone)]
+pub struct StInitField {
+    pub field_name: String,
+    pub field_expr: Expr,
+}
+
+#[derive(Debug, Clone)]
 pub struct StructInitStmt {
     pub name: String,
     pub struct_name: String,
-    pub arguments: Vec<(String, Expr)>,
+    pub arguments: Vec<StInitField>,
 }
 
 #[derive(Debug, Clone)]
