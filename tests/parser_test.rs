@@ -1,5 +1,6 @@
 use evelin::ast::{
-    BinOp, Expr, FnDecl, FnStDeclField, LiteralExpr, LiteralValue, Stmt, StructDecl, TokenType,
+    BinOp, DType, Expr, FnDecl, FnStDeclField, LiteralExpr, LiteralValue, Stmt, StructDecl,
+    TokenType,
 };
 use evelin::lexer::Lexer;
 use evelin::parser::Parser;
@@ -48,11 +49,11 @@ fn parses_struct_with_fields() {
         vec![
             FnStDeclField {
                 field_name: "x".to_string(),
-                field_type: TokenType::TypeInt
+                field_type: DType::Primitive(TokenType::TypeInt),
             },
             FnStDeclField {
                 field_name: "y".to_string(),
-                field_type: TokenType::TypeFloat
+                field_type: DType::Primitive(TokenType::TypeFloat)
             },
         ]
     );
@@ -128,7 +129,7 @@ fn parses_function_with_param() {
         f.parameter,
         Some(FnStDeclField {
             field_name: "x".to_string(),
-            field_type: TokenType::TypeInt
+            field_type: DType::Primitive(TokenType::TypeInt)
         })
     );
     assert_eq!(f.return_type, TokenType::TypeInt);
