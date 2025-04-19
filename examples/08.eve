@@ -9,7 +9,7 @@ fn add(two_num: TwoNum) -> int {
 }
 
 fn main() -> void {
-  let a = TwoNum { x: 5.0, y: 8 };
+  let a = TwoNum { x: 5, y: 8 };
   print "sum : ";
   print add(a);
 }
