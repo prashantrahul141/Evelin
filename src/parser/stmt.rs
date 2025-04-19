@@ -1,7 +1,7 @@
 use log::trace;
 
 use crate::ast::{
-    BlockStmt, IfStmt, LetStmt, PrintStmt, ReturnStmt, Stmt, StructInitStmt, TokenType,
+    BlockStmt, IfStmt, LetStmt, PrintStmt, ReturnStmt, StInitField, Stmt, StructInitStmt, TokenType,
 };
 
 use super::{Parser, ParserResult};
@@ -54,7 +54,7 @@ impl Parser<'_> {
             let mut arguments = vec![];
 
             while !self.match_token(&[TokenType::RightBrace]) && !self.is_at_end() {
-                let arg_name = self
+                let field_name = self
                     .consume(
                         TokenType::Identifier,
                         "Expected field name inside struct initialiser",
@@ -66,7 +66,10 @@ impl Parser<'_> {
                     "Expected ':' after field name in struct initialiser",
                 )?;
                 let arg = self.expr()?;
-                arguments.push((arg_name, arg));
+                arguments.push(StInitField {
+                    field_name,
+                    field_expr: arg,
+                });
                 if !self.match_current(&TokenType::RightBrace) {
                     self.consume(
                         TokenType::Comma,

@@ -1,4 +1,7 @@
-use evelin::ast::{BinOp, Expr, FnDecl, LiteralExpr, LiteralValue, Stmt, StructDecl, TokenType};
+use evelin::ast::{
+    BinOp, DType, Expr, FnDecl, FnStDeclField, LiteralExpr, LiteralValue, Stmt, StructDecl,
+    TokenType,
+};
 use evelin::lexer::Lexer;
 use evelin::parser::Parser;
 
@@ -44,8 +47,14 @@ fn parses_struct_with_fields() {
     assert_eq!(
         s.fields,
         vec![
-            ("x".to_string(), TokenType::TypeInt),
-            ("y".to_string(), TokenType::TypeFloat)
+            FnStDeclField {
+                field_name: "x".to_string(),
+                field_type: DType::Primitive(TokenType::TypeInt),
+            },
+            FnStDeclField {
+                field_name: "y".to_string(),
+                field_type: DType::Primitive(TokenType::TypeFloat)
+            },
         ]
     );
 }
@@ -76,18 +85,18 @@ fn parses_struct_init_stmt() {
         assert_eq!("a".to_string(), struct_init.name);
 
         let first = &struct_init.arguments[0];
-        assert_eq!(first.0, "x".to_owned());
+        assert_eq!(first.field_name, "x".to_owned());
         matches!(
-            first.1,
+            first.field_expr,
             Expr::Literal(LiteralExpr {
                 value: LiteralValue::NumberInt(2),
             }),
         );
 
         let second = &struct_init.arguments[1];
-        assert_eq!(second.0, "y".to_owned());
+        assert_eq!(second.field_name, "y".to_owned());
         matches!(
-            second.1,
+            second.field_expr,
             Expr::Literal(LiteralExpr {
                 value: LiteralValue::NumberInt(3),
             }),
@@ -117,8 +126,11 @@ fn parses_function_with_param() {
     let f = &parser[0];
     assert_eq!(f.name, "inc");
     assert_eq!(
-        f.parameter.as_ref(),
-        Some(&("x".to_owned(), TokenType::TypeInt))
+        f.parameter,
+        Some(FnStDeclField {
+            field_name: "x".to_string(),
+            field_type: DType::Primitive(TokenType::TypeInt)
+        })
     );
     assert_eq!(f.return_type, TokenType::TypeInt);
 }

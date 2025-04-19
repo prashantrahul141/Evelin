@@ -1,0 +1,15 @@
+// Evelin's solution for using multiple arguments in a function parameter is to use a struct.
+struct TwoNum {
+  x: int,
+  y: int
+}
+
+fn add(two_num: TwoNum) -> int {
+  return two_num.x + two_num.y;
+}
+
+fn main() -> void {
+  let a = TwoNum { x: 5.0, y: 8 };
+  print "sum : ";
+  print add(a);
+}

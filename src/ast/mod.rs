@@ -133,10 +133,16 @@ pub struct LetStmt {
 }
 
 #[derive(Debug, Clone)]
+pub struct StInitField {
+    pub field_name: String,
+    pub field_expr: Expr,
+}
+
+#[derive(Debug, Clone)]
 pub struct StructInitStmt {
     pub name: String,
     pub struct_name: String,
-    pub arguments: Vec<(String, Expr)>,
+    pub arguments: Vec<StInitField>,
 }
 
 #[derive(Debug, Clone)]
@@ -167,16 +173,28 @@ pub enum Stmt {
     Expression(Expr),
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum DType {
+    Primitive(TokenType),
+    Derived(String),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FnStDeclField {
+    pub field_name: String,
+    pub field_type: DType,
+}
+
 #[derive(Debug, Clone)]
 pub struct StructDecl {
     pub name: String,
-    pub fields: Vec<(String, TokenType)>,
+    pub fields: Vec<FnStDeclField>,
 }
 
 #[derive(Debug, Clone)]
 pub struct FnDecl {
     pub name: String,
-    pub parameter: Option<(String, TokenType)>,
+    pub parameter: Option<FnStDeclField>,
     pub return_type: TokenType,
     pub body: Vec<Stmt>,
 }

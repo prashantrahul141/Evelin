@@ -1,8 +1,6 @@
 use anyhow::bail;
 
-use crate::ast::{
-    TokenType, {FnDecl, Stmt, StructDecl},
-};
+use crate::ast::{DType, FnDecl, FnStDeclField, Stmt, StructDecl, TokenType};
 
 use super::{Parser, ParserResult};
 
@@ -19,10 +17,16 @@ impl Parser<'_> {
             let field_name = self.advance().lexeme.clone();
             self.consume(TokenType::Colon, "Expected ':' after function parameter")?;
 
-            if !self.current().is_a_basic_type() {
-                bail!("Expected type after field name in function declaration");
-            }
-            parameter = Some((field_name, self.advance().ttype.clone()));
+            let field_type = if self.current().is_a_basic_type() {
+                DType::Primitive(self.advance().ttype.clone())
+            } else {
+                DType::Derived(self.advance().lexeme.clone())
+            };
+
+            parameter = Some(FnStDeclField {
+                field_name,
+                field_type,
+            });
         }
 
         self.consume(
@@ -75,12 +79,17 @@ impl Parser<'_> {
                 .clone();
 
             self.consume(TokenType::Colon, "Expected ':' after field name")?;
-            if !self.match_token(&[TokenType::TypeInt, TokenType::TypeFloat]) {
-                bail!("Expected type after field name in struct declaration");
-            }
 
-            let field_type = self.previous().ttype.clone();
-            fields.push((field_name, field_type));
+            let field_type = if self.current().is_a_basic_type() {
+                DType::Primitive(self.advance().ttype.clone())
+            } else {
+                DType::Derived(self.advance().lexeme.clone())
+            };
+
+            fields.push(FnStDeclField {
+                field_name,
+                field_type,
+            });
 
             if !self.match_current(&TokenType::RightBrace) {
                 self.consume(TokenType::Comma, "Expected ',' after field name")?;
