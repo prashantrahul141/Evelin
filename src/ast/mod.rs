@@ -174,9 +174,15 @@ pub enum Stmt {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum DType {
+    Primitive(TokenType),
+    Derived(String),
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct FnStDeclField {
     pub field_name: String,
-    pub field_type: TokenType,
+    pub field_type: DType,
 }
 
 #[derive(Debug, Clone)]
