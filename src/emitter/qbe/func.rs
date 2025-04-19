@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
-use crate::ast::{FnDecl, Stmt};
+use crate::ast::{DType, FnDecl, Stmt};
 use crate::emitter::EmitterResult;
 use log::trace;
 use qbe;
 
 use super::QBEEmitter;
+use anyhow::Context;
 
 impl QBEEmitter<'_> {
     /// Emits a single function
@@ -18,7 +19,22 @@ impl QBEEmitter<'_> {
             func.parameter
                 .iter()
                 .map(|x| {
-                    let ty = qbe::Type::try_from(x.field_type.clone())?;
+                    let ty = match &x.field_type {
+                        DType::Primitive(ttype) => qbe::Type::try_from(ttype.clone()).unwrap(),
+                        DType::Derived(name) => {
+                            let type_def = self
+                                .type_defs
+                                .iter()
+                                .find(|x| &x.name == name)
+                                .cloned()
+                                .with_context(|| {
+                                    format!("Initialiser of undeclared struct '{}'", name)
+                                })?;
+
+                            let boxed_type_def = Box::new(type_def);
+                            qbe::Type::Aggregate(Box::leak(boxed_type_def))
+                        }
+                    };
                     let val = self.new_var(ty.clone(), x.field_name.clone())?;
                     Ok((ty, val))
                 })

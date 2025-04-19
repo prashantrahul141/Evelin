@@ -1,6 +1,6 @@
 use std::{cmp, collections::HashMap};
 
-use crate::ast::StructDecl;
+use crate::ast::{DType, StructDecl};
 use log::debug;
 
 use super::QBEEmitter;
@@ -23,7 +23,12 @@ impl QBEEmitter<'_> {
         let mut max_align = 0;
 
         for field in &struct_decl.fields {
-            let ty = qbe::Type::try_from(field.field_type.clone()).unwrap();
+            let ty = match &field.field_type {
+                DType::Primitive(ttype) => qbe::Type::try_from(ttype.clone()).unwrap(),
+                DType::Derived(_) => {
+                    todo!("Aggregate type for struct fields is not supported yet.")
+                }
+            };
             let field_align = Self::type_alignment(&ty);
             max_align = cmp::max(max_align, field_align);
 
