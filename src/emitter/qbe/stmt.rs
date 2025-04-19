@@ -93,8 +93,8 @@ impl QBEEmitter<'_> {
         for arg in args {
             // get meta about arg
             let (field_type, offset) = meta
-                .get(name)
-                .with_context(|| format!("Unknown field : '{}'", name))?;
+                .get(&arg.field_name)
+                .with_context(|| format!("Unknown field : '{}'", arg.field_name))?;
 
             let (_, expr_tmp) = self.emit_expr(func, &arg.field_expr)?;
             match field_type {
