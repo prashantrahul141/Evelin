@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::ffi::CStr;
 use std::io::Write;
 use std::{env, fs, path::PathBuf};
@@ -10,12 +11,10 @@ struct SysInfo {
 
 // basically a constructor for SysInfo
 // Can panic
-fn uname() -> SysInfo {
+fn uname() -> Result<SysInfo, Box<dyn Error>> {
     let mut buf = unsafe { std::mem::zeroed() };
     let success = unsafe { libc::uname(&mut buf) };
-    if success != 0 {
-        panic!("Failed to get uname.");
-    }
+    if success != 0 {}
     let sysname = unsafe { CStr::from_ptr(buf.sysname.as_ptr()) }
         .to_string_lossy()
         .into_owned();
@@ -23,7 +22,7 @@ fn uname() -> SysInfo {
         .to_string_lossy()
         .into_owned();
 
-    SysInfo { sysname, machine }
+    Ok(SysInfo { sysname, machine })
 }
 
 // returns qbe's config.h content depending on build machine
@@ -52,7 +51,7 @@ fn get_qbe_config(sysinfo: SysInfo) -> String {
     }
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     let mut c = cc::Build::new();
     c.pic(true).opt_level(3).warnings(false);
 
@@ -91,14 +90,18 @@ fn main() {
         "rv64/isel.c",
         "rv64/emit.c",
     ];
+
+    fs::create_dir_all(&qbe_dir)?; // to make sure qbe dir exists.
     for file in files {
-        c.file(format!("vendor/qbe/{}", file));
+        c.file(qbe_dir.join(file));
     }
 
-    let mut qbeconfigh = fs::File::create(qbe_dir.join("config.h")).unwrap();
-    write!(qbeconfigh, r#"{}"#, get_qbe_config(uname())).unwrap();
+    let mut qbeconfigh = fs::File::create(qbe_dir.join("config.h"))?;
+    write!(qbeconfigh, r#"{}"#, get_qbe_config(uname()?))?;
 
     c.compile("qbe");
     println!("cargo:rustc-link-search=vendor/qbe/");
     println!("cargo:rustc-link-lib=qbe");
+
+    Ok(())
 }
