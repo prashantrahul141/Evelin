@@ -12,3 +12,7 @@ qbe = "2.5.0"
 anyhow = "1.0.97"
 colored = "3.0.0"
 libc = "0.2.172"
+
+[build-dependencies]
+cc = "1.0"
+libc = "0.2.172"
