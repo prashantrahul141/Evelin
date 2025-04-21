@@ -1,6 +1,6 @@
 pub mod ast;
 pub mod backend;
-pub mod cc;
+pub mod cc_runtime;
 pub mod cli;
 pub mod emitter;
 pub mod lexer;

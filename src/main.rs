@@ -1,6 +1,6 @@
 mod ast;
 mod backend;
-mod cc;
+mod cc_runtime;
 mod cli;
 mod emitter;
 mod lexer;
@@ -57,7 +57,7 @@ pub fn init() -> anyhow::Result<()> {
     }
 
     // build executable using platform's c compiler
-    let out = cc::Build::default()
+    let out = cc_runtime::Build::default()
         .set_c_compiler(opts.cc)
         .files(&out_files)
         .set_outfile(&opts.out)
