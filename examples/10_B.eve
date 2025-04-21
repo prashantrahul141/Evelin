@@ -1,0 +1,6 @@
+// Code can be split into multiple Eve files
+// and compiled using : Evelin 10_A.eve 10_B.eve
+
+fn main() -> void {
+  print increment(2);
+}
