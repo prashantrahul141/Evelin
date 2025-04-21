@@ -175,7 +175,7 @@ pub enum Stmt {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum DType {
-    Primitive(TokenType),
+    Primitive(Token),
     Derived(String),
 }
 
@@ -195,6 +195,6 @@ pub struct StructDecl {
 pub struct FnDecl {
     pub name: String,
     pub parameter: Option<FnStDeclField>,
-    pub return_type: TokenType,
+    pub return_type: Token,
     pub body: Vec<Stmt>,
 }

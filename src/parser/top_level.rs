@@ -18,7 +18,7 @@ impl Parser<'_> {
             self.consume(TokenType::Colon, "Expected ':' after function parameter")?;
 
             let field_type = if self.current().is_a_basic_type() {
-                DType::Primitive(self.advance().ttype.clone())
+                DType::Primitive(self.advance().clone())
             } else {
                 DType::Derived(self.advance().lexeme.clone())
             };
@@ -43,7 +43,7 @@ impl Parser<'_> {
             bail!("Expected function return type");
         }
 
-        let return_type = self.advance().ttype.clone();
+        let return_type = self.advance().clone();
 
         self.consume(
             TokenType::LeftBrace,
@@ -81,7 +81,7 @@ impl Parser<'_> {
             self.consume(TokenType::Colon, "Expected ':' after field name")?;
 
             let field_type = if self.current().is_a_basic_type() {
-                DType::Primitive(self.advance().ttype.clone())
+                DType::Primitive(self.advance().clone())
             } else {
                 DType::Derived(self.advance().lexeme.clone())
             };

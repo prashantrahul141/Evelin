@@ -1,7 +1,11 @@
 use anyhow::{anyhow, bail};
 use log::{error, trace};
 
-use crate::{ast::TokenType, die, emitter::EmitterResult};
+use crate::{
+    ast::{Token, TokenType},
+    die,
+    emitter::EmitterResult,
+};
 
 use super::QBEEmitter;
 
@@ -77,11 +81,11 @@ impl QBEEmitter<'_> {
     }
 }
 
-impl TryFrom<TokenType> for qbe::Type<'_> {
+impl TryFrom<Token> for qbe::Type<'_> {
     type Error = anyhow::Error;
 
-    fn try_from(value: TokenType) -> Result<Self, Self::Error> {
-        match value {
+    fn try_from(value: Token) -> Result<Self, Self::Error> {
+        match value.ttype {
             TokenType::TypeInt => Ok(qbe::Type::Word),
             TokenType::TypeFloat => Ok(qbe::Type::Double),
             TokenType::TypeVoid => Err(anyhow!("qbe::Type::TryFrom recieved type = TypeVoid")),

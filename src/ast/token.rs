@@ -63,7 +63,7 @@ impl std::fmt::Display for TokenType {
 }
 
 // Some tokens contains values with them.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum LiteralValue {
     NumberFloat(f64),
     NumberInt(i32),
@@ -85,7 +85,7 @@ impl std::fmt::Display for LiteralValue {
 }
 
 // The token type.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     // type of the token.
     pub ttype: TokenType,
