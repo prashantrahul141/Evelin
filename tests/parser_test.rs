@@ -1,5 +1,5 @@
 use evelin::ast::{
-    BinOp, DType, Expr, FnDecl, FnStDeclField, LiteralExpr, LiteralValue, Stmt, StructDecl,
+    BinOp, DType, Expr, FnDecl, FnStDeclField, LiteralExpr, LiteralValue, Stmt, StructDecl, Token,
     TokenType,
 };
 use evelin::lexer::Lexer;
@@ -49,11 +49,21 @@ fn parses_struct_with_fields() {
         vec![
             FnStDeclField {
                 field_name: "x".to_string(),
-                field_type: DType::Primitive(TokenType::TypeInt),
+                field_type: DType::Primitive(Token {
+                    lexeme: "int".to_string(),
+                    line: 1,
+                    ttype: TokenType::TypeInt,
+                    literal: LiteralValue::Null
+                }),
             },
             FnStDeclField {
                 field_name: "y".to_string(),
-                field_type: DType::Primitive(TokenType::TypeFloat)
+                field_type: DType::Primitive(Token {
+                    lexeme: "float".to_string(),
+                    line: 1,
+                    ttype: TokenType::TypeFloat,
+                    literal: LiteralValue::Null
+                }),
             },
         ]
     );
@@ -114,7 +124,7 @@ fn parses_function_without_param() {
     let f = &parser[0];
     assert_eq!(f.name, "main");
     assert!(f.parameter.is_none());
-    assert_eq!(f.return_type, TokenType::TypeVoid);
+    assert_eq!(f.return_type.ttype, TokenType::TypeVoid);
     assert!(!f.body.is_empty());
 }
 
@@ -129,10 +139,15 @@ fn parses_function_with_param() {
         f.parameter,
         Some(FnStDeclField {
             field_name: "x".to_string(),
-            field_type: DType::Primitive(TokenType::TypeInt)
+            field_type: DType::Primitive(Token {
+                lexeme: "int".to_string(),
+                line: 1,
+                ttype: TokenType::TypeInt,
+                literal: LiteralValue::Null
+            })
         })
     );
-    assert_eq!(f.return_type, TokenType::TypeInt);
+    assert_eq!(f.return_type.ttype, TokenType::TypeInt);
 }
 
 #[test]
