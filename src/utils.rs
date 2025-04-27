@@ -1,3 +1,5 @@
+use colored::Colorize;
+
 /// Wrapper around error! and panic!, so that i dont have to call them individually.
 #[macro_export]
 macro_rules! die {
@@ -57,4 +59,22 @@ pub fn is_numeric(target_char: char) -> bool {
 /// ```
 pub fn is_alphanumeric(target_char: char) -> bool {
     is_alpha(target_char) || is_numeric(target_char)
+}
+
+#[allow(dead_code)]
+pub enum MessageType {
+    Warning,
+    Error,
+}
+
+/// Reports messages to user.
+/// # Arguments
+/// * `msg` - Message
+/// * `ty` - Message Type
+pub fn report_message<M: Into<String>>(msg: M, ty: MessageType) {
+    match ty {
+        MessageType::Warning => eprint!("{}", "Warning: ".yellow()),
+        MessageType::Error => eprint!("{}", "Error: ".red()),
+    };
+    eprintln!("{}", msg.into());
 }
