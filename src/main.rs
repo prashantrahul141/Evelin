@@ -5,6 +5,7 @@ mod cli;
 mod emitter;
 mod lexer;
 mod parser;
+mod passes;
 mod utils;
 
 use anyhow::{Context, bail};
@@ -13,6 +14,7 @@ use backend::qbe_backend::QbeBackend;
 use colored::Colorize;
 use emitter::Emitter;
 use emitter::qbe::QBEEmitter;
+use evelin::utils::{MessageType, report_message};
 use log::{debug, info};
 use parser::Parser;
 use std::fs;
@@ -41,11 +43,22 @@ pub fn init() -> anyhow::Result<()> {
                 parser.errors_count
             );
         }
-        let mut qbe_generator = QBEEmitter::from((&parser.fn_decls, &parser.struct_decls));
+
+        let (fn_, st) = match passes::run_passes(parser.fn_decls, parser.struct_decls) {
+            Ok((fn_, st)) => (fn_, st),
+            Err(errs) => {
+                for e in &errs {
+                    report_message(e.to_string(), MessageType::Error);
+                }
+                bail!("Failed to compile due to {} error(s)", &errs.len());
+            }
+        };
+
+        let mut qbe_generator = QBEEmitter::from((&fn_, &st));
         let ir = qbe_generator.emit_ir()?;
         debug!("IR: \n{}", ir);
 
-        let backend = QbeBackend::default();
+        let backend = QbeBackend {};
         let obj_code = backend.generate(ir)?;
         debug!("OBJ_CODE: \n{}", obj_code);
 
