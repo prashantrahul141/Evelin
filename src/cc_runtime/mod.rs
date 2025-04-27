@@ -64,6 +64,7 @@ impl Build {
         self
     }
 
+    #[allow(dead_code)]
     /// Add files which will be compiled
     pub fn files<P>(&mut self, p: P) -> &mut Self
     where
