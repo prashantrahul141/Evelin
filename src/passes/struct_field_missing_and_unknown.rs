@@ -6,9 +6,9 @@ use crate::ast::{FnDecl, Stmt, StructDecl, StructInitStmt};
 
 use super::{EvePass, PassResult};
 
-pub struct StructFieldCheck {}
+pub struct StructFieldMissingAndUnknown {}
 
-impl EvePass for StructFieldCheck {
+impl EvePass for StructFieldMissingAndUnknown {
     fn run_pass(&self, fn_decls: Vec<FnDecl>, st_decl: Vec<StructDecl>) -> PassResult {
         for fns in &fn_decls {
             for stmt in &fns.body {
@@ -21,7 +21,7 @@ impl EvePass for StructFieldCheck {
     }
 }
 
-impl StructFieldCheck {
+impl StructFieldMissingAndUnknown {
     fn check_struct(
         &self,
         st_decl: &[StructDecl],
