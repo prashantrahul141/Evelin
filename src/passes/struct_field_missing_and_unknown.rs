@@ -4,7 +4,7 @@ use anyhow::anyhow;
 
 use crate::ast::{FnDecl, Stmt, StructDecl, StructInitStmt};
 
-use super::{EvePass, PassResult};
+use super::{EvePass, PassResult, PassResultGeneric};
 
 pub struct StructFieldMissingAndUnknown {}
 
@@ -26,7 +26,7 @@ impl StructFieldMissingAndUnknown {
         &self,
         st_decl: &[StructDecl],
         st_init: &StructInitStmt,
-    ) -> anyhow::Result<(), Vec<anyhow::Error>> {
+    ) -> PassResultGeneric<()> {
         let mut err = vec![];
         if let Some(decl) = st_decl.iter().find(|x| x.name == st_init.struct_name) {
             // Make sets from fields list
