@@ -11,10 +11,12 @@ struct SysInfo {
 
 // basically a constructor for SysInfo
 // Can panic
-fn uname() -> Result<SysInfo, Box<dyn Error>> {
+fn uname() -> Result<SysInfo, String> {
     let mut buf = unsafe { std::mem::zeroed() };
     let success = unsafe { libc::uname(&mut buf) };
-    if success != 0 {}
+    if success != 0 {
+        return Err("Failed to get uname".to_string());
+    }
     let sysname = unsafe { CStr::from_ptr(buf.sysname.as_ptr()) }
         .to_string_lossy()
         .into_owned();
@@ -28,9 +30,9 @@ fn uname() -> Result<SysInfo, Box<dyn Error>> {
 // returns qbe's config.h content depending on build machine
 fn get_qbe_config(sysinfo: SysInfo) -> String {
     // apple
-    if sysinfo.sysname.find("Darwin").is_some() {
+    if sysinfo.sysname.contains("Darwin") {
         // apple-arm64
-        if sysinfo.machine.find("arm64").is_some() {
+        if sysinfo.machine.contains("arm64") {
             "#define Deftgt T_arm64_apple".into()
         }
         // apple-amd64
@@ -41,9 +43,9 @@ fn get_qbe_config(sysinfo: SysInfo) -> String {
     // all other devices
     else {
         // arm64
-        if sysinfo.machine.find("aarch64").is_some() || sysinfo.machine.find("aarch64").is_some() {
+        if sysinfo.machine.contains("aarch64") || sysinfo.machine.contains("aarch64") {
             "#define Deftgt T_arm64".into()
-        } else if sysinfo.machine.find("riscv64").is_some() {
+        } else if sysinfo.machine.contains("riscv64") {
             "#define Deftgt T_rv64".into()
         } else {
             "#define Deftgt T_amd64_sysv".into()

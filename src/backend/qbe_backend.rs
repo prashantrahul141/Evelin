@@ -13,13 +13,8 @@ unsafe extern "C" {
 }
 
 /// Public qbe backend struct.
+#[derive(Default)]
 pub struct QbeBackend;
-
-impl Default for QbeBackend {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 impl Backend for QbeBackend {
     fn generate(&self, ir: String) -> Result<String, anyhow::Error> {
