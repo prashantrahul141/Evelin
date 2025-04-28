@@ -27,9 +27,7 @@
             rust-analyzer
             rustPackages.clippy
             binutils
-            gnumake
-            wget
-            gnutar
+            git
           ];
         };
       });
