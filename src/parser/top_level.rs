@@ -20,7 +20,8 @@ impl Parser<'_> {
             let field_type = if self.current().is_a_basic_type() {
                 DType::Primitive(self.advance().clone())
             } else {
-                DType::Derived(self.advance().lexeme.clone())
+                let d = self.consume(TokenType::Identifier, "Expected parameter type")?;
+                DType::Derived(d.lexeme.clone())
             };
 
             parameter = Some(FnStDeclField {
