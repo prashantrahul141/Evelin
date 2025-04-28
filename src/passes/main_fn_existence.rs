@@ -8,7 +8,7 @@ pub struct MainFnExistence {}
 
 impl EvePass for MainFnExistence {
     fn run_pass(&self, fn_decls: Vec<FnDecl>, st_decl: Vec<StructDecl>) -> PassResult {
-        if fn_decls.iter().find(|fns| fns.name == "main").is_some() {
+        if fn_decls.iter().any(|fns| fns.name == "main") {
             return Ok((fn_decls, st_decl));
         }
 
