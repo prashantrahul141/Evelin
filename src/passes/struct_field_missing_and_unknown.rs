@@ -6,6 +6,7 @@ use crate::ast::{FnDecl, Stmt, StructDecl, StructInitStmt};
 
 use super::{EvePass, PassResult, PassResultGeneric};
 
+/// This pass checks for missing and unknown fields in struct initilisation.
 pub struct StructFieldMissingAndUnknown {}
 
 impl EvePass for StructFieldMissingAndUnknown {

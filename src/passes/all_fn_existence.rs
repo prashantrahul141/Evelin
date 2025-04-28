@@ -4,6 +4,7 @@ use crate::ast::{CallExpr, Expr, FnDecl, Stmt, StructDecl};
 
 use super::{EvePass, PassResult, PassResultGeneric};
 
+/// This pass checks for existence of all the non extern called function.
 pub struct AllFnExistence {}
 
 impl EvePass for AllFnExistence {

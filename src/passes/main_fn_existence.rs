@@ -4,6 +4,7 @@ use crate::ast::{FnDecl, StructDecl};
 
 use super::{EvePass, PassResult};
 
+/// This checks for the existence of main function.
 pub struct MainFnExistence {}
 
 impl EvePass for MainFnExistence {

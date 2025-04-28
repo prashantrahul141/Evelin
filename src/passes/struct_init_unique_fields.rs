@@ -4,6 +4,7 @@ use crate::ast::{FnDecl, Stmt, StructDecl, StructInitStmt};
 
 use super::EvePass;
 
+/// This passes checks that all fields specified in struct initialization are unique.
 pub struct StructInitUniqueField {}
 
 impl EvePass for StructInitUniqueField {

@@ -5,6 +5,8 @@ use crate::{
 
 use super::{EvePass, PassResult};
 
+/// Removes code which is sure to be never be executed.
+/// This pass modifies the ast.
 pub struct DeadCodeElimination {}
 
 impl EvePass for DeadCodeElimination {
