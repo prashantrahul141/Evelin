@@ -14,7 +14,7 @@ use backend::qbe_backend::QbeBackend;
 use colored::Colorize;
 use emitter::Emitter;
 use emitter::qbe::QBEEmitter;
-use evelin::utils::{MessageType, report_message};
+use evelin::utils::{ErrorType, MessageType, report_message};
 use log::{debug, info};
 use parser::Parser;
 use std::fs;
@@ -54,7 +54,7 @@ pub fn init() -> anyhow::Result<()> {
         Ok((fn_, st)) => (fn_, st),
         Err(errs) => {
             for e in &errs {
-                report_message(e.to_string(), MessageType::Error);
+                report_message(e.to_string(), MessageType::Error(ErrorType::None));
             }
             bail!("Failed to compile due to {} error(s)", &errs.len());
         }
@@ -104,7 +104,7 @@ fn main() {
     match init() {
         Ok(()) => info!("Execution finished successfully."),
         Err(err) => {
-            eprintln!("{} {:#}", "Error:".red(), err);
+            report_message(format!("{:#}", err), MessageType::Error(ErrorType::None));
         }
     }
 }

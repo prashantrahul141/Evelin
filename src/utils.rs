@@ -1,4 +1,7 @@
+use std::fmt::Display;
+
 use colored::Colorize;
+use log::{error, warn};
 
 /// Wrapper around error! and panic!, so that i dont have to call them individually.
 #[macro_export]
@@ -61,10 +64,37 @@ pub fn is_alphanumeric(target_char: char) -> bool {
     is_alpha(target_char) || is_numeric(target_char)
 }
 
-#[allow(dead_code)]
+pub enum WarningType {
+    None,
+}
+
+pub enum ErrorType {
+    None,
+    TypeError,
+    ParsingError,
+}
+
 pub enum MessageType {
-    Warning,
-    Error,
+    Warning(WarningType),
+    Error(ErrorType),
+}
+
+impl Display for MessageType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let v = match self {
+            MessageType::Warning(w) => match w {
+                WarningType::None => "Warning",
+            }
+            .yellow(),
+            MessageType::Error(e) => match e {
+                ErrorType::None => "Error",
+                ErrorType::TypeError => "Type Error",
+                ErrorType::ParsingError => "Parsing Error",
+            }
+            .red(),
+        };
+        write!(f, "{}", v)
+    }
 }
 
 /// Reports messages to user.
@@ -72,9 +102,11 @@ pub enum MessageType {
 /// * `msg` - Message
 /// * `ty` - Message Type
 pub fn report_message<M: Into<String>>(msg: M, ty: MessageType) {
-    match ty {
-        MessageType::Warning => eprint!("{}", "Warning: ".yellow()),
-        MessageType::Error => eprint!("{}", "Error: ".red()),
-    };
-    eprintln!("{}", msg.into());
+    let msg = msg.into();
+    if matches!(ty, MessageType::Error(_)) {
+        error!("{}: {}", ty, &msg);
+    } else {
+        warn!("{}: {}", ty, &msg);
+    }
+    eprintln!("{}: {}", ty, msg);
 }

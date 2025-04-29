@@ -1,12 +1,12 @@
 use super::Parser;
 
 use anyhow::bail;
-use log::{error, trace, warn};
+use log::{error, trace};
 
 use crate::{
     ast::{Token, TokenType},
     die,
-    utils::{MessageType, report_message},
+    utils::{ErrorType, MessageType, report_message},
 };
 
 impl Parser<'_> {
@@ -89,10 +89,9 @@ impl Parser<'_> {
     /// * `sync` - whether to synchronize or not
     pub fn report_parser_error(&mut self, err: anyhow::Error, sync: bool) {
         self.errors_count += 1;
-        warn!("Parsing error: at line {}: {:#}.", self.current().line, err);
         report_message(
             format!("at line {}: {:#}.", self.current().line, err),
-            MessageType::Error,
+            MessageType::Error(ErrorType::ParsingError),
         );
 
         if sync {

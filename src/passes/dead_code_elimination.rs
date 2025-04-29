@@ -1,6 +1,6 @@
 use crate::{
     ast::{FnDecl, Stmt, StructDecl},
-    utils::{MessageType, report_message},
+    utils::{MessageType, WarningType, report_message},
 };
 
 use super::{EvePass, PassResult};
@@ -29,7 +29,7 @@ impl DeadCodeElimination {
                     "Code after return statement in function '{}' will be ignored",
                     &fns.name
                 ),
-                MessageType::Warning,
+                MessageType::Warning(WarningType::None),
             );
             fns.body.truncate(i);
         }
