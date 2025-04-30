@@ -29,6 +29,30 @@ pub struct BinExpr {
     pub right: Expr,
 }
 
+impl std::fmt::Display for BinOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                BinOp::Add => "+",
+                BinOp::Sub => "-",
+                BinOp::Mul => "*",
+                BinOp::Div => "/",
+                BinOp::Mod => "%",
+                BinOp::Less => "<",
+                BinOp::LessEqual => "<=",
+                BinOp::Greater => ">",
+                BinOp::GreaterEqual => ">=",
+                BinOp::EqualEqual => "==",
+                BinOp::BangEqual => "!=",
+                BinOp::And => "&&",
+                BinOp::Or => "||",
+            }
+        )
+    }
+}
+
 impl From<&TokenType> for BinOp {
     fn from(value: &TokenType) -> Self {
         match value {
@@ -68,6 +92,13 @@ impl From<&TokenType> for UnOp {
             }
         }
     }
+}
+
+#[derive(Debug, Clone)]
+pub enum EveTypes {
+    Int,
+    Float,
+    String,
 }
 
 #[derive(Debug, Clone)]
