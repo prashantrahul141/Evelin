@@ -2,19 +2,24 @@ use anyhow::bail;
 
 use crate::ast::{FnDecl, Stmt, StructDecl, StructInitStmt};
 
-use super::EvePass;
+use super::{EvePass, EvePassImmutable};
 
 /// This passes checks that all fields specified in struct initialization are unique.
-pub struct StructInitUniqueField {}
+pub struct StructInitUniqueField {
+    fn_decls: Vec<FnDecl>,
+    st_decls: Vec<StructDecl>,
+}
 
 impl EvePass for StructInitUniqueField {
-    fn run_pass(
-        &self,
-        fn_decls: Vec<FnDecl>,
-        _st_decl: Vec<StructDecl>,
-    ) -> anyhow::Result<(Vec<FnDecl>, Vec<StructDecl>), Vec<anyhow::Error>> {
+    fn new(fn_decls: Vec<FnDecl>, st_decls: Vec<StructDecl>) -> Self {
+        Self { fn_decls, st_decls }
+    }
+}
+
+impl EvePassImmutable for StructInitUniqueField {
+    fn run_pass(&self) -> anyhow::Result<(Vec<FnDecl>, Vec<StructDecl>), Vec<anyhow::Error>> {
         let mut err = vec![];
-        for fns in &fn_decls {
+        for fns in &self.fn_decls {
             for stmt in &fns.body {
                 if let Stmt::StructInit(st) = stmt {
                     if let Err(e) = self.check_struct(st) {
@@ -28,7 +33,7 @@ impl EvePass for StructInitUniqueField {
             return Err(err);
         }
 
-        Ok((fn_decls, _st_decl))
+        Ok((self.fn_decls.to_owned(), self.st_decls.to_owned()))
     }
 }
 
