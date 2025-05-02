@@ -1,8 +1,8 @@
-use anyhow::anyhow;
+use anyhow::bail;
 
 use crate::ast::{CallExpr, Expr, FnDecl, Stmt, StructDecl};
 
-use super::{EvePass, EvePassImmutable, PassResult, PassResultGeneric};
+use super::{EvePass, EvePassImmutable, PassResult};
 
 /// This pass checks for existence of all the non extern called function.
 pub struct AllFnExistence {
@@ -18,12 +18,19 @@ impl EvePass for AllFnExistence {
 
 impl EvePassImmutable for AllFnExistence {
     fn run_pass(&self) -> PassResult {
+        let mut errs = vec![];
         for fns in &self.fn_decls {
             for stmt in &fns.body {
                 if let Stmt::Expression(Expr::Call(call)) = stmt {
-                    self.check_fn_existence(call)?;
+                    if let Err(err) = self.check_fn_existence(call) {
+                        errs.push(err);
+                    }
                 }
             }
+        }
+
+        if !errs.is_empty() {
+            return Err(errs);
         }
 
         Ok((self.fn_decls.to_owned(), self.st_decls.to_owned()))
@@ -31,18 +38,16 @@ impl EvePassImmutable for AllFnExistence {
 }
 
 impl AllFnExistence {
-    fn check_fn_existence(&self, call: &CallExpr) -> PassResultGeneric<()> {
-        let mut err = vec![];
+    fn check_fn_existence(&self, call: &CallExpr) -> Result<(), anyhow::Error> {
         match &call.callee {
             Expr::Variable(var) => {
                 if self.fn_decls.iter().any(|decl| decl.name == var.name) {
                     return Ok(());
                 } else {
-                    err.push(anyhow!("Call to undefined function '{}'", var.name));
+                    bail!("Call to undefined function '{}'", var.name);
                 }
             }
             _ => unreachable!(),
         };
-        Err(err)
     }
 }
