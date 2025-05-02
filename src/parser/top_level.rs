@@ -1,11 +1,15 @@
 use anyhow::bail;
 
-use crate::ast::{DType, FnDecl, FnStDeclField, Stmt, StructDecl, TokenType};
+use crate::ast::{DType, FnDecl, FnStDeclField, Metadata, Stmt, StructDecl, TokenType};
 
 use super::{Parser, ParserResult};
 
 impl Parser<'_> {
     pub(super) fn fn_decl(&mut self) -> ParserResult<FnDecl> {
+        let metadata = Metadata {
+            line: self.current().line,
+        };
+
         let name = self
             .consume(TokenType::Identifier, "Expected function name")?
             .lexeme
@@ -27,6 +31,7 @@ impl Parser<'_> {
             parameter = Some(FnStDeclField {
                 field_name,
                 field_type,
+                metadata,
             });
         }
 
@@ -61,10 +66,14 @@ impl Parser<'_> {
             parameter,
             body,
             return_type,
+            metadata,
         })
     }
 
     pub(super) fn struct_decl(&mut self) -> ParserResult<StructDecl> {
+        let metadata = Metadata {
+            line: self.current().line,
+        };
         let name = self
             .consume(TokenType::Identifier, "Expected struct name")?
             .lexeme
@@ -90,6 +99,7 @@ impl Parser<'_> {
             fields.push(FnStDeclField {
                 field_name,
                 field_type,
+                metadata,
             });
 
             if !self.match_current(&TokenType::RightBrace) {
@@ -97,6 +107,10 @@ impl Parser<'_> {
             }
         }
 
-        Ok(StructDecl { name, fields })
+        Ok(StructDecl {
+            name,
+            fields,
+            metadata,
+        })
     }
 }

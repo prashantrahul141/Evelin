@@ -5,7 +5,7 @@ use log::trace;
 
 use crate::ast::{
     BinExpr, BinOp, CallExpr, Expr, FieldAccessExpr, GroupExpr, LiteralExpr, LiteralValue,
-    NativeCallExpr, TokenType, UnOp, UnaryExpr, VariableExpr,
+    Metadata, NativeCallExpr, TokenType, UnOp, UnaryExpr, VariableExpr,
 };
 
 impl Parser<'_> {
@@ -18,12 +18,16 @@ impl Parser<'_> {
     fn or(&mut self) -> ParserResult<Expr> {
         let mut left = self.and()?;
         while self.match_token(&[TokenType::Or]) {
+            let metadata = Metadata {
+                line: self.previous().line,
+            };
             let op = BinOp::from(&self.previous().ttype);
             let right = self.and()?;
             let bin = BinExpr {
                 left: left.clone(),
                 op,
                 right,
+                metadata,
             };
             left = Expr::Binary(Box::new(bin));
         }
@@ -35,12 +39,16 @@ impl Parser<'_> {
     fn and(&mut self) -> ParserResult<Expr> {
         let mut left = self.equality()?;
         while self.match_token(&[TokenType::And]) {
+            let metadata = Metadata {
+                line: self.previous().line,
+            };
             let op = BinOp::from(&self.previous().ttype);
             let right = self.equality()?;
             let bin = BinExpr {
                 left: left.clone(),
                 op,
                 right,
+                metadata,
             };
             left = Expr::Binary(Box::new(bin));
         }
@@ -52,12 +60,16 @@ impl Parser<'_> {
     fn equality(&mut self) -> ParserResult<Expr> {
         let mut left = self.comparsion()?;
         while self.match_token(&[TokenType::EqualEqual, TokenType::BangEqual]) {
+            let metadata = Metadata {
+                line: self.previous().line,
+            };
             let op = BinOp::from(&self.previous().ttype);
             let right = self.comparsion()?;
             let bin = BinExpr {
                 left: left.clone(),
                 op,
                 right,
+                metadata,
             };
             left = Expr::Binary(Box::new(bin));
         }
@@ -75,11 +87,15 @@ impl Parser<'_> {
             TokenType::LessEqual,
         ]) {
             let op = BinOp::from(&self.previous().ttype);
+            let metadata = Metadata {
+                line: self.previous().line,
+            };
             let right = self.term()?;
             let bin = BinExpr {
                 left: left.clone(),
                 op,
                 right,
+                metadata,
             };
             left = Expr::Binary(Box::new(bin));
         }
@@ -92,12 +108,16 @@ impl Parser<'_> {
         let mut left = self.factor()?;
 
         while self.match_token(&[TokenType::Minus, TokenType::Plus]) {
+            let metadata = Metadata {
+                line: self.previous().line,
+            };
             let op = BinOp::from(&self.previous().ttype);
             let right = self.factor()?;
             let bin = BinExpr {
                 left: left.clone(),
                 op,
                 right,
+                metadata,
             };
             left = Expr::Binary(Box::new(bin));
         }
@@ -110,12 +130,16 @@ impl Parser<'_> {
         let mut left = self.unary()?;
 
         while self.match_token(&[TokenType::Slash, TokenType::Star, TokenType::Mod]) {
+            let metadata = Metadata {
+                line: self.previous().line,
+            };
             let op = BinOp::from(&self.previous().ttype);
             let right = self.unary()?;
             let bin = BinExpr {
                 left: left.clone(),
                 op,
                 right,
+                metadata,
             };
             left = Expr::Binary(Box::new(bin));
         }
@@ -129,7 +153,12 @@ impl Parser<'_> {
         if self.match_token(&[TokenType::Bang, TokenType::Minus]) {
             let op = UnOp::from(&self.previous().ttype);
             if let Ok(operand) = self.unary() {
-                let un = UnaryExpr { op, operand };
+                let metadata = Metadata { line: operand.line };
+                let un = UnaryExpr {
+                    op,
+                    operand,
+                    metadata,
+                };
                 return Ok(Expr::Unary(Box::new(un)));
             }
         }
@@ -156,9 +185,11 @@ impl Parser<'_> {
 
     /// Parses trailing native function calls and function arguments.
     fn native_finish_call(&mut self, callee: Expr) -> ParserResult<Expr> {
+        let metadata = Metadata { line: callee.line };
         let mut local_call = Box::new(NativeCallExpr {
             callee,
             args: vec![],
+            metadata,
         });
 
         if !self.match_current(&TokenType::RightParen) {
@@ -203,7 +234,12 @@ impl Parser<'_> {
 
     /// Parses trailing function calls and function argument.
     fn finish_call(&mut self, callee: Expr) -> ParserResult<Expr> {
-        let mut local_call = Box::new(CallExpr { callee, arg: None });
+        let metadata = Metadata { line: callee.line };
+        let mut local_call = Box::new(CallExpr {
+            callee,
+            arg: None,
+            metadata,
+        });
 
         if !self.match_current(&TokenType::RightParen) {
             trace!("parsing function argument");
@@ -221,18 +257,24 @@ impl Parser<'_> {
     /// parses trailing field access.
     fn finish_access(&mut self, callee: Expr) -> ParserResult<Expr> {
         let field = self.consume(TokenType::Identifier, "Expected field name")?;
+        let metadata = Metadata { line: callee.line };
         Ok(Expr::FieldAccess(Box::new(FieldAccessExpr {
             parent: callee,
             field: field.lexeme.clone(),
+            metadata,
         })))
     }
 
     /// Parses literal expressions.
     fn primary(&mut self) -> ParserResult<Expr> {
         trace!("Parser::primary current_token = {}", self.current());
+        let metadata = Metadata {
+            line: self.current().line,
+        };
         if self.match_token(&[TokenType::False]) {
             let literal = Expr::Literal(LiteralExpr {
                 value: LiteralValue::Boolean(false),
+                metadata,
             });
 
             return Ok(literal);
@@ -241,6 +283,7 @@ impl Parser<'_> {
         if self.match_token(&[TokenType::True]) {
             let literal = Expr::Literal(LiteralExpr {
                 value: LiteralValue::Boolean(true),
+                metadata,
             });
 
             return Ok(literal);
@@ -254,6 +297,7 @@ impl Parser<'_> {
         ]) {
             let literal = Expr::Literal(LiteralExpr {
                 value: self.previous().literal.clone(),
+                metadata,
             });
 
             return Ok(literal);
@@ -266,7 +310,10 @@ impl Parser<'_> {
                     TokenType::RightParen,
                     format!("Expected ')' got {} instead", self.current().ttype).as_str(),
                 )?;
-                let literal = Expr::Grouping(Box::new(GroupExpr { value: expr }));
+                let literal = Expr::Grouping(Box::new(GroupExpr {
+                    value: expr,
+                    metadata,
+                }));
                 return Ok(literal);
             }
         }
@@ -275,6 +322,7 @@ impl Parser<'_> {
         if self.match_token(&[TokenType::Identifier]) {
             let var = Expr::Variable(Box::new(VariableExpr {
                 name: self.previous().lexeme.clone(),
+                metadata,
             }));
             return Ok(var);
         }

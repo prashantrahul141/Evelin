@@ -1,6 +1,6 @@
 use evelin::ast::{
-    BinOp, DType, Expr, FnDecl, FnStDeclField, LiteralExpr, LiteralValue, Stmt, StructDecl, Token,
-    TokenType,
+    BinOp, DType, Expr, FnDecl, FnStDeclField, LiteralExpr, LiteralValue, Metadata, Stmt,
+    StructDecl, Token, TokenType,
 };
 use evelin::lexer::Lexer;
 use evelin::parser::Parser;
@@ -55,6 +55,7 @@ fn parses_struct_with_fields() {
                     ttype: TokenType::TypeInt,
                     literal: LiteralValue::Null
                 }),
+                metadata: Metadata { line: 1 }
             },
             FnStDeclField {
                 field_name: "y".to_string(),
@@ -64,6 +65,7 @@ fn parses_struct_with_fields() {
                     ttype: TokenType::TypeFloat,
                     literal: LiteralValue::Null
                 }),
+                metadata: Metadata { line: 1 }
             },
         ]
     );
@@ -100,6 +102,7 @@ fn parses_struct_init_stmt() {
             first.field_expr,
             Expr::Literal(LiteralExpr {
                 value: LiteralValue::NumberInt(2),
+                metadata: Metadata { line: 1 }
             }),
         );
 
@@ -109,6 +112,7 @@ fn parses_struct_init_stmt() {
             second.field_expr,
             Expr::Literal(LiteralExpr {
                 value: LiteralValue::NumberInt(3),
+                metadata: Metadata { line: 1 }
             }),
         );
     } else {
@@ -144,7 +148,8 @@ fn parses_function_with_param() {
                 line: 1,
                 ttype: TokenType::TypeInt,
                 literal: LiteralValue::Null
-            })
+            }),
+            metadata: Metadata { line: 1 }
         })
     );
     assert_eq!(f.return_type.ttype, TokenType::TypeInt);

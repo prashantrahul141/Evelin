@@ -3,7 +3,7 @@ use crate::{
     utils::{MessageType, WarningType, report_message},
 };
 
-use super::{EvePass, EvePassImmutable, EvePassMutable, PassResult};
+use super::{EvePass, EvePassMutable, PassResult};
 
 /// Removes code which is sure to be never be executed.
 /// This pass modifies the ast.

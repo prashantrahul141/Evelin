@@ -1,7 +1,8 @@
 use log::trace;
 
 use crate::ast::{
-    BlockStmt, IfStmt, LetStmt, PrintStmt, ReturnStmt, StInitField, Stmt, StructInitStmt, TokenType,
+    BlockStmt, IfStmt, LetStmt, Metadata, PrintStmt, ReturnStmt, StInitField, Stmt, StructInitStmt,
+    TokenType,
 };
 
 use super::{Parser, ParserResult};
@@ -25,6 +26,9 @@ impl Parser<'_> {
 
     pub(super) fn block(&mut self) -> ParserResult<Stmt> {
         trace!("parsing block stmts.");
+        let metadata = Metadata {
+            line: self.current().line,
+        };
         let mut block_stmts = vec![];
         while !self.match_token(&[TokenType::RightBrace]) && !self.is_at_end() {
             match self.stmt() {
@@ -33,11 +37,18 @@ impl Parser<'_> {
             }
         }
 
-        Ok(Stmt::Block(BlockStmt { stmts: block_stmts }))
+        Ok(Stmt::Block(BlockStmt {
+            stmts: block_stmts,
+            metadata,
+        }))
     }
 
     fn let_decl(&mut self) -> ParserResult<Stmt> {
         trace!("Parsing let declaration statement");
+        let metadata = Metadata {
+            line: self.current().line,
+        };
+
         let name = self
             .consume(
                 TokenType::Identifier,
@@ -69,6 +80,7 @@ impl Parser<'_> {
                 arguments.push(StInitField {
                     field_name,
                     field_expr: arg,
+                    metadata,
                 });
                 if !self.match_current(&TokenType::RightBrace) {
                     self.consume(
@@ -86,16 +98,26 @@ impl Parser<'_> {
                 name,
                 struct_name,
                 arguments,
+                metadata,
             }))
         } else {
             let initialiser = self.expr()?;
             self.consume(TokenType::Semicolon, "Expected ';' after let statement")?;
-            Ok(Stmt::Let(LetStmt { name, initialiser }))
+            Ok(Stmt::Let(LetStmt {
+                name,
+                initialiser,
+                metadata,
+            }))
         }
     }
 
     fn if_stmt(&mut self) -> ParserResult<Stmt> {
         trace!("Parsing if stmt");
+
+        let metadata = Metadata {
+            line: self.current().line,
+        };
+
         self.consume(TokenType::LeftParen, "Expected '(' after 'if'")?;
         let condition = self.expr()?;
         self.consume(TokenType::RightParen, "Expected ')' after if expression")?;
@@ -112,19 +134,30 @@ impl Parser<'_> {
             condition,
             if_branch,
             else_branch,
+            metadata,
         })))
     }
 
     fn print_stmt(&mut self) -> ParserResult<Stmt> {
         trace!("Parsing print stmt");
+        let metadata = Metadata {
+            line: self.current().line,
+        };
+
         let value = self.expr()?;
         self.consume(TokenType::Semicolon, "Expected ';' after print statement")?;
-        Ok(Stmt::Print(PrintStmt { value }))
+        Ok(Stmt::Print(PrintStmt { value, metadata }))
     }
 
     fn return_stmt(&mut self) -> ParserResult<Stmt> {
         trace!("Parsing return stmt");
-        let mut stmt = ReturnStmt { value: None };
+        let metadata = Metadata {
+            line: self.current().line,
+        };
+        let mut stmt = ReturnStmt {
+            value: None,
+            metadata,
+        };
         if !self.match_current(&TokenType::Semicolon) {
             stmt.value = Some(self.expr()?);
         }
