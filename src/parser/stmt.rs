@@ -28,6 +28,7 @@ impl Parser<'_> {
         trace!("parsing block stmts.");
         let metadata = Metadata {
             line: self.current().line,
+            node_type: None,
         };
         let mut block_stmts = vec![];
         while !self.match_token(&[TokenType::RightBrace]) && !self.is_at_end() {
@@ -47,6 +48,7 @@ impl Parser<'_> {
         trace!("Parsing let declaration statement");
         let metadata = Metadata {
             line: self.current().line,
+            node_type: None,
         };
 
         let name = self
@@ -116,6 +118,7 @@ impl Parser<'_> {
 
         let metadata = Metadata {
             line: self.current().line,
+            node_type: None,
         };
 
         self.consume(TokenType::LeftParen, "Expected '(' after 'if'")?;
@@ -142,6 +145,7 @@ impl Parser<'_> {
         trace!("Parsing print stmt");
         let metadata = Metadata {
             line: self.current().line,
+            node_type: None,
         };
 
         let value = self.expr()?;
@@ -153,6 +157,7 @@ impl Parser<'_> {
         trace!("Parsing return stmt");
         let metadata = Metadata {
             line: self.current().line,
+            node_type: None,
         };
         let mut stmt = ReturnStmt {
             value: None,

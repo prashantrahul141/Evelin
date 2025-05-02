@@ -20,6 +20,7 @@ impl Parser<'_> {
         while self.match_token(&[TokenType::Or]) {
             let metadata = Metadata {
                 line: self.previous().line,
+                node_type: None,
             };
             let op = BinOp::from(&self.previous().ttype);
             let right = self.and()?;
@@ -41,6 +42,7 @@ impl Parser<'_> {
         while self.match_token(&[TokenType::And]) {
             let metadata = Metadata {
                 line: self.previous().line,
+                node_type: None,
             };
             let op = BinOp::from(&self.previous().ttype);
             let right = self.equality()?;
@@ -62,6 +64,7 @@ impl Parser<'_> {
         while self.match_token(&[TokenType::EqualEqual, TokenType::BangEqual]) {
             let metadata = Metadata {
                 line: self.previous().line,
+                node_type: None,
             };
             let op = BinOp::from(&self.previous().ttype);
             let right = self.comparsion()?;
@@ -89,6 +92,7 @@ impl Parser<'_> {
             let op = BinOp::from(&self.previous().ttype);
             let metadata = Metadata {
                 line: self.previous().line,
+                node_type: None,
             };
             let right = self.term()?;
             let bin = BinExpr {
@@ -110,6 +114,7 @@ impl Parser<'_> {
         while self.match_token(&[TokenType::Minus, TokenType::Plus]) {
             let metadata = Metadata {
                 line: self.previous().line,
+                node_type: None,
             };
             let op = BinOp::from(&self.previous().ttype);
             let right = self.factor()?;
@@ -132,6 +137,7 @@ impl Parser<'_> {
         while self.match_token(&[TokenType::Slash, TokenType::Star, TokenType::Mod]) {
             let metadata = Metadata {
                 line: self.previous().line,
+                node_type: None,
             };
             let op = BinOp::from(&self.previous().ttype);
             let right = self.unary()?;
@@ -153,7 +159,10 @@ impl Parser<'_> {
         if self.match_token(&[TokenType::Bang, TokenType::Minus]) {
             let op = UnOp::from(&self.previous().ttype);
             if let Ok(operand) = self.unary() {
-                let metadata = Metadata { line: operand.line };
+                let metadata = Metadata {
+                    line: operand.line,
+                    node_type: None,
+                };
                 let un = UnaryExpr {
                     op,
                     operand,
@@ -185,7 +194,10 @@ impl Parser<'_> {
 
     /// Parses trailing native function calls and function arguments.
     fn native_finish_call(&mut self, callee: Expr) -> ParserResult<Expr> {
-        let metadata = Metadata { line: callee.line };
+        let metadata = Metadata {
+            line: callee.line,
+            node_type: None,
+        };
         let mut local_call = Box::new(NativeCallExpr {
             callee,
             args: vec![],
@@ -234,7 +246,10 @@ impl Parser<'_> {
 
     /// Parses trailing function calls and function argument.
     fn finish_call(&mut self, callee: Expr) -> ParserResult<Expr> {
-        let metadata = Metadata { line: callee.line };
+        let metadata = Metadata {
+            line: callee.line,
+            node_type: None,
+        };
         let mut local_call = Box::new(CallExpr {
             callee,
             arg: None,
@@ -257,7 +272,10 @@ impl Parser<'_> {
     /// parses trailing field access.
     fn finish_access(&mut self, callee: Expr) -> ParserResult<Expr> {
         let field = self.consume(TokenType::Identifier, "Expected field name")?;
-        let metadata = Metadata { line: callee.line };
+        let metadata = Metadata {
+            line: callee.line,
+            node_type: None,
+        };
         Ok(Expr::FieldAccess(Box::new(FieldAccessExpr {
             parent: callee,
             field: field.lexeme.clone(),
@@ -270,6 +288,7 @@ impl Parser<'_> {
         trace!("Parser::primary current_token = {}", self.current());
         let metadata = Metadata {
             line: self.current().line,
+            node_type: None,
         };
         if self.match_token(&[TokenType::False]) {
             let literal = Expr::Literal(LiteralExpr {

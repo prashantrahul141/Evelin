@@ -8,6 +8,7 @@ impl Parser<'_> {
     pub(super) fn fn_decl(&mut self) -> ParserResult<FnDecl> {
         let metadata = Metadata {
             line: self.current().line,
+            node_type: None,
         };
 
         let name = self
@@ -73,6 +74,7 @@ impl Parser<'_> {
     pub(super) fn struct_decl(&mut self) -> ParserResult<StructDecl> {
         let metadata = Metadata {
             line: self.current().line,
+            node_type: None,
         };
         let name = self
             .consume(TokenType::Identifier, "Expected struct name")?

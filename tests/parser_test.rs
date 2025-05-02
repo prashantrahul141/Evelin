@@ -55,7 +55,10 @@ fn parses_struct_with_fields() {
                     ttype: TokenType::TypeInt,
                     literal: LiteralValue::Null
                 }),
-                metadata: Metadata { line: 1 }
+                metadata: Metadata {
+                    line: 1,
+                    node_type: None
+                }
             },
             FnStDeclField {
                 field_name: "y".to_string(),
@@ -65,7 +68,10 @@ fn parses_struct_with_fields() {
                     ttype: TokenType::TypeFloat,
                     literal: LiteralValue::Null
                 }),
-                metadata: Metadata { line: 1 }
+                metadata: Metadata {
+                    line: 1,
+                    node_type: None
+                }
             },
         ]
     );
@@ -102,7 +108,10 @@ fn parses_struct_init_stmt() {
             first.field_expr,
             Expr::Literal(LiteralExpr {
                 value: LiteralValue::NumberInt(2),
-                metadata: Metadata { line: 1 }
+                metadata: Metadata {
+                    line: 1,
+                    node_type: None
+                }
             }),
         );
 
@@ -112,7 +121,10 @@ fn parses_struct_init_stmt() {
             second.field_expr,
             Expr::Literal(LiteralExpr {
                 value: LiteralValue::NumberInt(3),
-                metadata: Metadata { line: 1 }
+                metadata: Metadata {
+                    line: 1,
+                    node_type: None
+                }
             }),
         );
     } else {
@@ -149,7 +161,10 @@ fn parses_function_with_param() {
                 ttype: TokenType::TypeInt,
                 literal: LiteralValue::Null
             }),
-            metadata: Metadata { line: 1 }
+            metadata: Metadata {
+                line: 1,
+                node_type: None
+            }
         })
     );
     assert_eq!(f.return_type.ttype, TokenType::TypeInt);

@@ -10,9 +10,10 @@ pub use token::{LiteralValue, Token, TokenType};
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Metadata {
     pub line: usize,
+    pub node_type: Option<EveTypes>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum EveTypes {
     Int,
     Float,
