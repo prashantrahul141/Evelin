@@ -1,9 +1,23 @@
+use std::ops::Deref;
+
 use log::error;
 mod token;
 
 use crate::die;
 
 pub use token::{LiteralValue, Token, TokenType};
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Metadata {
+    pub line: usize,
+}
+
+#[derive(Debug, Clone)]
+pub enum EveTypes {
+    Int,
+    Float,
+    String,
+}
 
 #[derive(Debug, Clone, Copy)]
 pub enum BinOp {
@@ -27,6 +41,7 @@ pub struct BinExpr {
     pub left: Expr,
     pub op: BinOp,
     pub right: Expr,
+    pub metadata: Metadata,
 }
 
 impl std::fmt::Display for BinOp {
@@ -95,49 +110,49 @@ impl From<&TokenType> for UnOp {
 }
 
 #[derive(Debug, Clone)]
-pub enum EveTypes {
-    Int,
-    Float,
-    String,
-}
-
-#[derive(Debug, Clone)]
 pub struct UnaryExpr {
     pub op: UnOp,
     pub operand: Expr,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
 pub struct LiteralExpr {
     pub value: LiteralValue,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
 pub struct GroupExpr {
     pub value: Expr,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
 pub struct CallExpr {
     pub callee: Expr,
     pub arg: Option<Expr>,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
 pub struct FieldAccessExpr {
     pub parent: Expr,
     pub field: String,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
 pub struct NativeCallExpr {
     pub callee: Expr,
     pub args: Vec<Expr>,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
 pub struct VariableExpr {
     pub name: String,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
@@ -152,21 +167,40 @@ pub enum Expr {
     Literal(LiteralExpr),
 }
 
+impl Deref for Expr {
+    type Target = Metadata;
+    fn deref(&self) -> &Self::Target {
+        match self {
+            Expr::Binary(bin) => &bin.metadata,
+            Expr::Call(call) => &call.metadata,
+            Expr::FieldAccess(fieldacc) => &fieldacc.metadata,
+            Expr::NativeCall(nativecall) => &nativecall.metadata,
+            Expr::Unary(unary) => &unary.metadata,
+            Expr::Grouping(group) => &group.metadata,
+            Expr::Variable(var) => &var.metadata,
+            Expr::Literal(lit) => &lit.metadata,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct BlockStmt {
     pub stmts: Vec<Stmt>,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
 pub struct LetStmt {
     pub name: String,
     pub initialiser: Expr,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
 pub struct StInitField {
     pub field_name: String,
     pub field_expr: Expr,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
@@ -174,6 +208,7 @@ pub struct StructInitStmt {
     pub name: String,
     pub struct_name: String,
     pub arguments: Vec<StInitField>,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
@@ -181,16 +216,19 @@ pub struct IfStmt {
     pub condition: Expr,
     pub if_branch: Stmt,
     pub else_branch: Option<Stmt>,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
 pub struct PrintStmt {
     pub value: Expr,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
 pub struct ReturnStmt {
     pub value: Option<Expr>,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
@@ -214,12 +252,14 @@ pub enum DType {
 pub struct FnStDeclField {
     pub field_name: String,
     pub field_type: DType,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
 pub struct StructDecl {
     pub name: String,
     pub fields: Vec<FnStDeclField>,
+    pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
@@ -228,4 +268,5 @@ pub struct FnDecl {
     pub parameter: Option<FnStDeclField>,
     pub return_type: Token,
     pub body: Vec<Stmt>,
+    pub metadata: Metadata,
 }
