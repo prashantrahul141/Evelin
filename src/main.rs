@@ -6,6 +6,7 @@ mod emitter;
 mod lexer;
 mod parser;
 mod passes;
+mod type_sys;
 mod utils;
 
 use anyhow::{Context, bail};
@@ -59,6 +60,15 @@ pub fn init() -> anyhow::Result<()> {
             bail!("Failed to compile due to {} error(s)", &errs.len());
         }
     };
+
+    let type_sys = type_sys::TypeSystem::new(&fn_decls, &struct_decls);
+    type_sys.check();
+    if type_sys.errors_count != 0 {
+        bail!(
+            "Failed to compile due to {} type error(s)",
+            type_sys.errors_count
+        );
+    }
 
     let mut qbe_generator = QBEEmitter::from((&fn_decls, &struct_decls));
     let ir = qbe_generator.emit_ir()?;
