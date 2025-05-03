@@ -7,20 +7,20 @@ use crate::die;
 
 pub use token::{LiteralValue, Token, TokenType};
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Metadata {
     pub line: usize,
     pub node_type: Option<EveTypes>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EveTypes {
     Int,
     Float,
     String,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BinOp {
     Add,          // +
     Sub,          // -
@@ -37,7 +37,7 @@ pub enum BinOp {
     Or,           // or
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BinExpr {
     pub left: Expr,
     pub op: BinOp,
@@ -92,17 +92,30 @@ impl From<&TokenType> for BinOp {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum UnOp {
-    OpSub, // -
-    OpNeg, // !
+    OpSub,  // -
+    OpFact, // !
+}
+
+impl std::fmt::Display for UnOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                UnOp::OpSub => "-",
+                UnOp::OpFact => "!",
+            },
+        )
+    }
 }
 
 impl From<&TokenType> for UnOp {
     fn from(value: &TokenType) -> Self {
         match value {
             TokenType::Minus => UnOp::OpSub,
-            TokenType::Bang => UnOp::OpNeg,
+            TokenType::Bang => UnOp::OpFact,
             _ => {
                 die!("UnOp::from failed recieved: {}", value);
             }
@@ -110,53 +123,53 @@ impl From<&TokenType> for UnOp {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UnaryExpr {
     pub op: UnOp,
     pub operand: Expr,
     pub metadata: Metadata,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct LiteralExpr {
     pub value: LiteralValue,
     pub metadata: Metadata,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GroupExpr {
     pub value: Expr,
     pub metadata: Metadata,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CallExpr {
     pub callee: Expr,
     pub arg: Option<Expr>,
     pub metadata: Metadata,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FieldAccessExpr {
     pub parent: Expr,
     pub field: String,
     pub metadata: Metadata,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct NativeCallExpr {
     pub callee: Expr,
     pub args: Vec<Expr>,
     pub metadata: Metadata,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct VariableExpr {
     pub name: String,
     pub metadata: Metadata,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
     Binary(Box<BinExpr>),
     Call(Box<CallExpr>),
@@ -166,6 +179,33 @@ pub enum Expr {
     Grouping(Box<GroupExpr>),
     Variable(Box<VariableExpr>),
     Literal(LiteralExpr),
+}
+
+impl std::fmt::Display for Expr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Expr::Binary(bin) => write!(f, "{} {} {}", bin.left, bin.op, bin.right),
+            Expr::Call(call) => match &call.arg {
+                Some(arg) => write!(f, "{}({})", call.callee, arg),
+                None => write!(f, "{}()", call.callee),
+            },
+            Expr::FieldAccess(fac) => write!(f, "{}.{}", fac.parent, fac.field),
+            Expr::NativeCall(call) => write!(
+                f,
+                "{}({})",
+                call.callee,
+                call.args
+                    .iter()
+                    .map(|x| x.to_string())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ),
+            Expr::Unary(un) => write!(f, "{}{}", un.op, un.operand),
+            Expr::Grouping(gr) => write!(f, "({})", gr.value),
+            Expr::Variable(var) => write!(f, "{}", var.name),
+            Expr::Literal(lit) => write!(f, "{}", lit.value),
+        }
+    }
 }
 
 impl Deref for Expr {
