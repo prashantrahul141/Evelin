@@ -1,6 +1,6 @@
 use anyhow::bail;
 
-use crate::ast::{DType, FnDecl, FnStDeclField, Metadata, Stmt, StructDecl, TokenType};
+use crate::ast::{DType, EveTypes, FnDecl, FnStDeclField, Metadata, Stmt, StructDecl, TokenType};
 
 use super::{Parser, ParserResult};
 
@@ -23,7 +23,7 @@ impl Parser<'_> {
             self.consume(TokenType::Colon, "Expected ':' after function parameter")?;
 
             let field_type = if self.current().is_a_basic_type() {
-                DType::Primitive(self.advance().clone())
+                DType::Primitive(EveTypes::try_from(self.advance())?)
             } else {
                 let d = self.consume(TokenType::Identifier, "Expected parameter type")?;
                 DType::Derived(d.lexeme.clone())
@@ -32,7 +32,7 @@ impl Parser<'_> {
             parameter = Some(FnStDeclField {
                 field_name,
                 field_type,
-                metadata,
+                metadata: metadata.clone(),
             });
         }
 
@@ -50,7 +50,12 @@ impl Parser<'_> {
             bail!("Expected function return type");
         }
 
-        let return_type = self.advance().clone();
+        let return_type = if self.current().is_a_basic_type() {
+            DType::Primitive(EveTypes::try_from(self.advance())?)
+        } else {
+            let d = self.consume(TokenType::Identifier, "Expected parameter type")?;
+            DType::Derived(d.lexeme.clone())
+        };
 
         self.consume(
             TokenType::LeftBrace,
@@ -93,7 +98,7 @@ impl Parser<'_> {
             self.consume(TokenType::Colon, "Expected ':' after field name")?;
 
             let field_type = if self.current().is_a_basic_type() {
-                DType::Primitive(self.advance().clone())
+                DType::Primitive(EveTypes::try_from(self.advance())?)
             } else {
                 DType::Derived(self.advance().lexeme.clone())
             };
@@ -101,7 +106,7 @@ impl Parser<'_> {
             fields.push(FnStDeclField {
                 field_name,
                 field_type,
-                metadata,
+                metadata: metadata.clone(),
             });
 
             if !self.match_current(&TokenType::RightBrace) {

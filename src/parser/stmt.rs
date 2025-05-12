@@ -82,7 +82,7 @@ impl Parser<'_> {
                 arguments.push(StInitField {
                     field_name,
                     field_expr: arg,
-                    metadata,
+                    metadata: metadata.clone(),
                 });
                 if !self.match_current(&TokenType::RightBrace) {
                     self.consume(
