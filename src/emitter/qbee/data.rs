@@ -2,6 +2,7 @@ use std::{cmp, collections::HashMap};
 
 use crate::ast::{DType, StructDecl};
 use log::debug;
+use qbe;
 
 use super::QBEEmitter;
 

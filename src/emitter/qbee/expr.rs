@@ -36,13 +36,35 @@ impl QBEEmitter<'_> {
         expr: &BinExpr,
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
         trace!("emitting binary expr = {:?}", expr);
-        let (ty_left, left) = self.emit_expr(func, &expr.left)?;
-        let (ty_right, right) = self.emit_expr(func, &expr.right)?;
+        let (ty_left, mut left) = self.emit_expr(func, &expr.left)?;
+        let (ty_right, mut right) = self.emit_expr(func, &expr.right)?;
         let tmp = self.new_tmp();
 
-        let mut ty = qbe::Type::Word;
-        if matches!(ty_left, qbe::Type::Double) || matches!(ty_right, qbe::Type::Double) {
-            ty = qbe::Type::Double;
+        let ty = qbe::Type::try_from(&expr.metadata.node_type.clone().unwrap())?;
+        if matches!(ty_left, qbe::Type::Double) {
+            let promoted = self.new_tmp();
+            func.assign_instr(promoted.clone(), qbe::Type::Long, qbe::Instr::Extsw(right));
+
+            let new_right = self.new_tmp();
+            func.assign_instr(
+                new_right.clone(),
+                qbe::Type::Double,
+                qbe::Instr::Cast(promoted),
+            );
+            right = new_right;
+        }
+
+        if matches!(ty_right, qbe::Type::Double) {
+            let promoted = self.new_tmp();
+            func.assign_instr(promoted.clone(), qbe::Type::Long, qbe::Instr::Extsw(left));
+
+            let new_left = self.new_tmp();
+            func.assign_instr(
+                new_left.clone(),
+                qbe::Type::Double,
+                qbe::Instr::Cast(promoted),
+            );
+            left = new_left;
         }
 
         func.assign_instr(
@@ -129,7 +151,7 @@ impl QBEEmitter<'_> {
 
                 (src, struct_ty)
             }
-            _ => todo!("idk"),
+            _ => unreachable!("field access's parent is not a var"),
         };
 
         let (fields_table, _) = self

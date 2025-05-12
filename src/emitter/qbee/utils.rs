@@ -2,7 +2,7 @@ use anyhow::{anyhow, bail};
 use log::{error, trace};
 
 use crate::{
-    ast::{Token, TokenType},
+    ast::{DType, EveTypes, Token, TokenType},
     die,
     emitter::EmitterResult,
 };
@@ -78,6 +78,47 @@ impl QBEEmitter<'_> {
     /// Get next round offset value depending on alignment
     pub(super) fn align_offset(offset: u64, alignment: u64) -> u64 {
         (offset + alignment - 1) & !(alignment - 1)
+    }
+}
+
+impl TryFrom<DType> for qbe::Type<'_> {
+    type Error = anyhow::Error;
+
+    fn try_from(value: DType) -> Result<Self, Self::Error> {
+        match value {
+            DType::Primitive(EveTypes::Int) => Ok(qbe::Type::Word),
+            DType::Primitive(EveTypes::Float) => Ok(qbe::Type::Double),
+            DType::Primitive(EveTypes::String) => Ok(qbe::Type::Long),
+            DType::Primitive(EveTypes::Void) => Ok(qbe::Type::Word),
+            DType::Derived(_) => Err(anyhow!("qbe::Type::TryFrom<EveTypes> recieved type = Void")),
+        }
+    }
+}
+
+impl TryFrom<&DType> for qbe::Type<'_> {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &DType) -> Result<Self, Self::Error> {
+        match value {
+            DType::Primitive(EveTypes::Int) => Ok(qbe::Type::Word),
+            DType::Primitive(EveTypes::Float) => Ok(qbe::Type::Double),
+            DType::Primitive(EveTypes::String) => Ok(qbe::Type::Long),
+            DType::Primitive(EveTypes::Void) => Ok(qbe::Type::Word),
+            DType::Derived(_) => Err(anyhow!("qbe::Type::TryFrom<EveTypes> recieved type = Void")),
+        }
+    }
+}
+
+impl TryFrom<EveTypes> for qbe::Type<'_> {
+    type Error = anyhow::Error;
+
+    fn try_from(value: EveTypes) -> Result<Self, Self::Error> {
+        match value {
+            EveTypes::Int => Ok(qbe::Type::Word),
+            EveTypes::Float => Ok(qbe::Type::Double),
+            EveTypes::String => Ok(qbe::Type::Long),
+            EveTypes::Void => Err(anyhow!("qbe::Type::TryFrom<EveTypes> recieved type = Void")),
+        }
     }
 }
 
