@@ -1,5 +1,6 @@
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 
+use anyhow::bail;
 use log::error;
 mod token;
 
@@ -7,10 +8,10 @@ use crate::die;
 
 pub use token::{LiteralValue, Token, TokenType};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Metadata {
     pub line: usize,
-    pub node_type: Option<EveTypes>,
+    pub node_type: Option<DType>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -18,6 +19,47 @@ pub enum EveTypes {
     Int,
     Float,
     String,
+    Void,
+}
+
+impl std::fmt::Display for EveTypes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                EveTypes::Int => "Int",
+                EveTypes::Float => "Float",
+                EveTypes::String => "String",
+                EveTypes::Void => "Void",
+            }
+        )
+    }
+}
+
+impl TryFrom<&Token> for EveTypes {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &Token) -> Result<Self, Self::Error> {
+        match &value.ttype {
+            TokenType::TypeInt => Ok(EveTypes::Int),
+            TokenType::TypeFloat => Ok(EveTypes::Float),
+            TokenType::TypeVoid => Ok(EveTypes::Void),
+            TokenType::String => Ok(EveTypes::String),
+            ty => bail!("EveTypes::TryFrom<Token>  recieved type = {}", ty),
+        }
+    }
+}
+
+impl TryFrom<&DType> for EveTypes {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &DType) -> Result<Self, Self::Error> {
+        match &value {
+            DType::Primitive(e) => Ok(e.to_owned()),
+            DType::Derived(_) => bail!("EveTypes::TryFrom<DType> recieved derived type"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -224,6 +266,21 @@ impl Deref for Expr {
     }
 }
 
+impl DerefMut for Expr {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        match self {
+            Expr::Binary(bin) => &mut bin.metadata,
+            Expr::Call(call) => &mut call.metadata,
+            Expr::FieldAccess(fieldacc) => &mut fieldacc.metadata,
+            Expr::NativeCall(nativecall) => &mut nativecall.metadata,
+            Expr::Unary(unary) => &mut unary.metadata,
+            Expr::Grouping(group) => &mut group.metadata,
+            Expr::Variable(var) => &mut var.metadata,
+            Expr::Literal(lit) => &mut lit.metadata,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct BlockStmt {
     pub stmts: Vec<Stmt>,
@@ -283,15 +340,16 @@ pub enum Stmt {
     Expression(Expr),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DType {
-    Primitive(Token),
+    Primitive(EveTypes),
     Derived(String),
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FnStDeclField {
     pub field_name: String,
+    // This is only Primitive in case of structs for now.
     pub field_type: DType,
     pub metadata: Metadata,
 }
@@ -307,7 +365,7 @@ pub struct StructDecl {
 pub struct FnDecl {
     pub name: String,
     pub parameter: Option<FnStDeclField>,
-    pub return_type: Token,
+    pub return_type: DType,
     pub body: Vec<Stmt>,
     pub metadata: Metadata,
 }
