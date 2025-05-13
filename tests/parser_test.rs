@@ -1,6 +1,6 @@
 use evelin::ast::{
-    BinOp, DType, Expr, FnDecl, FnStDeclField, LiteralExpr, LiteralValue, Metadata, Stmt,
-    StructDecl, Token, TokenType,
+    BinOp, DType, EveTypes, Expr, FnDecl, FnStDeclField, LiteralExpr, LiteralValue, Metadata, Stmt,
+    StructDecl,
 };
 use evelin::lexer::Lexer;
 use evelin::parser::Parser;
@@ -49,12 +49,7 @@ fn parses_struct_with_fields() {
         vec![
             FnStDeclField {
                 field_name: "x".to_string(),
-                field_type: DType::Primitive(Token {
-                    lexeme: "int".to_string(),
-                    line: 1,
-                    ttype: TokenType::TypeInt,
-                    literal: LiteralValue::Null
-                }),
+                field_type: DType::Primitive(EveTypes::Int),
                 metadata: Metadata {
                     line: 1,
                     node_type: None
@@ -62,12 +57,7 @@ fn parses_struct_with_fields() {
             },
             FnStDeclField {
                 field_name: "y".to_string(),
-                field_type: DType::Primitive(Token {
-                    lexeme: "float".to_string(),
-                    line: 1,
-                    ttype: TokenType::TypeFloat,
-                    literal: LiteralValue::Null
-                }),
+                field_type: DType::Primitive(EveTypes::Float),
                 metadata: Metadata {
                     line: 1,
                     node_type: None
@@ -140,7 +130,7 @@ fn parses_function_without_param() {
     let f = &parser[0];
     assert_eq!(f.name, "main");
     assert!(f.parameter.is_none());
-    assert_eq!(f.return_type.ttype, TokenType::TypeVoid);
+    assert_eq!(f.return_type, DType::Primitive(EveTypes::Void));
     assert!(!f.body.is_empty());
 }
 
@@ -155,19 +145,14 @@ fn parses_function_with_param() {
         f.parameter,
         Some(FnStDeclField {
             field_name: "x".to_string(),
-            field_type: DType::Primitive(Token {
-                lexeme: "int".to_string(),
-                line: 1,
-                ttype: TokenType::TypeInt,
-                literal: LiteralValue::Null
-            }),
+            field_type: DType::Primitive(EveTypes::Int),
             metadata: Metadata {
                 line: 1,
                 node_type: None
             }
         })
     );
-    assert_eq!(f.return_type.ttype, TokenType::TypeInt);
+    assert_eq!(f.return_type, DType::Primitive(EveTypes::Int));
 }
 
 #[test]
