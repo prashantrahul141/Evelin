@@ -2,7 +2,7 @@ use anyhow::{anyhow, bail};
 
 use crate::ast::{
     BinExpr, CallExpr, DType, EveTypes, Expr, FieldAccessExpr, LiteralExpr, LiteralValue,
-    UnaryExpr, VariableExpr,
+    NativeCallExpr, UnaryExpr, VariableExpr,
 };
 
 use super::TypeSystem;
@@ -13,7 +13,7 @@ impl TypeSystem<'_> {
             Expr::Binary(bin) => self.check_binary(bin),
             Expr::Call(call) => self.check_call(call),
             Expr::FieldAccess(fiac) => self.check_field_access(fiac),
-            Expr::NativeCall(_) => todo!(),
+            Expr::NativeCall(nacall) => self.check_native_call(nacall),
             Expr::Unary(un) => self.check_unary(un),
             Expr::Grouping(group) => self.check_expr(&mut group.value),
             Expr::Variable(var) => self.check_var(var),
@@ -141,6 +141,12 @@ impl TypeSystem<'_> {
 
         let ty = DType::Primitive(EveTypes::try_from(&field.field_type)?);
         field_access.metadata.node_type = Some(ty.clone());
+        Ok(ty)
+    }
+
+    fn check_native_call(&self, na_call: &mut NativeCallExpr) -> anyhow::Result<DType> {
+        let ty = DType::Primitive(EveTypes::Int);
+        na_call.metadata.node_type = Some(ty.clone());
         Ok(ty)
     }
 
