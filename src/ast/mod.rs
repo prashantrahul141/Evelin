@@ -14,7 +14,7 @@ pub struct Metadata {
     pub node_type: Option<DType>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EveTypes {
     Int,
     Float,
@@ -340,7 +340,7 @@ pub enum Stmt {
     Expression(Expr),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum DType {
     Primitive(EveTypes),
     Derived(String),
