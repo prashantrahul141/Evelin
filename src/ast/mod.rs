@@ -136,8 +136,7 @@ impl From<&TokenType> for BinOp {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum UnOp {
-    OpSub,  // -
-    OpFact, // !
+    OpSub, // -
 }
 
 impl std::fmt::Display for UnOp {
@@ -147,7 +146,6 @@ impl std::fmt::Display for UnOp {
             "{}",
             match self {
                 UnOp::OpSub => "-",
-                UnOp::OpFact => "!",
             },
         )
     }
@@ -157,7 +155,6 @@ impl From<&TokenType> for UnOp {
     fn from(value: &TokenType) -> Self {
         match value {
             TokenType::Minus => UnOp::OpSub,
-            TokenType::Bang => UnOp::OpFact,
             _ => {
                 die!("UnOp::from failed recieved: {}", value);
             }

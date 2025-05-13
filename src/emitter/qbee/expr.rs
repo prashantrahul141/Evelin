@@ -234,7 +234,6 @@ impl QBEEmitter<'_> {
             ty.clone(),
             match expr.op {
                 UnOp::OpSub => qbe::Instr::Copy(operand),
-                UnOp::OpFact => todo!(),
             },
         );
 
