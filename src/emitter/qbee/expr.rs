@@ -317,8 +317,20 @@ impl QBEEmitter<'_> {
                 Ok((ty, tmp))
             }
 
-            LiteralValue::Boolean(_) => todo!(),
-            LiteralValue::Null => todo!(),
+            LiteralValue::Boolean(b) => {
+                let tmp = self.new_tmp();
+                let ty = qbe::Type::Word;
+                let v = if *b { 1 } else { 0 };
+                func.assign_instr(
+                    tmp.clone(),
+                    ty.clone(),
+                    qbe::Instr::Copy(qbe::Value::Const(v as u64)),
+                );
+
+                Ok((ty, tmp))
+            }
+
+            LiteralValue::Null => unreachable!(),
         }
     }
 }
