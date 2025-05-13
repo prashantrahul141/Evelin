@@ -20,7 +20,7 @@ impl QBEEmitter<'_> {
                 .iter()
                 .map(|x| {
                     let ty = match &x.field_type {
-                        DType::Primitive(ttype) => qbe::Type::try_from(ttype.clone()).unwrap(),
+                        DType::Primitive(ttype) => qbe::Type::try_from(*ttype).unwrap(),
                         DType::Derived(name) => {
                             let type_def = self
                                 .type_defs

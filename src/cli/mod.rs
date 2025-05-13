@@ -12,6 +12,7 @@ const EVE_FILE_EXTENSION: &str = "eve";
 
 #[derive(clap::ValueEnum, Clone, Debug)]
 pub enum DebugTypes {
+    Off,
     Error,
     Debug,
     Trace,
@@ -30,7 +31,7 @@ pub struct EveCliOptions {
     pub cc: String,
 
     /// Turn debugging information on
-    #[clap(value_enum, default_value_t = DebugTypes::Error)]
+    #[clap(value_enum, default_value_t = DebugTypes::Off)]
     #[arg(short, long)]
     pub debug: DebugTypes,
 
@@ -53,6 +54,7 @@ pub fn init() -> anyhow::Result<EveCliOptions> {
     let mut cmd = EveCliOptions::command();
 
     let level = match cli.debug {
+        DebugTypes::Off => "off",
         DebugTypes::Error => "error",
         DebugTypes::Debug => "debug",
         DebugTypes::Trace => "trace",

@@ -4,32 +4,37 @@ use anyhow::anyhow;
 
 use crate::ast::{FnDecl, Stmt, StructDecl, StructInitStmt};
 
-use super::{EvePass, PassResult, PassResultGeneric};
+use super::{EvePass, EvePassImmutable, PassResult, PassResultGeneric};
 
 /// This pass checks for missing and unknown fields in struct initilisation.
-pub struct StructFieldMissingAndUnknown {}
+pub struct StructFieldMissingAndUnknown {
+    fn_decls: Vec<FnDecl>,
+    st_decls: Vec<StructDecl>,
+}
 
 impl EvePass for StructFieldMissingAndUnknown {
-    fn run_pass(&self, fn_decls: Vec<FnDecl>, st_decl: Vec<StructDecl>) -> PassResult {
-        for fns in &fn_decls {
+    fn new(fn_decls: Vec<FnDecl>, st_decls: Vec<StructDecl>) -> Self {
+        Self { fn_decls, st_decls }
+    }
+}
+
+impl EvePassImmutable for StructFieldMissingAndUnknown {
+    fn run_pass(&self) -> PassResult {
+        for fns in &self.fn_decls {
             for stmt in &fns.body {
                 if let Stmt::StructInit(st) = stmt {
-                    self.check_struct(&st_decl, st)?;
+                    self.check_struct(st)?;
                 }
             }
         }
-        Ok((fn_decls, st_decl))
+        Ok((self.fn_decls.to_owned(), self.st_decls.to_owned()))
     }
 }
 
 impl StructFieldMissingAndUnknown {
-    fn check_struct(
-        &self,
-        st_decl: &[StructDecl],
-        st_init: &StructInitStmt,
-    ) -> PassResultGeneric<()> {
+    fn check_struct(&self, st_init: &StructInitStmt) -> PassResultGeneric<()> {
         let mut err = vec![];
-        if let Some(decl) = st_decl.iter().find(|x| x.name == st_init.struct_name) {
+        if let Some(decl) = self.st_decls.iter().find(|x| x.name == st_init.struct_name) {
             // Make sets from fields list
             // decl fields - init fields = missing fields
             // init fields - decl fields = unknown fields
