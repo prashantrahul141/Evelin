@@ -69,6 +69,7 @@ pub enum WarningType {
 }
 
 pub enum ErrorType {
+    #[allow(dead_code)]
     None,
     TypeError,
     ParsingError,

@@ -19,11 +19,11 @@ impl QBEEmitter<'_> {
         trace!("emitting new stmt");
         match stmt {
             Stmt::Block(stmt) => self.emit_block(func, &stmt.stmts),
-            Stmt::Let(stmt) => self.emit_let(func, &stmt),
-            Stmt::StructInit(stmt) => self.emit_struct_init(func, &stmt),
-            Stmt::If(stmt) => self.emit_if_stmt(func, &stmt),
-            Stmt::Print(stmt) => self.emit_print_stmt(func, &stmt),
-            Stmt::Return(stmt) => self.emit_return_stmt(func, &stmt),
+            Stmt::Let(stmt) => self.emit_let(func, stmt),
+            Stmt::StructInit(stmt) => self.emit_struct_init(func, stmt),
+            Stmt::If(stmt) => self.emit_if_stmt(func, stmt),
+            Stmt::Print(stmt) => self.emit_print_stmt(func, stmt),
+            Stmt::Return(stmt) => self.emit_return_stmt(func, stmt),
             Stmt::Expression(expr) => self.emit_expr_stmt(func, expr),
         }
     }

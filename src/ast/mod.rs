@@ -281,6 +281,7 @@ impl DerefMut for Expr {
 #[derive(Debug, Clone)]
 pub struct BlockStmt {
     pub stmts: Vec<Stmt>,
+    #[allow(dead_code)]
     pub metadata: Metadata,
 }
 
@@ -288,6 +289,7 @@ pub struct BlockStmt {
 pub struct LetStmt {
     pub name: String,
     pub initialiser: Expr,
+    #[allow(dead_code)]
     pub metadata: Metadata,
 }
 
@@ -311,18 +313,21 @@ pub struct IfStmt {
     pub condition: Expr,
     pub if_branch: Stmt,
     pub else_branch: Option<Stmt>,
+    #[allow(dead_code)]
     pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
 pub struct PrintStmt {
     pub value: Expr,
+    #[allow(dead_code)]
     pub metadata: Metadata,
 }
 
 #[derive(Debug, Clone)]
 pub struct ReturnStmt {
     pub value: Option<Expr>,
+    #[allow(dead_code)]
     pub metadata: Metadata,
 }
 
