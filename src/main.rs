@@ -14,7 +14,7 @@ use backend::Backend;
 use backend::qbe_backend::QbeBackend;
 use colored::Colorize;
 use emitter::Emitter;
-use emitter::qbe::QBEEmitter;
+use emitter::qbee::QBEEmitter;
 use evelin::utils::{ErrorType, MessageType, report_message};
 use log::{debug, info};
 use parser::Parser;
@@ -51,7 +51,10 @@ pub fn init() -> anyhow::Result<()> {
         struct_decls.append(&mut parser.struct_decls);
     }
 
-    let (fn_decls, struct_decls) = match passes::run_passes(fn_decls, struct_decls) {
+    debug!("collective = \n {:?}", struct_decls);
+    debug!("collective = \n {:?}", fn_decls);
+
+    let (mut fn_decls, mut struct_decls) = match passes::run_passes(fn_decls, struct_decls) {
         Ok((fn_, st)) => (fn_, st),
         Err(errs) => {
             for e in &errs {
@@ -61,7 +64,10 @@ pub fn init() -> anyhow::Result<()> {
         }
     };
 
-    let type_sys = type_sys::TypeSystem::new(&fn_decls, &struct_decls);
+    debug!("After passes = \n {:?}", struct_decls);
+    debug!("After passes = \n {:?}", fn_decls);
+
+    let mut type_sys = type_sys::TypeSystem::new(&mut fn_decls, &mut struct_decls);
     type_sys.check();
     if type_sys.errors_count != 0 {
         bail!(
@@ -69,6 +75,9 @@ pub fn init() -> anyhow::Result<()> {
             type_sys.errors_count
         );
     }
+
+    debug!("After type check = \n {:?}", type_sys.st_decls());
+    debug!("After type check = \n {:?}", type_sys.fn_decls());
 
     let mut qbe_generator = QBEEmitter::from((&fn_decls, &struct_decls));
     let ir = qbe_generator.emit_ir()?;
