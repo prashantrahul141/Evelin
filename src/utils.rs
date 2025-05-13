@@ -89,7 +89,7 @@ impl Display for MessageType {
             MessageType::Error(e) => match e {
                 ErrorType::None => "Error",
                 ErrorType::TypeError => "Type Error",
-                ErrorType::ParsingError => "Parsing Error",
+                ErrorType::ParsingError => "Syntax Error",
             }
             .red(),
         };
