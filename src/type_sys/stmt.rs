@@ -47,7 +47,7 @@ impl TypeSystem<'_> {
         // decl_fields - init_fields
         if let Some(missing_field) = decl_fields.difference(&init_fields).next() {
             bail!(
-                "Invalid field name or type '{}' in struct '{}'",
+                "Invalid type for '{}' in struct '{}'",
                 missing_field.0,
                 &decl.name
             );

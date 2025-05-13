@@ -42,12 +42,12 @@ impl AllFnExistence {
         match &call.callee {
             Expr::Variable(var) => {
                 if self.fn_decls.iter().any(|decl| decl.name == var.name) {
-                    return Ok(());
+                    Ok(())
                 } else {
                     bail!("Call to undefined function '{}'", var.name);
                 }
             }
             _ => unreachable!(),
-        };
+        }
     }
 }

@@ -25,7 +25,7 @@ impl QBEEmitter<'_> {
 
         for field in &struct_decl.fields {
             let ty = match &field.field_type {
-                DType::Primitive(ttype) => qbe::Type::try_from(ttype.clone()).unwrap(),
+                DType::Primitive(ttype) => qbe::Type::try_from(*ttype).unwrap(),
                 DType::Derived(_) => {
                     todo!("Aggregate type for struct fields is not supported yet.")
                 }
