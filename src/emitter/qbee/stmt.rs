@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::ast::{Expr, StInitField, Stmt};
+use crate::ast::{Expr, IfStmt, LetStmt, PrintStmt, ReturnStmt, Stmt, StructInitStmt};
 use crate::die;
 use crate::emitter::EmitterResult;
 use anyhow::{Context, bail};
@@ -18,16 +18,12 @@ impl QBEEmitter<'_> {
     ) -> EmitterResult<()> {
         trace!("emitting new stmt");
         match stmt {
-            Stmt::Block(blk) => self.emit_block(func, &blk.stmts),
-            Stmt::Let(lt) => self.emit_let(func, &lt.name, &lt.initialiser),
-            Stmt::StructInit(st) => {
-                self.emit_struct_init(func, &st.name, &st.struct_name, &st.arguments)
-            }
-            Stmt::If(stmt) => {
-                self.emit_if_stmt(func, &stmt.condition, &stmt.if_branch, &stmt.else_branch)
-            }
-            Stmt::Print(expr) => self.emit_print_stmt(func, &expr.value),
-            Stmt::Return(expr) => self.emit_return_stmt(func, &expr.value),
+            Stmt::Block(stmt) => self.emit_block(func, &stmt.stmts),
+            Stmt::Let(stmt) => self.emit_let(func, &stmt),
+            Stmt::StructInit(stmt) => self.emit_struct_init(func, &stmt),
+            Stmt::If(stmt) => self.emit_if_stmt(func, &stmt),
+            Stmt::Print(stmt) => self.emit_print_stmt(func, &stmt),
+            Stmt::Return(stmt) => self.emit_return_stmt(func, &stmt),
             Stmt::Expression(expr) => self.emit_expr_stmt(func, expr),
         }
     }
@@ -48,14 +44,9 @@ impl QBEEmitter<'_> {
     }
 
     // emits let declaration
-    fn emit_let(
-        &mut self,
-        func: &mut qbe::Function<'static>,
-        name: &str,
-        init: &Expr,
-    ) -> EmitterResult<()> {
-        let (ty, value) = self.emit_expr(func, init)?;
-        let result_value = self.new_var(ty.clone(), name.to_owned())?;
+    fn emit_let(&mut self, func: &mut qbe::Function<'static>, le: &LetStmt) -> EmitterResult<()> {
+        let (ty, value) = self.emit_expr(func, &le.initialiser)?;
+        let result_value = self.new_var(ty.clone(), le.name.clone())?;
         func.assign_instr(result_value, ty, qbe::Instr::Copy(value));
         Ok(())
     }
@@ -64,42 +55,56 @@ impl QBEEmitter<'_> {
     fn emit_struct_init(
         &mut self,
         func: &mut qbe::Function<'static>,
-        name: &str,
-        struct_name: &str,
-        args: &Vec<StInitField>,
+        st_init: &StructInitStmt,
     ) -> EmitterResult<()> {
         trace!("emitting struct init stmt");
 
         let (meta, size) = self
             .struct_meta
-            .get(struct_name)
-            .with_context(|| format!("Initialiser of undeclared struct '{}'", struct_name))?
+            .get(&st_init.struct_name)
+            .with_context(|| {
+                format!(
+                    "Initialiser of undeclared struct '{}', line {}",
+                    &st_init.struct_name, st_init.metadata.line
+                )
+            })?
             .to_owned();
 
         let type_def = self
             .type_defs
             .iter()
-            .find(|x| x.name == struct_name)
+            .find(|x| x.name == st_init.struct_name)
             .cloned()
-            .with_context(|| format!("Initialiser of undeclared struct '{}'", struct_name))?;
+            .with_context(|| {
+                format!(
+                    "Initialiser of undeclared struct '{}', line {}",
+                    st_init.struct_name, st_init.metadata.line
+                )
+            })?;
 
         let boxed_type_def = Box::new(type_def);
         let tmp = self.new_var(
             qbe::Type::Aggregate(Box::leak(boxed_type_def)),
-            name.to_owned(),
+            st_init.name.to_owned(),
         )?;
         func.assign_instr(tmp.clone(), qbe::Type::Long, qbe::Instr::Alloc8(size));
 
-        for arg in args {
+        for arg in &st_init.arguments {
             // get meta about arg
-            let (field_type, offset) = meta
-                .get(&arg.field_name)
-                .with_context(|| format!("Unknown field : '{}'", arg.field_name))?;
+            let (field_type, offset) = meta.get(&arg.field_name).with_context(|| {
+                format!(
+                    "Unknown field : '{}', line {}",
+                    arg.field_name, arg.metadata.line
+                )
+            })?;
 
             let (_, expr_tmp) = self.emit_expr(func, &arg.field_expr)?;
             match field_type {
                 qbe::Type::Aggregate(_) => {
-                    bail!("Aggregate types inside structs are not supported yet.");
+                    bail!(
+                        "Aggregate types inside structs are not supported yet, line {}",
+                        arg.metadata.line
+                    );
                 }
                 _ => {
                     let field_tmp = self.new_tmp();
@@ -121,12 +126,10 @@ impl QBEEmitter<'_> {
     fn emit_if_stmt(
         &mut self,
         func: &mut qbe::Function<'static>,
-        cond: &Expr,
-        if_clause: &Stmt,
-        else_clause: &Option<Stmt>,
+        if_stmt: &IfStmt,
     ) -> EmitterResult<()> {
         trace!("emitting if stmt");
-        let (_, cond_result) = self.emit_expr(func, cond)?;
+        let (_, cond_result) = self.emit_expr(func, &if_stmt.condition)?;
         self.tmp_counter += 1;
 
         let if_label = format!("cond.{}.if", self.tmp_counter);
@@ -136,7 +139,7 @@ impl QBEEmitter<'_> {
         func.add_instr(qbe::Instr::Jnz(
             cond_result,
             if_label.clone(),
-            if else_clause.is_some() {
+            if if_stmt.else_branch.is_some() {
                 else_label.clone()
             } else {
                 end_label.clone()
@@ -144,9 +147,9 @@ impl QBEEmitter<'_> {
         ));
 
         func.add_block(if_label);
-        self.emit_stmt(func, if_clause)?;
+        self.emit_stmt(func, &if_stmt.if_branch)?;
 
-        if let Some(else_clause) = else_clause {
+        if let Some(else_branch) = &if_stmt.else_branch {
             trace!("emitting else clause for if stmt");
             // avoid fallthrough into else block even after executing if block.
             if !func.blocks.last().is_some_and(|b| b.jumps()) {
@@ -154,7 +157,7 @@ impl QBEEmitter<'_> {
             }
 
             func.add_block(else_label);
-            self.emit_stmt(func, else_clause)?;
+            self.emit_stmt(func, else_branch)?;
         }
 
         func.add_block(end_label);
@@ -166,10 +169,10 @@ impl QBEEmitter<'_> {
     fn emit_print_stmt(
         &mut self,
         func: &mut qbe::Function<'static>,
-        expr: &Expr,
+        print_stmt: &PrintStmt,
     ) -> EmitterResult<()> {
-        trace!("emitting print stmt expr = {:?}", expr);
-        let (ty, value) = self.emit_expr(func, expr)?;
+        trace!("emitting print stmt expr = {:?}", print_stmt.value);
+        let (ty, value) = self.emit_expr(func, &print_stmt.value)?;
 
         let fmt = match ty {
             qbe::Type::Word => "___FMT_WORD",
@@ -198,11 +201,11 @@ impl QBEEmitter<'_> {
     fn emit_return_stmt(
         &mut self,
         func: &mut qbe::Function<'static>,
-        expr: &Option<Expr>,
+        return_stmt: &ReturnStmt,
     ) -> EmitterResult<()> {
-        trace!("emitting new return stmt expr = {:?}", &expr);
+        trace!("emitting new return stmt expr = {:?}", &return_stmt.value);
         let mut inst = qbe::Instr::Ret(None);
-        if let Some(expr) = expr {
+        if let Some(expr) = &return_stmt.value {
             let (_, value) = self.emit_expr(func, expr)?;
             inst = qbe::Instr::Ret(Some(value));
         }

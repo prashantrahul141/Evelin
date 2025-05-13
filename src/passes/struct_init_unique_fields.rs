@@ -43,10 +43,11 @@ impl StructInitUniqueField {
         for i in &st_init.arguments {
             if m.contains(&i.field_name) {
                 bail!(
-                    "field '{}' is already defined for '{}' of type '{}'",
+                    "field '{}' is already defined for '{}' of type '{}', line {}",
                     &i.field_name,
                     &st_init.name,
-                    &st_init.struct_name
+                    &st_init.struct_name,
+                    st_init.metadata.line
                 );
             }
 

@@ -126,8 +126,15 @@ impl QBEEmitter<'_> {
                 qbe::Instr::Call(var.name.clone(), arg, None),
             );
         } else {
-            error!("Expected function name got '{:?}' instead", call.callee);
-            bail!("Expected function name got '{:?}' instead", call.callee);
+            error!(
+                "Expected function name got '{:?}' instead, line {}",
+                call.callee, call.metadata.line
+            );
+            bail!(
+                "Expected function name got '{:?}' instead, line {}",
+                call.callee,
+                call.metadata.line
+            );
         }
 
         Ok((ty, tmp))
@@ -146,26 +153,37 @@ impl QBEEmitter<'_> {
                 let (struct_ty, src) = self.get_var(&var.name)?.to_owned();
                 let struct_ty = match struct_ty {
                     qbe::Type::Aggregate(ag) => ag,
-                    _ => bail!("Field access is only supported for struct types"),
+                    _ => bail!(
+                        "Field access is only supported for struct types, line {}",
+                        fiac.metadata.line
+                    ),
                 };
 
                 (src, struct_ty)
             }
-            _ => unreachable!("field access's parent is not a var"),
+            _ => unreachable!(
+                "field access's parent is not a var, line {}",
+                fiac.metadata.line
+            ),
         };
 
         let (fields_table, _) = self
             .struct_meta
             .get(&struct_ty.name)
-            .with_context(|| format!("Use of undeclared struct var '{}'", &struct_ty.name))?
+            .with_context(|| {
+                format!(
+                    "Use of undeclared struct var '{}', line {}",
+                    &struct_ty.name, fiac.metadata.line
+                )
+            })?
             .to_owned();
 
         let (field_ty, offset) = fields_table
             .get(&fiac.field)
             .with_context(|| {
                 format!(
-                    "Field '{}' does not exist on struct '{}'",
-                    &fiac.field, &struct_ty.name
+                    "Field '{}' does not exist on struct '{}', line {}",
+                    &fiac.field, &struct_ty.name, fiac.metadata.line
                 )
             })?
             .to_owned();
@@ -212,8 +230,15 @@ impl QBEEmitter<'_> {
                 qbe::Instr::Call(var.name.clone(), args, None),
             );
         } else {
-            error!("Expected function name got '{:?}' instead", call.callee);
-            bail!("Expected function name got '{:?}' instead", call.callee);
+            error!(
+                "Expected function name got '{:?}' instead, line {}",
+                call.callee, call.metadata.line
+            );
+            bail!(
+                "Expected function name got '{:?}' instead, line {}",
+                call.callee,
+                call.metadata.line
+            );
         }
 
         Ok((ty, tmp))

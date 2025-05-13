@@ -27,7 +27,10 @@ impl QBEEmitter<'_> {
             let ty = match &field.field_type {
                 DType::Primitive(ttype) => qbe::Type::try_from(*ttype).unwrap(),
                 DType::Derived(_) => {
-                    panic!("Aggregate type for struct fields is not supported yet.")
+                    panic!(
+                        "Aggregate type for struct fields is not supported yet, line {}",
+                        struct_decl.metadata.line
+                    )
                 }
             };
             let field_align = Self::type_alignment(&ty);

@@ -35,8 +35,8 @@ impl DeadCodeElimination {
         if let Some(i) = index.filter(|&i| i != fns.body.len() - 1) {
             report_message(
                 format!(
-                    "Code after return statement in function '{}' will be ignored",
-                    &fns.name
+                    "Code after return statement in function '{}' will be ignored, line {}",
+                    &fns.name, fns.metadata.line
                 ),
                 MessageType::Warning(WarningType::None),
             );

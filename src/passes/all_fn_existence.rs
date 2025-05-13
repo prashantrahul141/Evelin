@@ -44,7 +44,11 @@ impl AllFnExistence {
                 if self.fn_decls.iter().any(|decl| decl.name == var.name) {
                     Ok(())
                 } else {
-                    bail!("Call to undefined function '{}'", var.name);
+                    bail!(
+                        "Call to undefined function '{}', line {}",
+                        var.name,
+                        var.metadata.line
+                    );
                 }
             }
             _ => unreachable!(),

@@ -27,7 +27,11 @@ impl TypeSystem<'_> {
             .st_decls
             .iter()
             .find(|x| x.name == st_init.struct_name)
-            .ok_or(anyhow!("Struct '{}' not defined", &st_init.struct_name))?;
+            .ok_or(anyhow!(
+                "Struct '{}' not defined at, line {}",
+                &st_init.struct_name,
+                st_init.metadata.line
+            ))?;
 
         let decl_fields: HashSet<(String, DType)> = decl
             .fields
@@ -47,9 +51,10 @@ impl TypeSystem<'_> {
         // decl_fields - init_fields
         if let Some(missing_field) = decl_fields.difference(&init_fields).next() {
             bail!(
-                "Invalid type for '{}' in struct '{}'",
+                "Invalid type for '{}' in struct '{}', line {}",
                 missing_field.0,
-                &decl.name
+                &decl.name,
+                decl.metadata.line
             );
         }
 

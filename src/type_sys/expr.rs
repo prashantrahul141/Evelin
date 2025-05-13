@@ -35,12 +35,14 @@ impl TypeSystem<'_> {
                 DType::Primitive(EveTypes::Float)
             }
             (DType::Primitive(EveTypes::Int), DType::Primitive(EveTypes::String)) => bail!(
-                "{} operation cannot be applied between Int and String",
+                "{} operation cannot be applied between Int and String, line {}",
                 &bin.op,
+                bin.metadata.line
             ),
             (DType::Primitive(EveTypes::Int), DType::Primitive(EveTypes::Void)) => bail!(
-                "{} operation cannot be applied between Int and Void",
+                "{} operation cannot be applied between Int and Void, line {}",
                 &bin.op,
+                bin.metadata.line
             ),
             (DType::Primitive(EveTypes::Float), DType::Primitive(EveTypes::Int)) => {
                 bin.right.node_type = Some(DType::Primitive(EveTypes::Float));
@@ -50,36 +52,43 @@ impl TypeSystem<'_> {
                 DType::Primitive(EveTypes::Float)
             }
             (DType::Primitive(EveTypes::Float), DType::Primitive(EveTypes::String)) => bail!(
-                "{} operation cannot be applied between Float and String",
+                "{} operation cannot be applied between Float and String, line {}",
                 &bin.op,
+                bin.metadata.line
             ),
             (DType::Primitive(EveTypes::Float), DType::Primitive(EveTypes::Void)) => bail!(
-                "{} operation cannot be applied between Float and Void",
+                "{} operation cannot be applied between Float and Void, line {}",
                 &bin.op,
+                bin.metadata.line
             ),
             (DType::Primitive(EveTypes::String), DType::Primitive(EveTypes::Int)) => bail!(
-                "{} operation cannot be applied between String and Int",
+                "{} operation cannot be applied between String and Int, line {}",
                 &bin.op,
+                bin.metadata.line
             ),
             (DType::Primitive(EveTypes::String), DType::Primitive(EveTypes::Float)) => bail!(
-                "{} operation cannot be applied between String and Float",
+                "{} operation cannot be applied between String and Float, line {}",
                 &bin.op,
+                bin.metadata.line
             ),
             (DType::Primitive(EveTypes::String), DType::Primitive(EveTypes::String)) => bail!(
-                "{} operation cannot be applied between String and String",
+                "{} operation cannot be applied between String and String, line {}",
                 &bin.op,
+                bin.metadata.line
             ),
             (DType::Primitive(EveTypes::String), DType::Primitive(EveTypes::Void)) => bail!(
-                "{} operation cannot be applied between String and Void",
+                "{} operation cannot be applied between String and Void, line {}",
                 &bin.op,
+                bin.metadata.line
             ),
 
             (DType::Primitive(EveTypes::Void), _) => unreachable!(),
             (DType::Derived(derived_name), DType::Primitive(primitive_ty)) => bail!(
-                "{} operation cannot be applied between {} and {}",
+                "{} operation cannot be applied between {} and {}, line {}",
                 &bin.op,
                 derived_name,
-                primitive_ty
+                primitive_ty,
+                bin.metadata.line
             ),
             (DType::Derived(_), DType::Derived(_)) => {
                 bail!("Struct method overloading not available",)
@@ -87,7 +96,10 @@ impl TypeSystem<'_> {
             (DType::Primitive(EveTypes::Int), DType::Derived(_))
             | (DType::Primitive(EveTypes::Float), DType::Derived(_))
             | (DType::Primitive(EveTypes::String), DType::Derived(_)) => {
-                bail!("Operations between derived and primitive type not available")
+                bail!(
+                    "Operations between derived and primitive type not available, line {}",
+                    bin.metadata.line
+                )
             }
         };
         bin.metadata.node_type = Some(ty.clone());
@@ -97,11 +109,15 @@ impl TypeSystem<'_> {
     fn check_call(&self, call: &mut CallExpr) -> anyhow::Result<DType> {
         let fn_name = match &call.callee {
             Expr::Variable(var) => &var.name,
-            _ => bail!("callee is not a identifier"),
+            _ => bail!("callee is not a identifier, line {}", call.metadata.line),
         };
         let fn_decl = match self.fn_decls.iter().find(|x| &x.name == fn_name) {
             Some(fn_decl) => fn_decl,
-            None => bail!("Function '{}' not defined", fn_name),
+            None => bail!(
+                "Function '{}' not defined, line {}",
+                fn_name,
+                call.metadata.line
+            ),
         };
 
         call.metadata.node_type = Some(fn_decl.return_type.clone());
@@ -111,15 +127,24 @@ impl TypeSystem<'_> {
     fn check_field_access(&self, field_access: &mut FieldAccessExpr) -> anyhow::Result<DType> {
         let var_name = match &field_access.parent {
             Expr::Variable(var) => &var.name,
-            _ => unreachable!("field access's parent is not a variable"),
+            _ => unreachable!(
+                "field access's parent is not a variable, line {}",
+                field_access.metadata.line
+            ),
         };
 
-        let var_type = self
-            .get_env(var_name)
-            .ok_or(anyhow!("Variable '{}' not defined", &var_name))?;
+        let var_type = self.get_env(var_name).ok_or(anyhow!(
+            "Variable '{}' not defined, line {}",
+            &var_name,
+            field_access.metadata.line
+        ))?;
 
         let st_name = match var_type {
-            DType::Primitive(_) => bail!("'{}' is not a struct instance.", &var_name),
+            DType::Primitive(_) => bail!(
+                "'{}' is not a struct instance, line {}",
+                &var_name,
+                field_access.metadata.line
+            ),
             DType::Derived(st_name) => st_name,
         };
 
@@ -127,16 +152,21 @@ impl TypeSystem<'_> {
             .st_decls
             .iter()
             .find(|x| &x.name == st_name)
-            .ok_or(anyhow!("Struct '{}' not defined", var_name))?;
+            .ok_or(anyhow!(
+                "Struct '{}' not defined, line {}",
+                var_name,
+                field_access.metadata.line
+            ))?;
 
         let field = st_decl
             .fields
             .iter()
             .find(|x| x.field_name == field_access.field)
             .ok_or(anyhow!(
-                "Struct '{}' as no field '{}'",
+                "Struct '{}' as no field '{}', line {}",
                 &var_name,
                 &field_access.field,
+                field_access.metadata.line
             ))?;
 
         let ty = DType::Primitive(EveTypes::try_from(&field.field_type)?);
@@ -162,7 +192,11 @@ impl TypeSystem<'_> {
             return Ok(ty.to_owned());
         }
 
-        bail!("Variable '{}' is not defined", &var.name)
+        bail!(
+            "Variable '{}' is not defined, line {}",
+            &var.name,
+            var.metadata.line
+        )
     }
 
     fn check_literal(&self, literal: &mut LiteralExpr) -> DType {

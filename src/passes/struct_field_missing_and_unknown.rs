@@ -50,16 +50,16 @@ impl StructFieldMissingAndUnknown {
             // decl_fields - init_fields
             for missing_field in decl_fields.difference(&init_fields) {
                 err.push(anyhow!(format!(
-                    "Field '{}' missing in struct '{}'",
-                    missing_field, &decl.name
+                    "Field '{}' missing in struct '{}', line {}",
+                    missing_field, &decl.name, decl.metadata.line
                 )));
             }
 
             // init_fields - decl_fields
             for unknown_field in init_fields.difference(&decl_fields) {
                 err.push(anyhow!(format!(
-                    "Unknown field '{}' in struct '{}'",
-                    unknown_field, &decl.name
+                    "Unknown field '{}' in struct '{}', line {}",
+                    unknown_field, &decl.name, decl.metadata.line
                 )));
             }
         }

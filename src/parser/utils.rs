@@ -22,7 +22,7 @@ impl Parser<'_> {
             return Ok(self.advance());
         }
 
-        bail!(message.to_owned());
+        bail!("{}, line {}", message.to_owned(), self.current().line);
     }
 
     /// Checks whether the current token is

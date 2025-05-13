@@ -347,8 +347,9 @@ impl Parser<'_> {
         }
 
         bail!(
-            "Expected literal, expression, or identifier received '{}' instead",
-            self.current().lexeme
+            "Expected literal, expression, or identifier received '{}' instead, line {}",
+            self.current().lexeme,
+            self.current().line
         );
     }
 }

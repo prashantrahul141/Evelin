@@ -28,7 +28,10 @@ impl QBEEmitter<'_> {
                                 .find(|x| &x.name == name)
                                 .cloned()
                                 .with_context(|| {
-                                    format!("Initialiser of undeclared struct '{}'", name)
+                                    format!(
+                                        "Initialiser of undeclared struct '{}', line {}",
+                                        name, func.metadata.line
+                                    )
                                 })?;
 
                             let boxed_type_def = Box::new(type_def);
