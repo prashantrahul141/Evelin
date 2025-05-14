@@ -1,0 +1,26 @@
+// This example demontrates how you can use an actual C library like raylib with Evelin.
+// Compile using: evelin 09.eve -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+
+fn main() -> void {
+    extern InitWindow(800, 450, "Raylib Window Title");
+    extern SetTargetFPS(60);
+
+    loop {
+      if (extern WindowShouldClose() != 0) {
+        break;
+      }
+
+      extern BeginDrawing();
+
+      let cyan = extern GetColor(16777215);
+      let black = extern GetColor(0);
+
+      extern ClearBackground(black);
+      extern DrawText("Hello from Evelin!", 210, 200, 40, cyan);
+      extern DrawFPS(10, 10);
+
+      extern EndDrawing();
+    }
+
+    extern CloseWindow();
+}
