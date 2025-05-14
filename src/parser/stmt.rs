@@ -1,8 +1,8 @@
 use log::trace;
 
 use crate::ast::{
-    BlockStmt, IfStmt, LetStmt, Metadata, PrintStmt, ReturnStmt, StInitField, Stmt, StructInitStmt,
-    TokenType,
+    BlockStmt, BreakStmt, IfStmt, LetStmt, LoopStmt, Metadata, PrintStmt, ReturnStmt, StInitField,
+    Stmt, StructInitStmt, TokenType,
 };
 
 use super::{Parser, ParserResult};
@@ -13,6 +13,10 @@ impl Parser<'_> {
             return self.block();
         } else if self.match_token(&[TokenType::Let]) {
             return self.let_decl();
+        } else if self.match_token(&[TokenType::Loop]) {
+            return self.loop_stmt();
+        } else if self.match_token(&[TokenType::Break]) {
+            return self.break_stmt();
         } else if self.match_token(&[TokenType::Print]) {
             return self.print_stmt();
         } else if self.match_token(&[TokenType::Return]) {
@@ -111,6 +115,29 @@ impl Parser<'_> {
                 metadata,
             }))
         }
+    }
+
+    fn loop_stmt(&mut self) -> ParserResult<Stmt> {
+        trace!("parsing loop stmt");
+        let metadata = Metadata {
+            line: self.current().line,
+            node_type: None,
+        };
+
+        self.consume(TokenType::LeftBrace, "Expected '{' after 'loop'")?;
+        let body = self.block()?;
+        Ok(Stmt::Loop(Box::new(LoopStmt { body, metadata })))
+    }
+
+    fn break_stmt(&mut self) -> ParserResult<Stmt> {
+        trace!("parsing loop stmt");
+        let metadata = Metadata {
+            line: self.current().line,
+            node_type: None,
+        };
+
+        self.consume(TokenType::Semicolon, "Expected ';' after break statement")?;
+        Ok(Stmt::Break(BreakStmt { metadata }))
     }
 
     fn if_stmt(&mut self) -> ParserResult<Stmt> {

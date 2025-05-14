@@ -93,6 +93,8 @@ fn test_keywords() {
         ("return", TokenType::Return),
         ("if", TokenType::If),
         ("else", TokenType::Else),
+        ("loop", TokenType::Loop),
+        ("break", TokenType::Break),
         ("print", TokenType::Print),
         ("struct", TokenType::Struct),
         ("extern", TokenType::Extern),

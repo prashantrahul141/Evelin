@@ -3,7 +3,8 @@ use std::collections::HashSet;
 use anyhow::{anyhow, bail};
 
 use crate::ast::{
-    BlockStmt, DType, EveTypes, IfStmt, LetStmt, PrintStmt, ReturnStmt, StructInitStmt,
+    BlockStmt, BreakStmt, DType, EveTypes, IfStmt, LetStmt, LoopStmt, PrintStmt, ReturnStmt,
+    StructInitStmt,
 };
 
 use super::TypeSystem;
@@ -67,10 +68,19 @@ impl TypeSystem<'_> {
     }
 
     pub(super) fn check_if(&mut self, ifst: &mut IfStmt) -> anyhow::Result<DType> {
+        let _ = self.check_expr(&mut ifst.condition)?;
         let _ = self.check_stmt(&mut ifst.if_branch)?;
         if let Some(else_branch) = &mut ifst.else_branch {
             self.check_stmt(else_branch)?;
         }
+        Ok(DType::Primitive(EveTypes::Void))
+    }
+
+    pub(super) fn check_loop(&mut self, loop_stmt: &mut LoopStmt) -> anyhow::Result<DType> {
+        self.check_stmt(&mut loop_stmt.body)
+    }
+
+    pub(super) fn check_break(&mut self, _p: &mut BreakStmt) -> anyhow::Result<DType> {
         Ok(DType::Primitive(EveTypes::Void))
     }
 

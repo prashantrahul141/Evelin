@@ -318,6 +318,19 @@ pub struct IfStmt {
 }
 
 #[derive(Debug, Clone)]
+pub struct LoopStmt {
+    pub body: Stmt,
+    #[allow(dead_code)]
+    pub metadata: Metadata,
+}
+
+#[derive(Debug, Clone)]
+pub struct BreakStmt {
+    #[allow(dead_code)]
+    pub metadata: Metadata,
+}
+
+#[derive(Debug, Clone)]
 pub struct PrintStmt {
     pub value: Expr,
     #[allow(dead_code)]
@@ -337,6 +350,8 @@ pub enum Stmt {
     Let(LetStmt),
     StructInit(StructInitStmt),
     If(Box<IfStmt>),
+    Loop(Box<LoopStmt>),
+    Break(BreakStmt),
     Print(PrintStmt),
     Return(ReturnStmt),
     Expression(Expr),

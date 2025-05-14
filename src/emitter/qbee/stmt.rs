@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use crate::ast::{Expr, IfStmt, LetStmt, PrintStmt, ReturnStmt, Stmt, StructInitStmt};
+use crate::ast::{
+    BreakStmt, Expr, IfStmt, LetStmt, LoopStmt, PrintStmt, ReturnStmt, Stmt, StructInitStmt,
+};
 use crate::die;
 use crate::emitter::EmitterResult;
 use anyhow::{Context, bail};
@@ -22,6 +24,8 @@ impl QBEEmitter<'_> {
             Stmt::Let(stmt) => self.emit_let(func, stmt),
             Stmt::StructInit(stmt) => self.emit_struct_init(func, stmt),
             Stmt::If(stmt) => self.emit_if_stmt(func, stmt),
+            Stmt::Loop(stmt) => self.emit_loop_stmt(func, stmt),
+            Stmt::Break(stmt) => self.emit_break_stmt(func, stmt),
             Stmt::Print(stmt) => self.emit_print_stmt(func, stmt),
             Stmt::Return(stmt) => self.emit_return_stmt(func, stmt),
             Stmt::Expression(expr) => self.emit_expr_stmt(func, expr),
@@ -162,6 +166,41 @@ impl QBEEmitter<'_> {
 
         func.add_block(end_label);
 
+        Ok(())
+    }
+
+    /// emits loop statement
+    fn emit_loop_stmt(
+        &mut self,
+        func: &mut qbe::Function<'static>,
+        loop_stmt: &LoopStmt,
+    ) -> EmitterResult<()> {
+        self.tmp_counter += 1;
+        self.loop_scopes.push(self.tmp_counter);
+        let loop_start_label = format!("loop.{}.start", self.tmp_counter);
+        let loop_end_label = format!("loop.{}.end", self.tmp_counter);
+
+        func.add_block(&loop_start_label);
+        self.emit_stmt(func, &loop_stmt.body)?;
+
+        func.add_instr(qbe::Instr::Jmp(loop_start_label));
+        func.add_block(loop_end_label);
+
+        Ok(())
+    }
+
+    /// emits loop break statement
+    fn emit_break_stmt(
+        &mut self,
+        func: &mut qbe::Function<'static>,
+        _break_stmt: &BreakStmt,
+    ) -> EmitterResult<()> {
+        let loop_id = self
+            .loop_scopes
+            .pop()
+            .context("break used inside a non loop scope")?;
+        let loop_end_label = format!("loop.{}.end", loop_id);
+        func.add_instr(qbe::Instr::Jmp(loop_end_label));
         Ok(())
     }
 

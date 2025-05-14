@@ -118,12 +118,16 @@ pub fn init() -> anyhow::Result<()> {
 
     Ok(())
 }
-
-fn main() {
+use std::process::ExitCode;
+fn main() -> ExitCode {
     match init() {
-        Ok(()) => info!("Execution finished successfully."),
+        Ok(()) => {
+            info!("Execution finished successfully.");
+            ExitCode::SUCCESS
+        }
         Err(err) => {
             report_message(format!("{:#}", err), MessageType::Error(ErrorType::None));
+            ExitCode::FAILURE
         }
     }
 }

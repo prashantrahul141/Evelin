@@ -50,6 +50,8 @@ impl<'a> TypeSystem<'a> {
             Stmt::Let(le) => self.check_let(le),
             Stmt::StructInit(st_init) => self.check_stinit(st_init),
             Stmt::If(ifst) => self.check_if(ifst),
+            Stmt::Loop(lop) => self.check_loop(lop),
+            Stmt::Break(bre) => self.check_break(bre),
             Stmt::Print(p) => self.check_print(p),
             Stmt::Return(ret) => self.check_return(ret),
             Stmt::Expression(expr) => self.check_expr(expr),
