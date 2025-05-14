@@ -44,6 +44,8 @@ pub enum TokenType {
     Return, // return
     If,     // if
     Else,   // else
+    Loop,   // loop
+    Break,  // break
     Print,  // print
     Struct, // struct
     Extern, // extern
@@ -122,14 +124,14 @@ impl std::fmt::Display for Token {
 }
 
 /// static array of all reserved keywords.
-static RESERVED_KEYWORDS_KEYS: [&str; 16] = [
-    "true", "false", "null", "and", "or", "let", "fn", "return", "if", "else", "print", "struct",
-    "extern", "int", "float", "void",
+static RESERVED_KEYWORDS_KEYS: [&str; 18] = [
+    "true", "false", "null", "and", "or", "let", "fn", "return", "if", "else", "loop", "break",
+    "print", "struct", "extern", "int", "float", "void",
 ];
 
 /// TokenTypes which are reserved keywords,
 /// THIS HAS TO BE IN SAME ORDER AS RESERVED_KEYWORDS_KEYS
-static RESERVED_KEYWORDS_TYPES: [TokenType; 16] = [
+static RESERVED_KEYWORDS_TYPES: [TokenType; 18] = [
     TokenType::True,
     TokenType::False,
     TokenType::Null,
@@ -140,6 +142,8 @@ static RESERVED_KEYWORDS_TYPES: [TokenType; 16] = [
     TokenType::Return,
     TokenType::If,
     TokenType::Else,
+    TokenType::Loop,
+    TokenType::Break,
     TokenType::Print,
     TokenType::Struct,
     TokenType::Extern,
