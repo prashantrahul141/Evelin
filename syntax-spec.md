@@ -14,6 +14,8 @@ parameters      ::=     IDENTIFIER ":" extended_type ;
 statement       ::=     block
                       | let_stmt
                       | if_stmt
+                      | loop_stmt
+                      | break_stmt
                       | print_stmt
                       | return_stmt
                       | expression_stmt ;
@@ -25,6 +27,10 @@ let_stmt        ::=     "let" IDENTIFIER "=" ( expression | struct_init ) ";" ;
 struct_init     ::=      IDENTIFIER "{" ( IDENTIFIER ":" expression "," )* "}" ;
 
 if_stmt         ::=     "if" "(" expression ")" statement ( "else" statement )? ;
+
+loop_stmt       ::=     "loop" block ;
+
+break_stmt      ::=     "break" ";" ;
 
 print_stmt      ::=     "print" expression  ";" ;
 
