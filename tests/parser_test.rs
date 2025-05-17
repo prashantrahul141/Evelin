@@ -1,31 +1,9 @@
 use evelin::ast::{
-    BinOp, DType, EveTypes, Expr, FnDecl, FnStDeclField, LiteralExpr, LiteralValue, Metadata, Stmt,
-    StructDecl,
+    BinOp, DType, EveTypes, Expr, FnStDeclField, LiteralExpr, LiteralValue, Metadata, Stmt,
 };
-use evelin::lexer::Lexer;
-use evelin::parser::Parser;
 
-fn tokenize<T: Into<String>>(input: T) -> Vec<evelin::lexer::Token> {
-    let l = input.into();
-    let mut lexer = Lexer::from(&l);
-    lexer.start().unwrap();
-    let t = lexer.tokens();
-    (*t).clone()
-}
-
-fn parse_fn(source: &str) -> Vec<FnDecl> {
-    let tokens = tokenize(source.to_string());
-    let mut parser = Parser::from(&tokens);
-    parser.parse();
-    parser.fn_decls
-}
-
-fn parser_struct(source: &str) -> Vec<StructDecl> {
-    let tokens = tokenize(source.to_string());
-    let mut parser = Parser::from(&tokens);
-    parser.parse();
-    parser.struct_decls
-}
+mod common;
+use common::{parse_fn, parser_struct};
 
 #[test]
 fn parses_empty_struct() {

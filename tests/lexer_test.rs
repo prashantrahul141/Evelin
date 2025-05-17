@@ -1,12 +1,7 @@
-use evelin::lexer::{Lexer, LiteralValue, TokenType};
+use common::tokenize;
+use evelin::lexer::{LiteralValue, TokenType};
 
-fn tokenize<T: Into<String>>(input: T) -> Vec<evelin::lexer::Token> {
-    let l = input.into();
-    let mut lexer = Lexer::from(&l);
-    lexer.start().unwrap();
-    let t = lexer.tokens();
-    (*t).clone()
-}
+mod common;
 
 #[test]
 fn test_single_char_tokens() {
