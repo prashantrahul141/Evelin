@@ -1,8 +1,8 @@
 use anyhow::{anyhow, bail};
 
 use crate::ast::{
-    BinExpr, CallExpr, DType, EveTypes, Expr, FieldAccessExpr, LiteralExpr, LiteralValue,
-    NativeCallExpr, UnaryExpr, VariableExpr,
+    AssignmentExpr, BinExpr, CallExpr, DType, EveTypes, Expr, FieldAccessExpr, LiteralExpr,
+    LiteralValue, NativeCallExpr, UnaryExpr, VariableExpr,
 };
 
 use super::TypeSystem;
@@ -10,6 +10,7 @@ use super::TypeSystem;
 impl TypeSystem<'_> {
     pub(super) fn check_expr(&self, expr: &mut Expr) -> anyhow::Result<DType> {
         match expr {
+            Expr::Assignment(ass) => self.check_assignment(ass),
             Expr::Binary(bin) => self.check_binary(bin),
             Expr::Call(call) => self.check_call(call),
             Expr::FieldAccess(fiac) => self.check_field_access(fiac),
@@ -19,6 +20,25 @@ impl TypeSystem<'_> {
             Expr::Variable(var) => self.check_var(var),
             Expr::Literal(lit) => Ok(self.check_literal(lit)),
         }
+    }
+
+    fn check_assignment(&self, ass: &mut AssignmentExpr) -> anyhow::Result<DType> {
+        let defined_val = self
+            .get_env(&ass.name)
+            .ok_or_else(|| anyhow!("Undefined '{}', line {}", &ass.name, ass.metadata.line))?;
+        let ty = self.check_expr(&mut ass.value)?;
+
+        if ty != *defined_val {
+            bail!(
+                "Cannot assign value of type '{}' to variable '{}' of type '{}'",
+                ty,
+                ass.name,
+                defined_val
+            );
+        }
+
+        ass.metadata.node_type = Some(ty.clone());
+        Ok(ty)
     }
 
     fn check_binary(&self, bin: &mut BinExpr) -> anyhow::Result<DType> {
