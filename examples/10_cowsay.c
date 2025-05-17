@@ -1,4 +1,4 @@
-// Compile using: cc -c 09_cowsay.c -o libcowsay.a
+// Compile using: cc -c 10_cowsay.c -o libcowsay.a
 
 #include <stdio.h>
 #include <string.h>

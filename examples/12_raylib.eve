@@ -1,4 +1,6 @@
 // This example demontrates how you can use an actual C library like raylib with Evelin.
+// First you need to download raylib static library (libraylib.a) and place it in the same directory as this file.
+// ref: https://github.com/raysan5/raylib/releases
 // Compile using: evelin 12_raylib.eve -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 
 fn main() -> void {

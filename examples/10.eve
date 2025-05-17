@@ -1,4 +1,6 @@
-// Compile using: evelin 09.eve -lcowsay -L.
+// First you need to compile the c library.
+// Open the file 10_cowsay.c present in the same directory
+// Compile using: evelin 10.eve -lcowsay -L.
 
 fn main() -> void {
   extern cowsay("Hi from Evelin!!");
