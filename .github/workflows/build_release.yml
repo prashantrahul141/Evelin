@@ -1,0 +1,33 @@
+name: Build release
+
+on:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build_release:
+    strategy:
+      fail-fast: true
+      matrix:
+        os: ["ubuntu-latest", "ubuntu-24.04-arm", "macos-13", "macos-latest"]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout repo recursively
+      uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+        fetch-depth: 1
+
+    - name: Build
+      run: cargo build --release --verbose
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts-${{ matrix.os }}
+        retention-days: 7
+        path: |
+          ./target/release/evelin
