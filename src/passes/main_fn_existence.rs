@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use colored::Colorize;
 
 use crate::ast::{FnDecl, StructDecl};
 
@@ -22,6 +23,9 @@ impl EvePassImmutable for MainFnExistence {
             return Ok((self.fn_decls.to_owned(), self.st_decls.to_owned()));
         }
 
-        Err(vec![anyhow!("No main function found.")])
+        Err(vec![anyhow!(
+            "No main function found.\nHelp: consider adding:\n{}",
+            "\nfn main() -> void {\n\tprint \"Hello, World\";\n}\n".green()
+        )])
     }
 }
