@@ -262,3 +262,7 @@ Then compile using:
 evelin raylib.eve -lraylib -L. -lGL -lm -lpthread -ldl -lrt -lX11
 ```
 Noe: The -L flag tells the linker where to find the Raylib library. '.' refers to the current directory.
+
+If Raylib is properly configured on your system. Running the output binary should yield something like:
+
+![Raylib via Evelin](./examples/raylib.png)
