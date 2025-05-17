@@ -67,17 +67,17 @@ pub fn init() -> anyhow::Result<()> {
     debug!("After passes = \n {:?}", struct_decls);
     debug!("After passes = \n {:?}", fn_decls);
 
-    let mut type_sys = type_sys::TypeSystem::new(&mut fn_decls, &mut struct_decls);
-    type_sys.check();
-    if type_sys.errors_count != 0 {
+    let type_sys = type_sys::TypeSystem::new(&mut fn_decls, &mut struct_decls);
+    let (type_error_count, fn_decls) = type_sys.check();
+    if type_error_count != 0 {
         bail!(
             "Failed to compile due to {} type error(s)",
-            type_sys.errors_count
+            type_error_count
         );
     }
 
-    debug!("After type check = \n {:?}", type_sys.st_decls());
-    debug!("After type check = \n {:?}", type_sys.fn_decls());
+    debug!("After typesys= \n {:?}", struct_decls);
+    debug!("After typesys= \n {:?}", fn_decls);
 
     let mut qbe_generator = QBEEmitter::from((&fn_decls, &struct_decls));
     let ir = qbe_generator.emit_ir()?;
