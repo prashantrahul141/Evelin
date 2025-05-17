@@ -1,13 +1,15 @@
-// Evelin has struct
-struct Vec2 {
-  x: float,
-  y: float
+// Loops in Evelin can also be done using recursion
+
+fn print_numbers_recursive(n: int) -> int {
+  if (n < 0) {
+    return;
+  }
+
+  print_numbers_recursive(n - 1);
+  print n;
+  print "\n";
 }
 
 fn main() -> void {
-  // struct initialization
-  let a = Vec2 { x: 1.0, y: 3.0 };
-  let b = Vec2 { x: 3.0, y: 4.0 };
-  let slope = (b.y - a.y)/(b.x - a.x);
-  print slope;
+  print_numbers_recursive(10);
 }
