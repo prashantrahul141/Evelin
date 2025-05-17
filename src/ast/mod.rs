@@ -62,6 +62,15 @@ impl TryFrom<&DType> for EveTypes {
     }
 }
 
+impl std::fmt::Display for DType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DType::Primitive(p) => write!(f, "{}", p),
+            DType::Derived(d) => write!(f, "{}", d),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BinOp {
     Add,          // +
