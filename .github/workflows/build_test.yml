@@ -1,4 +1,4 @@
-name: Rust
+name: Build test
 
 on:
   pull_request:
@@ -9,16 +9,20 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  build_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest", "ubuntu-24.04-arm", "macos-13", "macos-latest"]
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
     - name: Checkout repo recursively
       uses: actions/checkout@v4
       with:
         submodules: 'recursive'
-        fetch-depth: 0
+        fetch-depth: 1
 
     - name: Build
       run: cargo build --verbose
