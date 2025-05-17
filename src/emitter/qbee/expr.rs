@@ -1,6 +1,6 @@
 use crate::ast::{
-    BinExpr, BinOp, CallExpr, Expr, FieldAccessExpr, GroupExpr, LiteralExpr, LiteralValue,
-    NativeCallExpr, UnOp, UnaryExpr, VariableExpr,
+    AssignmentExpr, BinExpr, BinOp, CallExpr, Expr, FieldAccessExpr, GroupExpr, LiteralExpr,
+    LiteralValue, NativeCallExpr, UnOp, UnaryExpr, VariableExpr,
 };
 use crate::emitter::EmitterResult;
 use anyhow::{Context, bail};
@@ -18,6 +18,7 @@ impl QBEEmitter<'_> {
     ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
         trace!("emitting expr = {:?}", expr);
         match expr {
+            Expr::Assignment(ass) => self.emit_assignment(func, ass),
             Expr::Binary(bin) => self.emit_binary(func, bin),
             Expr::Call(call) => self.emit_call(func, call),
             Expr::FieldAccess(fiac) => self.emit_field_access(func, fiac),
@@ -27,6 +28,22 @@ impl QBEEmitter<'_> {
             Expr::Literal(lit) => self.emit_literal(func, lit),
             Expr::Variable(var) => self.emit_variable(var),
         }
+    }
+
+    /// Emits variable reassignment
+    fn emit_assignment(
+        &mut self,
+        func: &mut qbe::Function<'static>,
+        ass: &AssignmentExpr,
+    ) -> EmitterResult<(qbe::Type<'static>, qbe::Value)> {
+        let (ty, value) = self.emit_expr(func, &ass.value)?;
+        let result_value = self.get_var(&ass.name)?;
+        func.assign_instr(
+            result_value.1.clone(),
+            ty.clone(),
+            qbe::Instr::Copy(value.clone()),
+        );
+        Ok((ty, value))
     }
 
     /// Emit binary operation ast.
