@@ -204,6 +204,10 @@ impl TypeSystem<'_> {
 
     fn check_native_call(&self, na_call: &mut NativeCallExpr) -> anyhow::Result<DType> {
         let ty = DType::Primitive(EveTypes::Int);
+
+        for arg in na_call.args.iter_mut() {
+            self.check_expr(arg)?;
+        }
         na_call.metadata.node_type = Some(ty.clone());
         Ok(ty)
     }
