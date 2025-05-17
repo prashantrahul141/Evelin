@@ -183,8 +183,12 @@ impl QBEEmitter<'_> {
         func.add_block(&loop_start_label);
         self.emit_stmt(func, &loop_stmt.body)?;
 
-        func.add_instr(qbe::Instr::Jmp(loop_start_label));
+        if !func.blocks.last().is_some_and(|b| b.jumps()) {
+            func.add_instr(qbe::Instr::Jmp(loop_start_label));
+        }
+
         func.add_block(loop_end_label);
+        self.loop_scopes.pop();
 
         Ok(())
     }
@@ -197,7 +201,7 @@ impl QBEEmitter<'_> {
     ) -> EmitterResult<()> {
         let loop_id = self
             .loop_scopes
-            .pop()
+            .last()
             .context("break used inside a non loop scope")?;
         let loop_end_label = format!("loop.{}.end", loop_id);
         func.add_instr(qbe::Instr::Jmp(loop_end_label));
