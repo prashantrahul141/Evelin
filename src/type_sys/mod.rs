@@ -3,6 +3,8 @@ mod stmt;
 
 use std::collections::HashMap;
 
+use log::{debug, trace};
+
 use crate::{
     ast::{DType, FnDecl, Stmt, StructDecl},
     utils::{ErrorType, MessageType, report_message},
@@ -18,6 +20,7 @@ pub struct TypeSystem<'a> {
 
 impl<'a> TypeSystem<'a> {
     pub fn new(fn_decls: &'a mut Vec<FnDecl>, st_decls: &'a mut Vec<StructDecl>) -> Self {
+        debug!("creating new type checker");
         Self {
             fn_decls,
             st_decls,
@@ -26,22 +29,28 @@ impl<'a> TypeSystem<'a> {
         }
     }
 
-    pub fn check(&mut self) {
-        let mut local_fn_decls: Vec<_> = std::mem::take(self.fn_decls);
-        for i in &mut local_fn_decls {
-            self.check_fn(i)
-        }
-        *self.fn_decls = local_fn_decls;
-    }
+    pub fn check(mut self) -> (usize, Vec<FnDecl>) {
+        debug!("running type check");
+        let mut fns = vec![];
+        for mut fn_decl in self.fn_decls.clone() {
+            trace!("checking function : '{}'", &fn_decl.name);
+            self.env.clear();
 
-    fn check_fn(&mut self, fn_decl: &mut FnDecl) {
-        self.env.clear();
-        for stmt in &mut fn_decl.body {
-            if let Err(e) = self.check_stmt(stmt) {
-                self.errors_count += 1;
-                Self::report_msg(e.to_string());
+            if let Some(p) = &fn_decl.parameter {
+                self.def_env(p.field_name.clone(), p.field_type.clone());
             }
+
+            for stmt in &mut fn_decl.body {
+                if let Err(e) = self.check_stmt(stmt) {
+                    self.errors_count += 1;
+                    Self::report_msg(e.to_string());
+                }
+            }
+            trace!("checked function : '{}'", &fn_decl.name);
+            fns.push(fn_decl);
         }
+
+        (self.errors_count, fns)
     }
 
     pub(super) fn check_stmt(&mut self, stmt: &mut Stmt) -> Result<DType, anyhow::Error> {
@@ -59,21 +68,20 @@ impl<'a> TypeSystem<'a> {
     }
 
     pub(super) fn def_env(&mut self, name: String, ty: DType) -> Option<DType> {
-        self.env.insert(name, ty)
+        trace!("defining var: {} of type : {}", &name, &ty);
+        let l = self.env.insert(name, ty);
+        trace!("env: {:?}", self.env);
+        l
     }
 
     pub(super) fn get_env(&self, name: &String) -> Option<&DType> {
-        self.env.get(name)
+        trace!("retrieve var: {}", &name);
+        let l = self.env.get(name);
+        trace!("env: {:?}", self.env);
+        l
     }
 
     fn report_msg<M: Into<String>>(msg: M) {
         report_message(msg.into(), MessageType::Error(ErrorType::TypeError))
-    }
-
-    pub fn fn_decls(&self) -> &Vec<FnDecl> {
-        self.fn_decls
-    }
-    pub fn st_decls(&self) -> &Vec<StructDecl> {
-        self.st_decls
     }
 }
