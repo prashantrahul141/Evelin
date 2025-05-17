@@ -62,6 +62,15 @@ impl TryFrom<&DType> for EveTypes {
     }
 }
 
+impl std::fmt::Display for DType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DType::Primitive(p) => write!(f, "{}", p),
+            DType::Derived(d) => write!(f, "{}", d),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BinOp {
     Add,          // +
@@ -209,6 +218,13 @@ pub struct VariableExpr {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct AssignmentExpr {
+    pub name: String,
+    pub value: Expr,
+    pub metadata: Metadata,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
     Binary(Box<BinExpr>),
     Call(Box<CallExpr>),
@@ -218,6 +234,7 @@ pub enum Expr {
     Grouping(Box<GroupExpr>),
     Variable(Box<VariableExpr>),
     Literal(LiteralExpr),
+    Assignment(Box<AssignmentExpr>),
 }
 
 impl std::fmt::Display for Expr {
@@ -243,6 +260,7 @@ impl std::fmt::Display for Expr {
             Expr::Grouping(gr) => write!(f, "({})", gr.value),
             Expr::Variable(var) => write!(f, "{}", var.name),
             Expr::Literal(lit) => write!(f, "{}", lit.value),
+            Expr::Assignment(ass) => write!(f, "{} = {}", ass.name, ass.value),
         }
     }
 }
@@ -259,6 +277,7 @@ impl Deref for Expr {
             Expr::Grouping(group) => &group.metadata,
             Expr::Variable(var) => &var.metadata,
             Expr::Literal(lit) => &lit.metadata,
+            Expr::Assignment(ass) => &ass.metadata,
         }
     }
 }
@@ -274,6 +293,7 @@ impl DerefMut for Expr {
             Expr::Grouping(group) => &mut group.metadata,
             Expr::Variable(var) => &mut var.metadata,
             Expr::Literal(lit) => &mut lit.metadata,
+            Expr::Assignment(ass) => &mut ass.metadata,
         }
     }
 }

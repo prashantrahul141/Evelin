@@ -38,7 +38,9 @@ return_stmt     ::=     "return" expression? ";" ;
 
 expression_stmt ::=     expression ";" ;
 
-expression      ::=     logic_or ;
+expression      ::=     assignment ;
+
+assignment      ::=     IDENTIFIER "=" assignment | logic_or ;
 
 logic_or        ::=     logic_and ( "or" logic_and )* ;
 

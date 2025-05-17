@@ -1,17 +1,49 @@
 use super::{MAX_NATIVE_FUNCTION_ARITY, Parser, ParserResult};
 
-use anyhow::bail;
+use anyhow::{Context, bail};
 use log::trace;
 
 use crate::ast::{
-    BinExpr, BinOp, CallExpr, Expr, FieldAccessExpr, GroupExpr, LiteralExpr, LiteralValue,
-    Metadata, NativeCallExpr, TokenType, UnOp, UnaryExpr, VariableExpr,
+    AssignmentExpr, BinExpr, BinOp, CallExpr, Expr, FieldAccessExpr, GroupExpr, LiteralExpr,
+    LiteralValue, Metadata, NativeCallExpr, TokenType, UnOp, UnaryExpr, VariableExpr,
 };
 
 impl Parser<'_> {
     /// Parses top-level expressions.
     pub(super) fn expr(&mut self) -> ParserResult<Expr> {
-        self.or()
+        self.assignment()
+    }
+
+    fn assignment(&mut self) -> ParserResult<Expr> {
+        let expr = self.or()?;
+
+        if self.match_token(&[TokenType::Equal]) {
+            let metadata = Metadata {
+                line: self.previous().line,
+                node_type: None,
+            };
+
+            let value = self
+                .assignment()
+                .context(format!("Invalid assignment, line {}", self.current().line))?;
+
+            match expr {
+                Expr::Variable(expr) => {
+                    let name = expr.name;
+                    return Ok(Expr::Assignment(Box::new(AssignmentExpr {
+                        name,
+                        value,
+                        metadata,
+                    })));
+                }
+                _ => bail!(
+                    "Cannot assign to non-variable type, line {}",
+                    self.current().line
+                ),
+            };
+        }
+
+        Ok(expr)
     }
 
     /// parses logical or expressions

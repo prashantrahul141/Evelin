@@ -16,6 +16,7 @@ impl QBEEmitter<'_> {
         ty: qbe::Type<'static>,
         name: String,
     ) -> EmitterResult<qbe::Value> {
+        trace!("creating a new variable: {}", &name);
         if self.get_var(&name).is_ok() {
             bail!("Re-declaration of variable : {}", name);
         }
