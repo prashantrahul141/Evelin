@@ -58,7 +58,7 @@ impl QBEEmitter<'_> {
         let tmp = self.new_tmp();
 
         let ty = qbe::Type::try_from(&expr.metadata.node_type.clone().unwrap())?;
-        if matches!(ty_left, qbe::Type::Double) {
+        if matches!(ty_left, qbe::Type::Double) && !matches!(ty_right, qbe::Type::Double) {
             let promoted = self.new_tmp();
             func.assign_instr(promoted.clone(), qbe::Type::Long, qbe::Instr::Extsw(right));
 
@@ -71,7 +71,7 @@ impl QBEEmitter<'_> {
             right = new_right;
         }
 
-        if matches!(ty_right, qbe::Type::Double) {
+        if matches!(ty_right, qbe::Type::Double) && !matches!(ty_left, qbe::Type::Double) {
             let promoted = self.new_tmp();
             func.assign_instr(promoted.clone(), qbe::Type::Long, qbe::Instr::Extsw(left));
 
