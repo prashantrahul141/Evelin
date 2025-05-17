@@ -1,4 +1,5 @@
 use anyhow::{anyhow, bail};
+use log::trace;
 
 use crate::ast::{
     AssignmentExpr, BinExpr, CallExpr, DType, EveTypes, Expr, FieldAccessExpr, LiteralExpr,
@@ -127,12 +128,19 @@ impl TypeSystem<'_> {
     }
 
     fn check_call(&self, call: &mut CallExpr) -> anyhow::Result<DType> {
+        trace!("checking function call");
         let fn_name = match &call.callee {
             Expr::Variable(var) => &var.name,
             _ => bail!("callee is not a identifier, line {}", call.metadata.line),
         };
+        trace!("checking function call with fn_name = '{}'", &fn_name);
+
+        if let Some(expr) = &mut call.arg {
+            self.check_expr(expr)?;
+        }
+
         let fn_decl = match self.fn_decls.iter().find(|x| &x.name == fn_name) {
-            Some(fn_decl) => fn_decl,
+            Some(f) => f,
             None => bail!(
                 "Function '{}' not defined, line {}",
                 fn_name,
@@ -213,7 +221,7 @@ impl TypeSystem<'_> {
         }
 
         bail!(
-            "Variable '{}' is not defined, line {}",
+            "Variable '{}' not defined, line {}",
             &var.name,
             var.metadata.line
         )
